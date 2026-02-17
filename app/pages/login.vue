@@ -1,4 +1,7 @@
-<script setup lang="ts">
+<script
+	setup
+	lang="ts"
+>
 	import * as z from 'zod';
 	import { ref, computed } from 'vue';
 	import type {
@@ -59,10 +62,16 @@
 		},
 		{
 			label: 'About',
-			to: '/docs/components',
+			to: '/about',
 			icon: 'i-lucide-box',
 			active: route.path.startsWith('/docs/components'),
 		},
+		{
+			label: 'Approved Scholars',
+			to: '/user_dashboard',
+			icon: 'i-lucide-lightbulb',
+			active: route.path.startsWith('/user_dashboard') // highlight when on About or its subpages
+		}
 	]);
 
 	const dropdownItems = ref<DropdownMenuItem[]>([
@@ -86,55 +95,34 @@
 		<template #right>
 			<UColorModeButton />
 			<div class="flex items-center gap-2">
-				<UButton to="/login">Login</UButton>
 
-				<UDropdownMenu
-					:items="dropdownItems"
-					:content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
+
+				<UDropdownMenu :items="dropdownItems" :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
 					:ui="{ content: 'w-48' }">
-					<UButton
-						icon="i-lucide-menu"
-						color="neutral"
-						variant="ghost" />
+					<UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
 				</UDropdownMenu>
 			</div>
 		</template>
 
 		<template #body>
-			<UNavigationMenu
-				:items="items"
-				orientation="vertical"
-				class="-mx-2.5" />
+			<UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
 		</template>
 	</UHeader>
 
 	<div class="flex flex-col items-center justify-center gap-4 p-4">
 		<UPageCard class="w-full max-w-md">
-			<UAuthForm
-				:schema="schema"
-				:fields="fields"
-				title="Admin Login"
-				icon="i-lucide-shield"
-				submit-label="Log in"
+			<UAuthForm :schema="schema" :fields="fields" title="Admin Login" icon="i-lucide-shield" submit-label="Log in"
 				@submit="onSubmit">
 				<template #submit>
 					<div class="flex justify-center mt-4">
-						<UButton
-							type="submit"
-							color="primary"
-							class="w-1/2 flex justify-center items-center">
+						<UButton type="submit" color="primary" class="w-1/2 flex justify-center items-center">
 							Log in
 						</UButton>
 					</div>
 				</template>
 
-				<template
-					#validation
-					v-if="loginError">
-					<UAlert
-						color="error"
-						icon="i-lucide-info"
-						title="Invalid admin credentials" />
+				<template #validation v-if="loginError">
+					<UAlert color="error" icon="i-lucide-info" title="Invalid admin credentials" />
 				</template>
 
 				<template #footer> Authorized administrators only. </template>
