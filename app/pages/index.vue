@@ -1,88 +1,38 @@
-<script
-	setup
-	lang="ts"
->
-	import type {
-		NavigationMenuItem,
-		DropdownMenuItem,
-		ButtonProps,
-	} from '@nuxt/ui';
+<script setup lang="ts">
+import type { ButtonProps } from "@nuxt/ui";
 
-	const route = useRoute();
+definePageMeta({
+	layout: "landing",
+});
 
-	const items = computed<NavigationMenuItem[]>(() => [
-		{
-			label: 'Home',
-			to: '/',
-			icon: 'i-lucide-book-open',
-			active: route.path.startsWith('/'),
-		},
-		{
-			label: 'About',
-			to: '/about',
-			icon: 'i-lucide-box',
-			active: route.path.startsWith('/docs/components'),
-		},
-		{
-			label: 'Approved Scholars',
-			to: '/user_dashboard',
-			icon: 'i-lucide-lightbulb',
-			active: route.path.startsWith('/user_dashboard') // highlight when on About or its subpages
-		}
-	]);
-
-	const dropdownItems = ref<DropdownMenuItem[]>([
-		{ label: 'Contacts', icon: 'i-lucide-user', to: '/profile' },
-		{ label: 'Help', icon: 'i-lucide-credit-card', to: '/billing' },
-		{ label: 'Settings', icon: 'i-lucide-cog', to: '/settings' },
-	]);
-
-	const links = ref<ButtonProps[]>([
-		{
-			label: 'Approved Scholars',
-			to: '/user_dashboard',
-			icon: 'i-lucide-square-play',
-		},
-		{
-			label: 'Learn more',
-			to: '/about',
-			color: 'neutral',
-			variant: 'subtle',
-			trailingIcon: 'i-lucide-arrow-right',
-		},
-	]);
+const links = ref<ButtonProps[]>([
+	{
+		label: "Approved Scholars",
+		to: "/approved-scholars",
+		icon: "i-lucide-square-play",
+	},
+	{
+		label: "Learn more",
+		to: "/about",
+		color: "neutral",
+		variant: "subtle",
+		trailingIcon: "i-lucide-arrow-right",
+	},
+]);
 </script>
 
 <template>
-	<UHeader toggle-side="left">
-		<template #title>
-			<div class="flex items-center gap-2">
-				<Logo class="h-6 w-auto" />
-				<span class="font-semibold">CPSU Scholarship</span>
-			</div>
-		</template>
-
-		<UNavigationMenu :items="items" />
-
-		<template #right>
-			<UColorModeButton />
-			<div class="flex items-center gap-2">
-				<UButton to="/login">Login</UButton>
-
-				<UDropdownMenu :items="dropdownItems" :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
-					:ui="{ content: 'w-48' }">
-					<UButton icon="i-lucide-menu" color="neutral" variant="ghost" />
-				</UDropdownMenu>
-			</div>
-		</template>
-
-		<template #body>
-			<UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
-		</template>
-	</UHeader>
-
-	<UPageHero title="CPSU Scholarship" description="Track your application status and get a scholarship!"
-		headline="Now Approved Applicants" orientation="horizontal" :links="links">
-		<img src="" alt="Scholarship img" class="rounded-lg shadow-2xl ring ring-default" />
+	<UPageHero
+		title="CPSU Scholarship"
+		description="Track your application status and get a scholarship!"
+		headline="Now Approved Applicants"
+		orientation="horizontal"
+		:links="links"
+	>
+		<img
+			src=""
+			alt="Scholarship img"
+			class="rounded-lg shadow-2xl ring ring-default"
+		/>
 	</UPageHero>
 </template>
