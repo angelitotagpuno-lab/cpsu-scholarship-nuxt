@@ -5,8 +5,24 @@
 	"editor.quickSuggestions": {
 		"strings": "on"
 	},
-	"tailwindCSS.classAttributes": ["class", "ui"],
+	"tailwindCSS.classAttributes": [
+		"class",
+		"ui"
+	],
 	"tailwindCSS.experimental.classRegex": [
-		["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-	]
+		[
+			"ui:\\s*{([^)]*)\\s*}",
+			"(?:'|\"|`)([^']*)(?:'|\"|`)"
+		]
+	],
+	"editor.tabSize": 2,
+	"editor.insertSpaces": false,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[vue]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
 }
