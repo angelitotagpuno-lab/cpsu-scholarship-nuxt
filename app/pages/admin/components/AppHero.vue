@@ -21,11 +21,8 @@
 </script>
 
 <template>
-
-	<UPageHero class="pt-0" title="CPSU Scholarship" description="Track your application status and get a scholarship!"
+	<UPageHero title="CPSU Scholarship" description="Track your application status and get a scholarship!"
 		headline="Now Approved Applicants" orientation="horizontal" :links="links">
-
 		<img src="/logo.png" alt="Scholarship img" class="rounded-lg shadow-2xl ring ring-default" />
 	</UPageHero>
-
 </template>
