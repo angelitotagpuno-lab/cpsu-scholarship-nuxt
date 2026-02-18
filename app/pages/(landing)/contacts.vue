@@ -1,73 +1,57 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useRoute } from "vue-router";
-
-const route = useRoute();
-
-const items = computed(() => [
-	{
-		label: "Home",
-		to: "/",
-		icon: "i-lucide-book-open",
-		active: route.path === "/",
-	},
-	{
-		label: "About",
-		to: "/about",
-		icon: "i-lucide-box",
-		active: route.path.startsWith("/about"),
-	},
-	{
-		label: "Approved Scholars",
-		to: "/approved-scholars",
-		icon: "i-lucide-lightbulb",
-		active: route.path.startsWith("/approved-scholars"),
-	},
-]);
-
-const dropdownItems = [
-	{ label: "Contacts", icon: "i-lucide-user", to: "/profile" },
-	{ label: "Help", icon: "i-lucide-credit-card", to: "/billing" },
-	{ label: "Settings", icon: "i-lucide-cog", to: "/settings" },
-];
+definePageMeta({
+	layout: "landing",
+});
 </script>
 
 <template>
-	<UHeader toggle-side="left">
-		<template #title>
-			<div class="flex items-center gap-2">
-				<Logo class="h-6 w-auto" />
-				<span class="font-semibold">CPSU Scholarship</span>
+	<div
+		class="flex flex-col lg:flex-row bg-white dark:bg-gray-950 text-gray-900 dark:text-white p-8 gap-8 lg:gap-16"
+	>
+		<div class="flex-1 flex flex-col gap-6">
+			<h1 class="text-4xl font-bold">Contact us</h1>
+			<p class="text-gray-600 dark:text-gray-400">
+				Get in touch with us for any enquiries and questions
+			</p>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+				<div>
+					<h3 class="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+						General inquiries
+					</h3>
+					<p class="font-medium">work@horizonstudio.work</p>
+					<p class="font-medium">+7 911 296 92 17</p>
+				</div>
+
+				<div>
+					<h3 class="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">Careers</h3>
+					<p class="font-medium">hr@horizonstudio.work</p>
+				</div>
+
+				<div>
+					<h3 class="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+						Collaborations
+					</h3>
+					<p class="font-medium">n.karpova@horizonstudio.work</p>
+					<p class="font-medium">+7 931 212-16-07</p>
+				</div>
+
+				<div>
+					<h3 class="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">Address</h3>
+					<p class="font-medium">191189, St. Petersburg</p>
+					<p class="font-medium">Moika River Embankment 67-69</p>
+				</div>
 			</div>
-		</template>
+		</div>
 
-		<UNavigationMenu :items="items" />
-
-		<template #right>
-			<UColorModeButton />
-			<div class="flex items-center gap-2">
-				<UButton to="/login">Login</UButton>
-
-				<UDropdownMenu
-					:items="dropdownItems"
-					:content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
-					:ui="{ content: 'w-48' }"
-				>
-					<UButton
-						icon="i-lucide-menu"
-						color="neutral"
-						variant="ghost"
-					/>
-				</UDropdownMenu>
-			</div>
-		</template>
-
-		<template #body>
-			<UNavigationMenu
-				:items="items"
-				orientation="vertical"
-				class="-mx-2.5"
-			/>
-		</template>
-	</UHeader>
+		<div class="flex-1 flex justify-center">
+			<UCard class="overflow-hidden rounded-xl shadow-md max-w-md">
+				<img
+					src="/contact.png"
+					alt="Contact Illustration"
+					class="w-full h-auto"
+				/>
+			</UCard>
+		</div>
+	</div>
 </template>

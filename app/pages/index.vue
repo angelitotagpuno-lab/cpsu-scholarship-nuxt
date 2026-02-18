@@ -8,7 +8,7 @@ definePageMeta({
 const links = ref<ButtonProps[]>([
 	{
 		label: "Approved Scholars",
-		to: "/approved-scholars",
+		to: "/home",
 		icon: "i-lucide-square-play",
 	},
 	{
@@ -30,10 +30,9 @@ const links = ref<ButtonProps[]>([
 		:links="links"
 	>
 		<img
-			src=""
+			src="/logo.png"
 			alt="Scholarship img"
 			class="rounded-lg shadow-2xl ring ring-default"
 		/>
 	</UPageHero>
-
 </template>

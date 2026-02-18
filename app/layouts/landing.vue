@@ -1,74 +1,60 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { useRoute } from "vue-router";
+import type { NavigationMenuItem, DropdownMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
 
-const items = computed(() => [
-	{
-		label: "Home",
-		to: "/",
-		icon: "i-lucide-book-open",
-		active: route.path === "/",
-	},
+const items = computed<NavigationMenuItem[]>(() => [
+	{ label: "Homepage", to: "/home", icon: "i-lucide-book-open", active: route.path === "/home" },
 	{
 		label: "About",
 		to: "/about",
 		icon: "i-lucide-box",
 		active: route.path.startsWith("/about"),
 	},
-	{
-		label: "Approved Scholars",
-		to: "/approved-scholars",
-		icon: "i-lucide-lightbulb",
-		active: route.path.startsWith("/approved-scholars"),
-	},
 ]);
 
-const dropdownItems = [
+const dropdownItems = ref<DropdownMenuItem[]>([
 	{ label: "Contacts", icon: "i-lucide-user", to: "/contacts" },
-	{ label: "Help", icon: "i-lucide-credit-card", to: "/billing" },
-	{ label: "Settings", icon: "i-lucide-cog", to: "/settings" },
-];
+	{ label: "Help", icon: "i-lucide-credit-card", to: "/help" },
+	{ label: "Guide", icon: "i-lucide-cog", to: "/guidelines" },
+]);
 </script>
 
 <template>
-	<u-header toggle-side="left">
-		<template #title>
-			<div class="flex items-center gap-2">
-				<Logo class="h-6 w-auto" />
-				<span class="font-semibold">CPSU Scholarship</span>
-			</div>
-		</template>
+	<div>
+		<!-- Shared Header -->
+		<UHeader toggle-side="left">
+			<template #title>
+				<div class="flex items-center gap-2">
+					<Logo class="h-6 w-auto" />
+					<span class="font-semibold">CPSU Scholarship</span>
+				</div>
+			</template>
 
-		<UNavigationMenu :items="items" />
+			<UNavigationMenu :items="items" />
 
-		<template #right>
-			<UColorModeButton />
-			<div class="flex items-center gap-2">
-				<UButton to="/login">Login</UButton>
+			<template #right>
+				<UColorModeButton />
+				<div class="flex items-center gap-2">
+					<UButton to="/login">Login</UButton>
 
-				<UDropdownMenu
-					:items="dropdownItems"
-					:content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
-					:ui="{ content: 'w-48' }"
-				>
-					<UButton
-						icon="i-lucide-menu"
-						color="neutral"
-						variant="ghost"
-					/>
-				</UDropdownMenu>
-			</div>
-		</template>
+					<UDropdownMenu
+						:items="dropdownItems"
+						:content="{ align: 'end' }"
+					>
+						<UButton
+							icon="i-lucide-menu"
+							color="neutral"
+							variant="ghost"
+						/>
+					</UDropdownMenu>
+				</div>
+			</template>
+		</UHeader>
 
-		<template #body>
-			<UNavigationMenu
-				:items="items"
-				orientation="vertical"
-				class="-mx-2.5"
-			/>
-		</template>
-	</u-header>
-	<slot />
+		<!-- Page Content -->
+		<main class="p-1">
+			<slot />
+		</main>
+	</div>
 </template>
