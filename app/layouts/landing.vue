@@ -4,12 +4,18 @@ import type { NavigationMenuItem, DropdownMenuItem } from "@nuxt/ui";
 const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
-	{ label: "Homepage", to: "/home", icon: "i-lucide-book-open", active: route.path === "/home" },
+	{ label: "Home", to: "/", icon: "i-lucide-book-open", active: route.path === "/" },
 	{
 		label: "About",
 		to: "/about",
 		icon: "i-lucide-box",
 		active: route.path.startsWith("/about"),
+	},
+	{
+		label: "Contacts",
+		to: "/contacts",
+		icon: "i-lucide-user",
+		active: route.path.startsWith("/contacts"),
 	},
 ]);
 

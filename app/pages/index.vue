@@ -8,7 +8,7 @@ definePageMeta({
 const links = ref<ButtonProps[]>([
 	{
 		label: "Approved Scholars",
-		to: "/home",
+		to: "/user/approved-scholars",
 		icon: "i-lucide-square-play",
 	},
 	{
