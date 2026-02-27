@@ -3,6 +3,10 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 
 	css: ["~/assets/css/main.css"],
+	runtimeConfig: {
+		supabaseUrl: process.env.NUXT_SUPABASE_URL,
+		supabaseKey: process.env.NUXT_SUPABASE_PUBLISHABLE_KEY,
+	},
 	compatibilityDate: "2025-07-15",
 	eslint: {
 		config: {
