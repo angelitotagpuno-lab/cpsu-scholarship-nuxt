@@ -8,7 +8,7 @@ definePageMeta({
 	layout: "landing",
 });
 
-const toast = useToast();
+const authStore = useAuthStore();
 const loginError = ref(false);
 
 const fields: AuthFormField[] = [
@@ -30,20 +30,18 @@ const fields: AuthFormField[] = [
 
 const schema = z.object({
 	email: z.string().email("Invalid email"),
-	password: z.string().min(8, "Must be at least 8 characters"),
+	password: z.string().min(1, "Must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	const { email, password } = payload.data;
 
-	if (email === "admin@cpsu.edu" && password === "admin1234") {
-		toast.add({ title: "Success", description: "Logging in..." });
-		navigateTo("/admin/home");
-	} else {
-		loginError.value = true;
-	}
+	await authStore.signin(email, password);
+	loginError.value = !!authStore.error;
+
+	if (authStore.user) await navigateTo("/admin/home");
 }
 </script>
 
