@@ -40,7 +40,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 
 	if (email === "admin@cpsu.edu" && password === "admin1234") {
 		toast.add({ title: "Success", description: "Logging in..." });
-		navigateTo("/admin/dashboard");
+		navigateTo("/admin/home");
 	} else {
 		loginError.value = true;
 	}

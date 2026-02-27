@@ -7,21 +7,24 @@ definePageMeta({
 
 const features = ref<PageFeatureProps[]>([
 	{
-		title: "Icons",
-		description: "Nuxt UI integrates with Nuxt Icon to access over 200,000+ icons from Iconify.",
-		icon: "i-lucide-smile",
+		title: "View Approved Scholars",
+		description:
+			"Users can easily view the list of students who have been approved for the scholarship program based on the system evaluation.",
+		icon: "i-lucide-user-check",
 		to: "",
 	},
 	{
-		title: "Fonts",
-		description: "Nuxt UI integrates with Nuxt Fonts to provide plug-and-play font optimization.",
-		icon: "i-lucide-a-large-small",
+		title: "Transparent Scholarship Results",
+		description:
+			"The system ensures transparency by displaying approved applicants with their academic qualifications and eligibility results.",
+		icon: "i-lucide-award",
 		to: "",
 	},
 	{
-		title: "Color Mode",
-		description: "Nuxt UI integrates with Nuxt Color Mode to switch between light and dark.",
-		icon: "i-lucide-sun-moon",
+		title: "Fast and Accessible",
+		description:
+			"Students can quickly check scholarship results online without needing to visit the office or wait for manual announcements.",
+		icon: "i-lucide-monitor",
 		to: "",
 	},
 ]);
@@ -29,8 +32,9 @@ const features = ref<PageFeatureProps[]>([
 
 <template>
 	<UPageSection
-		title="Beautiful Vue UI components"
-		description="Nuxt UI provides a comprehensive suite of components and utilities to help you build beautiful and accessible web applications with Vue and Nuxt."
+		title="Scholarship Eligibility and Approved Applicants"
+		description="This system allows students to view the list of approved scholarship applicants. The results are generated using data analytics and eligibility evaluation to ensure fairness and transparency."
 		:features="features"
-	/>
+	>
+	</UPageSection>
 </template>

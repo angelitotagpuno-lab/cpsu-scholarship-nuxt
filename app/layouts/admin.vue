@@ -95,12 +95,18 @@ const items = computed<NavigationMenuItem[][]>(() => [
 		{
 			label: "Home",
 			icon: "i-lucide-house",
+			to: "/admin/home",
+			active: route.path === "/admin/home",
+		},
+		{
+			label: "Dashboard",
+			icon: "i-lucide-inbox",
 			to: "/admin/dashboard",
 			active: route.path === "/admin/dashboard",
 		},
 		{
 			label: "Files",
-			icon: "i-lucide-inbox",
+			icon: "i-lucide-table",
 			badge: "",
 			to: "/admin/files",
 			active: route.path === "/admin/files",
@@ -112,39 +118,10 @@ const items = computed<NavigationMenuItem[][]>(() => [
 			active: route.path === "/admin/applicants",
 		},
 		{
-			label: "Settings",
-			icon: "i-lucide-settings",
-			children: [
-				{
-					label: "General",
-					to: "/settings/general",
-					active: route.path === "/settings/general",
-				},
-				{
-					label: "Members",
-					to: "/settings/members",
-					active: route.path === "/settings/members",
-				},
-				{
-					label: "Notifications",
-					to: "/settings/notifications",
-					active: route.path === "/settings/notifications",
-				},
-			],
-		},
-	],
-	[
-		{
-			label: "Feedback",
-			icon: "i-lucide-message-circle",
-			to: "https://github.com/nuxt-ui-templates/dashboard",
-			target: "_blank",
-		},
-		{
-			label: "Help & Support",
-			icon: "i-lucide-info",
-			to: "https://github.com/nuxt/ui",
-			target: "_blank",
+			label: "Help",
+			icon: "i-lucide-book",
+			to: "/admin/help",
+			active: route.path === "/admin/help",
 		},
 	],
 ]);
