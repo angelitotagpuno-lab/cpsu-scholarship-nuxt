@@ -35,7 +35,7 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 		await store.login(email, password);
 		await navigateTo("/admin/home");
 	} catch {
-		// handled in store
+		store.errorMessage = "Invalid credentials";
 	}
 }
 </script>
@@ -52,7 +52,7 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 				@submit="onSubmit"
 			>
 				<template
-					v-if="store.isAuthenticated"
+					v-if="store.errorMessage"
 					#validation
 				>
 					<UAlert

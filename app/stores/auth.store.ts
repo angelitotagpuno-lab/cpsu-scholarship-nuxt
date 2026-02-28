@@ -29,7 +29,6 @@ export const useAuthStore = defineStore("auth", () => {
 		} catch {
 			errorMessage.value = "Invalid credentials";
 			user.value = null;
-			throw new Error("Auth failed");
 		} finally {
 			isLoading.value = false;
 		}

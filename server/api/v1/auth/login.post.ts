@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
 			statusMessage: "Invalid credentials",
 		});
 	}
+	console.log("here" + data + " " + error);
 
 	setCookie(event, "auth_token", data.session.access_token, {
 		httpOnly: true,
