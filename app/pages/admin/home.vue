@@ -1,5 +1,58 @@
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import type { TableColumn } from "@nuxt/ui";
+
+definePageMeta({ layout: "admin" });
+
+type Applicant = {
+	firstName: string;
+	lastName: string;
+	gpa: number;
+	eligibility: string;
+};
+
+// Example dataset
+const applicants = ref<Applicant[]>([
+	{ firstName: "Juan", lastName: "Dela Cruz", gpa: 1.75, eligibility: "Approved" },
+	{ firstName: "Maria", lastName: "Santos", gpa: 2.1, eligibility: "Eligible" },
+	{ firstName: "Pedro", lastName: "Reyes", gpa: 2.5, eligibility: "Not Eligible" },
+	{ firstName: "Ana", lastName: "Lopez", gpa: 1.8, eligibility: "Approved" },
+	{ firstName: "Mark", lastName: "Rivera", gpa: 1.9, eligibility: "Eligible" },
+	{ firstName: "Liza", lastName: "Ramos", gpa: 2.3, eligibility: "Not Eligible" },
+]);
+
+// Metrics
+const totalApplicants = computed(() => applicants.value.length);
+const approvedCount = computed(
+	() => applicants.value.filter((a) => a.eligibility === "Approved").length,
+);
+const eligibleCount = computed(
+	() => applicants.value.filter((a) => a.eligibility === "Eligible").length,
+);
+const notEligibleCount = computed(
+	() => applicants.value.filter((a) => a.eligibility === "Not Eligible").length,
+);
+
+// Speculative predictions
+const predictedEligibility = ref([
+	{ label: "Likely Approved", value: 4, color: "success" },
+	{ label: "Likely Eligible", value: 3, color: "primary" },
+	{ label: "Likely Not Eligible", value: 2, color: "error" },
+]);
+
+// Recent Applicants Table
+const recentApplicants = computed(() => applicants.value.slice(0, 5));
+
+const columns: TableColumn<Applicant>[] = [
+	{ accessorKey: "lastName", header: "Last Name" },
+	{ accessorKey: "firstName", header: "First Name" },
+	{ accessorKey: "gpa", header: "GPA" },
+	{ accessorKey: "eligibility", header: "Eligibility" },
+];
+</script>
+
 <template>
-	<div class="p-6 space-y-6">
+	<div class="h-full overflow-y-auto p-6 space-y-6">
 		<!-- Page Header -->
 		<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 			<h1 class="text-2xl font-bold">Admin Dashboard Home</h1>
@@ -86,56 +139,3 @@
 		</UCard>
 	</div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from "vue";
-import type { TableColumn } from "@nuxt/ui";
-
-definePageMeta({ layout: "admin" });
-
-type Applicant = {
-	firstName: string;
-	lastName: string;
-	gpa: number;
-	eligibility: string;
-};
-
-// Example dataset
-const applicants = ref<Applicant[]>([
-	{ firstName: "Juan", lastName: "Dela Cruz", gpa: 1.75, eligibility: "Approved" },
-	{ firstName: "Maria", lastName: "Santos", gpa: 2.1, eligibility: "Eligible" },
-	{ firstName: "Pedro", lastName: "Reyes", gpa: 2.5, eligibility: "Not Eligible" },
-	{ firstName: "Ana", lastName: "Lopez", gpa: 1.8, eligibility: "Approved" },
-	{ firstName: "Mark", lastName: "Rivera", gpa: 1.9, eligibility: "Eligible" },
-	{ firstName: "Liza", lastName: "Ramos", gpa: 2.3, eligibility: "Not Eligible" },
-]);
-
-// Metrics
-const totalApplicants = computed(() => applicants.value.length);
-const approvedCount = computed(
-	() => applicants.value.filter((a) => a.eligibility === "Approved").length,
-);
-const eligibleCount = computed(
-	() => applicants.value.filter((a) => a.eligibility === "Eligible").length,
-);
-const notEligibleCount = computed(
-	() => applicants.value.filter((a) => a.eligibility === "Not Eligible").length,
-);
-
-// Speculative predictions
-const predictedEligibility = ref([
-	{ label: "Likely Approved", value: 4, color: "success" },
-	{ label: "Likely Eligible", value: 3, color: "primary" },
-	{ label: "Likely Not Eligible", value: 2, color: "error" },
-]);
-
-// Recent Applicants Table
-const recentApplicants = computed(() => applicants.value.slice(0, 5));
-
-const columns: TableColumn<Applicant>[] = [
-	{ accessorKey: "lastName", header: "Last Name" },
-	{ accessorKey: "firstName", header: "First Name" },
-	{ accessorKey: "gpa", header: "GPA" },
-	{ accessorKey: "eligibility", header: "Eligibility" },
-];
-</script>

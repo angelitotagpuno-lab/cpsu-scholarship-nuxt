@@ -55,7 +55,7 @@ const steps = [
 </script>
 
 <template>
-	<div class="space-y-16">
+	<div class="space-y-10">
 		<!-- ABOUT THE SYSTEM -->
 		<UPageSection
 			title="About the Scholarship Eligibility System"
@@ -75,7 +75,7 @@ const steps = [
 				<div
 					v-for="(step, index) in steps"
 					:key="index"
-					class="p-6 bg-white rounded-xl shadow"
+					class="p-6 bg-white dark:bg-gray-900 rounded-xl shadow"
 				>
 					<UIcon
 						:name="step.icon"
@@ -84,7 +84,7 @@ const steps = [
 					<h3 class="font-semibold text-lg mb-2">
 						{{ step.title }}
 					</h3>
-					<p class="text-sm text-gray-600">
+					<p class="text-sm text-gray-600 dark:text-gray-400">
 						{{ step.description }}
 					</p>
 				</div>

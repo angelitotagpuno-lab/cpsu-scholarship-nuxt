@@ -12,17 +12,17 @@ const items = computed<NavigationMenuItem[]>(() => [
 		active: route.path.startsWith("/about"),
 	},
 	{
-		label: "Contacts",
-		to: "/contacts",
+		label: "Dashboard",
+		to: "/approved-scholars",
 		icon: "i-lucide-user",
-		active: route.path.startsWith("/contacts"),
+		active: route.path.startsWith("/approved-scholars"),
 	},
 ]);
 
 const dropdownItems = ref<DropdownMenuItem[]>([
 	{ label: "Contacts", icon: "i-lucide-user", to: "/contacts" },
 	{ label: "Help", icon: "i-lucide-credit-card", to: "/help" },
-	{ label: "Guide", icon: "i-lucide-cog", to: "/guidelines" },
+	{ label: "Guidelines", icon: "i-lucide-cog", to: "/guidelines" },
 ]);
 </script>
 

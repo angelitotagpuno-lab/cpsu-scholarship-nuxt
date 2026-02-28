@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-	layout: "landing",
+	layout: "user-header",
 });
 </script>
 

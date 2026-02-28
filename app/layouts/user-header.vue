@@ -1,56 +1,61 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { NavigationMenuItem, DropdownMenuItem } from "@nuxt/ui";
 
-const collapsed = ref(false);
+const route = useRoute();
 
-const items: NavigationMenuItem[] = [
-	{ label: "Dashboard", icon: "i-lucide-house", to: "/user/approved-scholars" },
-	{ label: "Contacts", icon: "i-lucide-users", to: "/user/contacts" },
-	{ label: "Guide", icon: "i-lucide-book", to: "/user/guidelines" },
-	{ label: "Help", icon: "i-lucide-credit-card", to: "/user/help" },
-	{ label: "Info", icon: "i-lucide-cog", to: "/user/info" },
-];
+const items = computed<NavigationMenuItem[]>(() => [
+	{ label: "Home", to: "/", icon: "i-lucide-book-open", active: route.path === "/" },
+	{
+		label: "About",
+		to: "/about",
+		icon: "i-lucide-box",
+		active: route.path.startsWith("/about"),
+	},
+	{
+		label: "Dashboard",
+		to: "/approved-scholars",
+		icon: "i-lucide-user",
+		active: route.path.startsWith("/approved-scholars"),
+	},
+]);
+
+const dropdownItems = ref<DropdownMenuItem[]>([
+	{ label: "Contacts", icon: "i-lucide-user", to: "/contacts" },
+	{ label: "Help", icon: "i-lucide-credit-card", to: "/help" },
+	{ label: "Guidelines", icon: "i-lucide-cog", to: "/guidelines" },
+]);
 </script>
 
 <template>
-	<div class="flex min-h-screen">
-		<!-- Sidebar -->
-		<UDashboardSidebar
-			v-model:collapsed="collapsed"
-			collapsible
-		>
-			<!-- ✅ FULL GREEN HEADER (NO GAPS) -->
-			<template #header>
-				<div class="relative h-16">
-					<div class="absolute inset-0 bg-[#0B5D3B]"></div>
+	<div>
+		<UHeader toggle-side="left">
+			<template #title>
+				<div class="flex items-center gap-2">
+					<span class="font-semibold">CPSU Scholarship</span>
 				</div>
 			</template>
 
-			<UNavigationMenu
-				:collapsed="collapsed"
-				:items="items"
-				orientation="vertical"
-			/>
-		</UDashboardSidebar>
+			<UNavigationMenu :items="items" />
 
-		<!-- Main Content -->
-		<div class="flex-1 flex flex-col">
-			<!-- Top Header -->
-			<UHeader>
-				<template #title>
-					<span class="font-semibold">CPSU Scholarship Dashboard</span>
-				</template>
+			<template #right>
+				<UColorModeButton />
+				<div class="flex items-center gap-2">
+					<UDropdownMenu
+						:items="dropdownItems"
+						:content="{ align: 'end' }"
+					>
+						<UButton
+							icon="i-lucide-menu"
+							color="neutral"
+							variant="ghost"
+						/>
+					</UDropdownMenu>
+				</div>
+			</template>
+		</UHeader>
 
-				<template #right>
-					<UColorModeButton />
-				</template>
-			</UHeader>
-
-			<!-- Page Content -->
-			<main class="p-6">
-				<slot />
-			</main>
-		</div>
+		<main class="p-1">
+			<slot />
+		</main>
 	</div>
 </template>

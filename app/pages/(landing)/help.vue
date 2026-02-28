@@ -23,7 +23,7 @@ const helpCards = ref([
 ]);
 
 definePageMeta({
-	layout: "landing",
+	layout: "user-header",
 });
 </script>
 

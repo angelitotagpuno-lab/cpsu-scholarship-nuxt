@@ -2,7 +2,7 @@
 import type { PageFeatureProps } from "@nuxt/ui";
 
 definePageMeta({
-	layout: "landing",
+	layout: "user-header",
 });
 
 const features = ref<PageFeatureProps[]>([

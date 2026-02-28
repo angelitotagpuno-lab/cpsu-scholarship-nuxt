@@ -15,7 +15,6 @@ const scholars = ref([
 	{ lastName: "Ramos", firstName: "Liza", middleInitial: "F" },
 ]);
 
-// Add numbering automatically
 const numberedScholars = computed(() =>
 	scholars.value.map((s, index) => ({
 		no: index + 1,

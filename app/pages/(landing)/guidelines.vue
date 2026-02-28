@@ -37,7 +37,7 @@ const guidelineCards = ref([
 ]);
 
 definePageMeta({
-	layout: "landing",
+	layout: "user-header",
 });
 </script>
 
