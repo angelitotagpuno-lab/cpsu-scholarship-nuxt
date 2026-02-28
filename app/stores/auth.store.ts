@@ -4,19 +4,21 @@ import useAuth from "~/composables/useAuth";
 export const useAuthStore = defineStore("auth-store", () => {
 	const user = ref<User | null>(null);
 	const isLoading = ref(false);
-	const error = ref<string | null>(null);
+	const errorMessage = ref("");
+	const isError = ref(false);
 	const isAuthenticated = computed(() => !!user.value);
 
 	const { fetchUser, login } = useAuth();
 
 	async function getUser() {
 		isLoading.value = true;
-		error.value = null;
+		isError.value = false;
+		errorMessage.value = "";
 		try {
 			user.value = await fetchUser();
 		} catch {
 			user.value = null;
-			error.value = "Unauthorized";
+			errorMessage.value = "Unauthorized";
 		} finally {
 			isLoading.value = false;
 		}
@@ -24,12 +26,14 @@ export const useAuthStore = defineStore("auth-store", () => {
 
 	async function signin(email: string, password: string) {
 		isLoading.value = true;
-		error.value = null;
+		isError.value = false;
+		errorMessage.value = "";
 		try {
 			user.value = await login(email, password);
 		} catch {
 			user.value = null;
-			error.value = "Invalid admin credentials";
+			isError.value = true;
+			errorMessage.value = "Invalid Credentials";
 		} finally {
 			isLoading.value = false;
 		}
@@ -40,7 +44,6 @@ export const useAuthStore = defineStore("auth-store", () => {
 			await $fetch("/api/v1/auth/logout", { method: "POST" });
 		} finally {
 			user.value = null;
-			error.value = null;
 		}
 	}
 
@@ -48,9 +51,10 @@ export const useAuthStore = defineStore("auth-store", () => {
 		user,
 		isLoading,
 		getUser,
-		error,
+		errorMessage,
 		signin,
 		signout,
+		isError,
 		isAuthenticated,
 	};
 });

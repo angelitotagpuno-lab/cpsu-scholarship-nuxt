@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import { ref, h, resolveComponent } from "vue";
+import ApplicantsAddModal from "./components/applicants-add-modal.vue";
 
 definePageMeta({
 	layout: "admin",
@@ -197,7 +198,7 @@ const columns: TableColumn<Applicant>[] = [
 ];
 </script>
 
-<template>
+<!-- <template>
 	<div class="space-y-6">
 		<h1 class="text-2xl font-bold">Scholarship Applicants Dashboard</h1>
 
@@ -208,16 +209,13 @@ const columns: TableColumn<Applicant>[] = [
 			@click="openAdd"
 		/>
 
-		<!-- Desktop Optimized Table -->
-		<div class="w-full overflow-x-auto border rounded-lg">
+		<div class="w-full overflow-x-scroll border rounded-lg max-w-screen">
 			<UTable
 				:data="applicants"
 				:columns="columns"
-				class="min-w-[1700px]"
 			/>
 		</div>
 
-		<!-- ADD APPLICANT MODAL -->
 		<div
 			v-if="showAddModal"
 			class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
@@ -326,4 +324,27 @@ const columns: TableColumn<Applicant>[] = [
 			</UCard>
 		</div>
 	</div>
+</template> -->
+
+<template>
+	<UDashboardPanel id="applicants">
+		<template #header>
+			<UDashboardNavbar title="Customers">
+				<template #leading>
+					<UDashboardSidebarCollapse />
+				</template>
+
+				<template #right>
+					<ApplicantsAddModal />
+				</template>
+			</UDashboardNavbar>
+		</template>
+
+		<template #body>
+			<UTable
+				:data="applicants"
+				:columns="columns"
+			/>
+		</template>
+	</UDashboardPanel>
 </template>

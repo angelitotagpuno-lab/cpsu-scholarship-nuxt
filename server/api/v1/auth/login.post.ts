@@ -1,7 +1,18 @@
 import { supabase } from "~~/server/utils/supabase";
+import { LoginSchema } from "~~/shared/schemas/auth";
 
 export default defineEventHandler(async (event) => {
-	const { email, password } = await readBody(event);
+	const payload = await readBody(event);
+	const parsed = LoginSchema.safeParse(payload);
+
+	if (!parsed.success) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: parsed.error.issues[0]?.message || "Invalid request payload",
+		});
+	}
+
+	const { email, password } = parsed.data;
 
 	const { data, error } = await supabase.auth.signInWithPassword({
 		email,

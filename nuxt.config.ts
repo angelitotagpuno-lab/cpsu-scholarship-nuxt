@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-	modules: ["@nuxt/ui", "@nuxt/eslint", "@pinia/nuxt", "@nuxt/icon"],
+	modules: ["@nuxt/ui", "@nuxt/eslint", "@pinia/nuxt", "@nuxt/icon", "@nuxt/image"],
 	devtools: { enabled: true },
 
 	css: ["~/assets/css/main.css"],

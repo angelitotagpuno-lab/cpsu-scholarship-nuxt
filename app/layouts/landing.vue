@@ -32,7 +32,6 @@ const dropdownItems = ref<DropdownMenuItem[]>([
 		<UHeader toggle-side="left">
 			<template #title>
 				<div class="flex items-center gap-2">
-					<Logo class="h-6 w-auto" />
 					<span class="font-semibold">CPSU Scholarship</span>
 				</div>
 			</template>
