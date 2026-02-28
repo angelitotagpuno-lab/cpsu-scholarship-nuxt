@@ -1,60 +1,43 @@
 import type { User } from "@supabase/supabase-js";
-import useAuth from "~/composables/useAuth";
+import { useAuthApi } from "~/composables/useAuthApi";
 
-export const useAuthStore = defineStore("auth-store", () => {
+export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
 	const isLoading = ref(false);
-	const errorMessage = ref("");
-	const isError = ref(false);
+	const errorMessage = ref<string | null>(null);
+
 	const isAuthenticated = computed(() => !!user.value);
 
-	const { fetchUser, login } = useAuth();
+	const api = useAuthApi();
 
-	async function getUser() {
-		isLoading.value = true;
-		isError.value = false;
-		errorMessage.value = "";
+	async function fetchUser() {
 		try {
-			user.value = await fetchUser();
+			const { user: me } = await api.me();
+			user.value = me;
 		} catch {
 			user.value = null;
-			errorMessage.value = "Unauthorized";
+		}
+	}
+
+	async function login(email: string, password: string) {
+		isLoading.value = true;
+		errorMessage.value = null;
+
+		try {
+			const { user: loggedInUser } = await api.login(email, password);
+			user.value = loggedInUser;
+		} catch {
+			errorMessage.value = "Invalid credentials";
+			user.value = null;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function signin(email: string, password: string) {
-		isLoading.value = true;
-		isError.value = false;
-		errorMessage.value = "";
-		try {
-			user.value = await login(email, password);
-		} catch {
-			user.value = null;
-			isError.value = true;
-			errorMessage.value = "Invalid Credentials";
-		} finally {
-			isLoading.value = false;
-		}
+	async function logout() {
+		await api.logout();
+		user.value = null;
 	}
 
-	async function signout() {
-		try {
-			await $fetch("/api/v1/auth/logout", { method: "POST" });
-		} finally {
-			user.value = null;
-		}
-	}
-
-	return {
-		user,
-		isLoading,
-		getUser,
-		errorMessage,
-		signin,
-		signout,
-		isError,
-		isAuthenticated,
-	};
+	return { user, isLoading, errorMessage, isAuthenticated, fetchUser, login, logout };
 });

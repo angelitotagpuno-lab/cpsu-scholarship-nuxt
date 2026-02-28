@@ -31,9 +31,12 @@ const fields: AuthFormField[] = [
 async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 	const { email, password } = payload.data;
 
-	store.signin(email, password);
-
-	if (store.user != null) await navigateTo("/admin/home");
+	try {
+		await store.login(email, password);
+		await navigateTo("/admin/home");
+	} catch {
+		store.errorMessage = "Invalid credentials";
+	}
 }
 </script>
 
@@ -49,7 +52,7 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 				@submit="onSubmit"
 			>
 				<template
-					v-if="store.isError"
+					v-if="store.errorMessage"
 					#validation
 				>
 					<UAlert
