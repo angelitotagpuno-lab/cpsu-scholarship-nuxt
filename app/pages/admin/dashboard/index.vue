@@ -329,7 +329,7 @@ const columns: TableColumn<Applicant>[] = [
 <template>
 	<UDashboardPanel id="applicants">
 		<template #header>
-			<UDashboardNavbar title="Customers">
+			<UDashboardNavbar title="Applicants">
 				<template #leading>
 					<UDashboardSidebarCollapse />
 				</template>
