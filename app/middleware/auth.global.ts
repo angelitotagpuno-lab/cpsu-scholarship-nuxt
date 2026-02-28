@@ -3,8 +3,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
 	if (!to.path.startsWith("/admin") && to.path !== "/login") return;
 
-	if (!authStore.user) {
-		await authStore.getUser();
+	if (!authStore.isAuthenticated) {
+		await authStore.fetchUser();
 	}
 
 	if (to.path === "/login" && authStore.user) {
