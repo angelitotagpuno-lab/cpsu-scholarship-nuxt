@@ -1,52 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import type { NavigationMenuItem } from "@nuxt/ui";
 
 const open = ref(true);
 const router = useRouter();
 const route = useRoute();
+const store = useAuthStore();
 
-function logout() {
-	localStorage.removeItem("token");
-	sessionStorage.clear();
-	router.push("/");
+// Logout function
+async function logout() {
+	await store.logout();
+	router.push("/login");
 }
 
+// Navigation items
 const items: NavigationMenuItem[][] = [
 	[
-		{
-			label: "Home",
-			icon: "i-lucide-house",
-			to: "/admin/home",
-			active: route.path === "/admin/home",
-		},
-		{
-			label: "Dashboard",
-			icon: "i-lucide-inbox",
-			to: "/admin/dashboard",
-			active: route.path === "/admin/dashboard",
-		},
-		{
-			label: "Files",
-			icon: "i-lucide-table",
-			to: "/admin/files",
-			active: route.path === "/admin/files",
-		},
-		{
-			label: "Scholars",
-			icon: "i-lucide-users",
-			to: "/admin/scholars",
-			active: route.path === "/admin/scholars",
-		},
-		{
-			label: "Help",
-			icon: "i-lucide-book",
-			to: "/admin/help",
-			active: route.path === "/admin/help",
-		},
+		{ label: "Home", icon: "i-lucide-house", to: "/admin/home" },
+		{ label: "Dashboard", icon: "i-lucide-inbox", to: "/admin/applicants" },
+		{ label: "Files", icon: "i-lucide-table", to: "/admin/files" },
+		{ label: "Scholars", icon: "i-lucide-users", to: "/admin/scholars" },
+		{ label: "Help", icon: "i-lucide-book", to: "/admin/help" },
 	],
 ];
+
+// Reactive highlight
+const reactiveItems = computed(() =>
+	items.map((group) =>
+		group.map((item) => ({
+			...item,
+			active: route.path === item.to,
+		})),
+	),
+);
 </script>
 
 <template>
@@ -60,17 +47,6 @@ const items: NavigationMenuItem[][] = [
 		>
 			<template #header="{ collapsed }">
 				<div class="flex flex-col items-center justify-center w-full p-2">
-					<button
-						class="mt-3 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 mb-2"
-						@click="open = !open"
-					>
-						<UIcon
-							name="i-lucide-menu"
-							class="size-5"
-						/>
-					</button>
-
-					<!-- Title with letter & word spacing -->
 					<h1
 						v-if="!collapsed"
 						class="text-lg font-bold text-center tracking-wider"
@@ -80,47 +56,39 @@ const items: NavigationMenuItem[][] = [
 				</div>
 			</template>
 
-			<!-- Navigation -->
+			<!-- Navigation + Color Mode -->
 			<template #default="{ collapsed }">
-				<UNavigationMenu
-					:collapsed="collapsed"
-					:items="items[0]"
-					orientation="vertical"
-				/>
-			</template>
+				<div class="flex flex-col h-full justify-between">
+					<UNavigationMenu
+						:collapsed="collapsed"
+						:items="reactiveItems[0]"
+						orientation="vertical"
+					/>
 
+					<div
+						class="mt-4 px-2"
+						v-if="!collapsed"
+					>
+						<UColorModeButton class="w-full" />
+					</div>
+				</div>
+			</template>
 			<!-- Footer -->
 			<template #footer="{ collapsed }">
 				<UButton
 					:avatar="{ src: 'https://github.com/benjamincanac.png' }"
-					:label="collapsed ? undefined : 'Benjamin'"
+					:label="collapsed ? undefined : 'Logout'"
 					color="neutral"
 					variant="ghost"
-					class="w-full"
+					class="w-full transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-red-600 cursor-pointer"
 					:block="collapsed"
+					@click="logout"
 				/>
 			</template>
 		</UDashboardSidebar>
+
 		<UDashboardPanel class="flex flex-col overflow-hidden">
-			<template #header>
-				<UDashboardNavbar title="Admin Dashboard">
-					<template #right>
-						<UButton
-							color="primary"
-							variant="solid"
-						>
-							Action
-						</UButton>
-					</template>
-				</UDashboardNavbar>
-			</template>
-
 			<div class="flex-1 overflow-y-auto p-6 space-y-6">
-				<div class="flex items-center justify-between border-b pb-4">
-					<h1 class="text-xl font-semibold">Eligibility Scholarship System</h1>
-
-					<UColorModeButton />
-				</div>
 				<slot />
 			</div>
 		</UDashboardPanel>

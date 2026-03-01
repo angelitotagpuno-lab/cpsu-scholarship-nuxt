@@ -32,8 +32,9 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 	const { email, password } = payload.data;
 
 	try {
-		await store.login(email, password);
-		await navigateTo("/admin/home");
+		await store.login(email, password); // Calls server API
+		store.errorMessage = ""; // Clear previous error
+		await navigateTo("/admin/home"); // Redirect after successful login
 	} catch {
 		store.errorMessage = "Invalid credentials";
 	}

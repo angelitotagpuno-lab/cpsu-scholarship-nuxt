@@ -55,7 +55,11 @@ const columns: TableColumn<Applicant>[] = [
 	<div class="h-full overflow-y-auto p-6 space-y-6">
 		<!-- Page Header -->
 		<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-			<h1 class="text-2xl font-bold">Admin Dashboard Home</h1>
+			<div class="flex items-center gap-3">
+				<UDashboardSidebarCollapse />
+				<h1 class="text-2xl font-bold">Admin Dashboard Home</h1>
+			</div>
+
 			<p class="text-gray-500 dark:text-gray-400">
 				Overview of scholarship applicants and key analytics.
 			</p>
