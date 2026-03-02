@@ -2,6 +2,7 @@
 import type { TableColumn } from "@nuxt/ui";
 import { ref, h, resolveComponent } from "vue";
 import ApplicantsAddModal from "./components/applicants-add-modal.vue";
+import ApplicantsEditModal from "./components//applicants-edit-modal.vue";
 
 definePageMeta({
 	layout: "admin",
@@ -60,6 +61,10 @@ const applicants = ref<Applicant[]>([
 	},
 ]);
 
+// ✅ NEW: Edit modal state
+const showEditModal = ref(false);
+const selectedApplicant = ref<Applicant | null>(null);
+
 const showAddModal = ref(false);
 
 const newApplicant = ref<Applicant>({
@@ -68,23 +73,18 @@ const newApplicant = ref<Applicant>({
 	appId: "",
 	batch: 0,
 	studentId: "",
-
 	lastName: "",
 	firstName: "",
 	extName: "",
 	middleName: "",
-
 	sex: "",
 	course: "",
 	yearLevel: 1,
-
 	contactNo: "",
 	email: "",
-
 	city: "",
 	province: "",
 	zipcode: "",
-
 	income: 0,
 	gpa: 0,
 	eligibility: "Eligible",
@@ -95,6 +95,25 @@ function computeEligibility(gpa: number, income: number) {
 	return "Not Eligible";
 }
 
+// ✅ NEW: open edit modal
+function openEdit(applicant: Applicant) {
+	selectedApplicant.value = { ...applicant };
+	showEditModal.value = true;
+}
+
+// ✅ NEW: save edited applicant
+function saveEditedApplicant(data: any) {
+	if (!selectedApplicant.value) return;
+
+	const index = applicants.value.findIndex((a) => a.seq === selectedApplicant.value!.seq);
+
+	applicants.value[index] = {
+		...applicants.value[index],
+		...data,
+		eligibility: computeEligibility(data.gpa, data.income),
+	};
+}
+
 function openAdd() {
 	newApplicant.value = {
 		seq: applicants.value.length + 1,
@@ -102,23 +121,18 @@ function openAdd() {
 		appId: "",
 		batch: 0,
 		studentId: "",
-
 		lastName: "",
 		firstName: "",
 		extName: "",
 		middleName: "",
-
 		sex: "",
 		course: "",
 		yearLevel: 1,
-
 		contactNo: "",
 		email: "",
-
 		city: "",
 		province: "",
 		zipcode: "",
-
 		income: 0,
 		gpa: 0,
 		eligibility: "Eligible",
@@ -142,27 +156,21 @@ const columns: TableColumn<Applicant>[] = [
 	{ accessorKey: "appId", header: "App ID" },
 	{ accessorKey: "batch", header: "Batch" },
 	{ accessorKey: "studentId", header: "Student ID" },
-
 	{ accessorKey: "lastName", header: "Last Name" },
 	{ accessorKey: "firstName", header: "First Name" },
 	{ accessorKey: "middleName", header: "Middle Name" },
 	{ accessorKey: "extName", header: "Ext." },
-
 	{ accessorKey: "sex", header: "Sex" },
 	{ accessorKey: "course", header: "Course" },
 	{ accessorKey: "yearLevel", header: "Year Level" },
-
 	{ accessorKey: "contactNo", header: "Contact" },
 	{ accessorKey: "email", header: "Email" },
-
 	{ accessorKey: "city", header: "City" },
 	{ accessorKey: "province", header: "Province" },
 	{ accessorKey: "zipcode", header: "Zipcode" },
-
 	{ accessorKey: "income", header: "Income" },
 	{ accessorKey: "gpa", header: "GPA" },
 	{ accessorKey: "eligibility", header: "Eligibility" },
-
 	{
 		id: "actions",
 		header: "Actions",
@@ -182,6 +190,7 @@ const columns: TableColumn<Applicant>[] = [
 					label: "Edit",
 					size: "xs",
 					color: "primary",
+					onClick: () => openEdit(applicant), // ✅ UPDATED
 				}),
 				h(resolveComponent("UButton"), {
 					label: "Delete",
@@ -219,4 +228,11 @@ const columns: TableColumn<Applicant>[] = [
 			/>
 		</template>
 	</UDashboardPanel>
+
+	<!-- ✅ NEW: Edit Modal -->
+	<ApplicantsEditModal
+		v-model="showEditModal"
+		:applicant="selectedApplicant"
+		@save="saveEditedApplicant"
+	/>
 </template>

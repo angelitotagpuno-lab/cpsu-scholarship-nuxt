@@ -6,6 +6,10 @@ import { ref, reactive } from "vue";
 const open = ref(false);
 
 const schema = z.object({
+	awardNo: z.string().min(1, "Award No is required"),
+	appId: z.string().min(1, "Application ID is required"),
+	batch: z.number().min(1, "Batch is required"),
+	studentId: z.string().min(1, "Student ID is required"),
 	lastName: z.string().min(1, "Required"),
 	firstName: z.string().min(1, "Required"),
 	middleName: z.string().optional(),
@@ -25,6 +29,10 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Partial<Schema>>({
+	awardNo: "",
+	appId: "",
+	batch: 1,
+	studentId: "",
 	lastName: "",
 	firstName: "",
 	middleName: "",
@@ -77,6 +85,50 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 				class="space-y-4"
 				@submit="onSubmit"
 			>
+				<UFormField
+					label="Award No"
+					name="awardNo"
+				>
+					<UInput
+						v-model="state.awardNo"
+						class="w-full"
+						placeholder="Award Number"
+					/>
+				</UFormField>
+
+				<UFormField
+					label="Application ID"
+					name="appId"
+				>
+					<UInput
+						v-model="state.appId"
+						class="w-full"
+						placeholder="Application ID"
+					/>
+				</UFormField>
+
+				<UFormField
+					label="Batch"
+					name="batch"
+				>
+					<UInput
+						v-model="state.batch"
+						class="w-full"
+						type="number"
+					/>
+				</UFormField>
+
+				<UFormField
+					label="Student ID"
+					name="studentId"
+				>
+					<UInput
+						v-model="state.studentId"
+						class="w-full"
+						placeholder="Student ID"
+					/>
+				</UFormField>
+
 				<UFormField
 					label="Last Name"
 					name="lastName"
