@@ -2,10 +2,10 @@ async function upsertBatch(supabase: any, rows: any[]) {
 	for (const row of rows) {
 		// 1️⃣ Upsert student
 		const { data: student } = await supabase
-			.from("students")
+			.from("scholars")
 			.upsert(
 				{
-					student_identifier: row.student_identifier,
+					scholar_identifier: row.scholar_identifier,
 					last_name: row.last_name,
 					first_name: row.first_name,
 					middle_name: row.middle_name,
@@ -18,7 +18,7 @@ async function upsertBatch(supabase: any, rows: any[]) {
 					province: row.province,
 					zipcode: row.zipcode,
 				},
-				{ onConflict: "student_identifier" },
+				{ onConflict: "scholar_identifier" },
 			)
 			.select()
 			.single();
@@ -26,7 +26,7 @@ async function upsertBatch(supabase: any, rows: any[]) {
 		// 2️⃣ Upsert enrollment
 		await supabase.from("enrollments").upsert(
 			{
-				student_id: student.id,
+				scholar_id: student.id,
 				program_id: 1, // determine from file
 				course: row.course,
 				year_level: row.year_level,
@@ -34,7 +34,7 @@ async function upsertBatch(supabase: any, rows: any[]) {
 				award_no: row.award_no,
 				app_no: row.app_no,
 			},
-			{ onConflict: "student_id,program_id,batch" },
+			{ onConflict: "scholar_id,program_id,batch" },
 		);
 	}
 }

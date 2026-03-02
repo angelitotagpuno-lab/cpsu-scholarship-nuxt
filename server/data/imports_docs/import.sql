@@ -5,17 +5,17 @@ CREATE TABLE programs (
     name TEXT NOT NULL
 );
 
--- STUDENTS (identity-level data)
-CREATE TABLE students (
+-- SCHOLARS (identity-level data)
+CREATE TABLE scholars (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    student_identifier TEXT, -- STUDENT ID or App No.
+    scholar_identifier TEXT, -- SCHOLAR ID or App No.
     last_name TEXT NOT NULL,
     first_name TEXT NOT NULL,
     middle_name TEXT,
     ext_name TEXT,
 
-    sex TEXT CHECK (sex IN ('Male', 'Female')),
+    sex TEXT CHECK (sex IN ('male', 'female')),
     contact TEXT,
     email TEXT,
 
@@ -28,9 +28,9 @@ CREATE TABLE students (
     updated_at TIMESTAMP DEFAULT now()
 );
 
--- Prevent duplicate student identity
-CREATE UNIQUE INDEX students_unique_identity
-ON students (student_identifier);
+-- Prevent duplicate scholar identity
+CREATE UNIQUE INDEX scholars_unique_identity
+ON scholars (scholar_identifier);
 
 -- UPLOAD TRACKING
 CREATE TABLE uploads (
@@ -46,7 +46,7 @@ CREATE TABLE uploads (
 CREATE TABLE enrollments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+    scholar_id UUID REFERENCES scholars(id) ON DELETE CASCADE,
     program_id INTEGER REFERENCES programs(id),
 
     course TEXT NOT NULL,
@@ -64,15 +64,15 @@ CREATE TABLE enrollments (
 
 -- Prevent duplicate enrollment per student + semester
 CREATE UNIQUE INDEX enrollments_unique
-ON enrollments (student_id, program_id, batch);
+ON enrollments (scholar_id, program_id, batch);
 
 CREATE INDEX idx_enrollments_course ON enrollments(course);
 CREATE INDEX idx_enrollments_year_level ON enrollments(year_level);
 CREATE INDEX idx_enrollments_batch ON enrollments(batch);
 CREATE INDEX idx_enrollments_program ON enrollments(program_id);
 
-CREATE INDEX idx_students_city ON students(city);
-CREATE INDEX idx_students_province ON students(province);
+CREATE INDEX idx_scholars_city ON scholars(city);
+CREATE INDEX idx_scholars_province ON scholars(province);
 
 -- Composite for dashboard filtering
 CREATE INDEX idx_filter_combo

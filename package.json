@@ -12,6 +12,7 @@
 		"lint:fix": "eslint . --fix"
 	},
 	"dependencies": {
+		"@fast-csv/parse": "^5.0.5",
 		"@nuxt/icon": "2.2.1",
 		"@nuxt/image": "2.0.0",
 		"@nuxt/ui": "^4.4.0",

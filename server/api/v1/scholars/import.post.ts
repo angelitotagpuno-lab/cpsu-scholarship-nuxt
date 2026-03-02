@@ -1,6 +1,6 @@
 import { readMultipartFormData } from "h3";
 import { parse } from "@fast-csv/parse";
-import { normalizeRows } from "./normalize_helper";
+import { normalizeRows } from "~~/server/utils/normalize";
 
 export default defineEventHandler(async (event) => {
 	const form = await readMultipartFormData(event);
@@ -17,15 +17,13 @@ export default defineEventHandler(async (event) => {
 			.on("error", reject)
 			.on("data", (row) => rows.push(row))
 			.on("end", () => resolve())
-			.write(csvString)
-			.end();
+			.write(csvString);
 	});
 
 	const normalized = normalizeRows(rows);
 
-	const supabase = await serverSupabaseClient(event);
-
 	await upsertBatch(supabase, normalized);
+	console.log(rows);
 
 	return { success: true };
 });
