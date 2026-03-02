@@ -30,6 +30,13 @@ export class ScholarRepository {
 		return { data, count };
 	}
 
+	async findFirst() {
+		const { data, error } = await supabase.from(this.table).select("*").limit(1).single();
+
+		if (error) throw createError({ statusCode: 400, statusMessage: error.message });
+		return data;
+	}
+
 	async upsertBatch(supabase: any, rows: any[]) {
 		for (const row of rows) {
 			const { data: scholar } = await supabase
