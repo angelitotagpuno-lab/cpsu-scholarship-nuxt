@@ -23,5 +23,7 @@
 		<main class="flex-1">
 			<slot />
 		</main>
+
+		<LoginFooter />
 	</div>
 </template>

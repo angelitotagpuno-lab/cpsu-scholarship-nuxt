@@ -6,13 +6,19 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
 	{ label: "Home", to: "/", icon: "i-lucide-book-open", active: route.path === "/" },
 	{
-		label: "About",
-		to: "/about",
+		label: "Portal",
+		to: "/approved-scholars",
 		icon: "i-lucide-box",
-		active: route.path.startsWith("/about"),
+		active: route.path.startsWith("/approved-scholars"),
 	},
 	{
 		label: "Dashboard",
+		to: "/approved-scholars",
+		icon: "i-lucide-user",
+		active: route.path.startsWith("/approved-scholars"),
+	},
+	{
+		label: "Liquidation",
 		to: "/approved-scholars",
 		icon: "i-lucide-user",
 		active: route.path.startsWith("/approved-scholars"),
