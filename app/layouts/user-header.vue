@@ -7,9 +7,9 @@ const items = computed<NavigationMenuItem[]>(() => [
 	{ label: "Home", to: "/", icon: "i-lucide-book-open", active: route.path === "/" },
 	{
 		label: "Portal",
-		to: "/approved-scholars",
+		to: "/portal",
 		icon: "i-lucide-box",
-		active: route.path.startsWith("/approved-scholars"),
+		active: route.path.startsWith("/portal"),
 	},
 	{
 		label: "Dashboard",
