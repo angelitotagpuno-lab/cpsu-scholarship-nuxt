@@ -9,7 +9,7 @@ import OtherInformation from "./components/OtherInformation.vue";
 import ContactInformation from "./components/ContactInformation.vue";
 
 definePageMeta({
-	layout: "landing",
+	layout: "user-header",
 });
 
 const state = reactive({

@@ -21,7 +21,7 @@ const items: NavigationMenuItem[][] = [
 		{ label: "Dashboard", icon: "i-lucide-inbox", to: "/admin/applicants" },
 		{ label: "Files", icon: "i-lucide-table", to: "/admin/files" },
 		{ label: "Scholars", icon: "i-lucide-users", to: "/admin/scholars" },
-		{ label: "Help", icon: "i-lucide-book", to: "/admin/help" },
+		{ label: "Liquidation", icon: "i-lucide-book", to: "/admin/liquidation" },
 	],
 ];
 
