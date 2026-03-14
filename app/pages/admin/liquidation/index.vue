@@ -1,99 +1,89 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import LiquidationTable from "./components/LiquidationTable.vue";
+import DownloadButton from "./components/DownloadButton.vue";
 
 definePageMeta({
 	layout: "admin",
 });
 
-// Sample TDP payouts
+// ----- TDP payouts -----
 const tdpPayouts = ref([
 	{
-		date: "2026-03-10",
+		date: "2024-07-08",
 		checkNo: "0001676056",
+		dvPayrollNo: "2024-07-0245",
 		name: "Raven Ann Abadies",
-		pwd: "No",
 		purpose:
 			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: "7,500.00",
+		amount: 7500,
+	},
+	{
+		date: "2024-07-08",
+		checkNo: "0001676057",
+		dvPayrollNo: "2024-07-0245",
+		name: "Danica Abella",
+		purpose:
+			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
+		amount: 7500,
 	},
 ]);
 
-// Sample TES payouts
+const totalTdpAmount = computed(() => tdpPayouts.value.reduce((sum, r) => sum + r.amount, 0));
+
+// ----- TES payouts -----
 const tesPayouts = ref([
 	{
-		date: "2026-03-10",
-		checkNo: "0001679001",
-		name: "Juan Dela Cruz",
+		date: "2024-07-10",
+		checkNo: "0001676100",
+		dvPayrollNo: "2024-07-0250",
+		name: "Mark Anthony Santos",
 		purpose:
-			"Stipend allowance of TES - CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: "10,000.00",
+			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
+		amount: 10000,
+	},
+	{
+		date: "2024-07-10",
+		checkNo: "0001676101",
+		dvPayrollNo: "2024-07-0250",
+		name: "Angela Reyes",
+		purpose:
+			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
+		amount: 10000,
 	},
 ]);
+
+const totalTesAmount = computed(() => tesPayouts.value.reduce((sum, r) => sum + r.amount, 0));
 </script>
 
 <template>
-	<div class="p-6 space-y-8">
-		<h1 class="text-2xl font-bold mb-4">Scholarship Liquidation Records</h1>
+	<div class="p-6 space-y-12">
+		<!-- TDP Section -->
+		<section>
+			<h1 class="text-2xl font-bold mb-4">TDP Liquidation Records</h1>
+			<DownloadButton
+				:payouts="tdpPayouts"
+				:totalAmount="totalTdpAmount"
+				filename="TDP_Liquidation.csv"
+			/>
+			<LiquidationTable
+				:payouts="tdpPayouts"
+				:totalAmount="totalTdpAmount"
+			/>
+		</section>
 
-		<!-- TDP Table -->
-		<div class="overflow-x-auto">
-			<h2 class="text-lg font-semibold mb-2">TDP Records</h2>
-			<table class="w-full border">
-				<thead class="bg-gray-100 dark:bg-gray-700">
-					<tr>
-						<th class="border p-2">Date</th>
-						<th class="border p-2">Check No</th>
-						<th class="border p-2">Name</th>
-						<th class="border p-2">PWD</th>
-						<th class="border p-2">Purpose</th>
-						<th class="border p-2 text-right">Amount</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="p in tdpPayouts"
-						:key="p.checkNo"
-					>
-						<td class="border p-2">{{ p.date }}</td>
-						<td class="border p-2">{{ p.checkNo }}</td>
-						<td class="border p-2">{{ p.name }}</td>
-						<td class="border p-2">{{ p.pwd }}</td>
-						<td class="border p-2">{{ p.purpose }}</td>
-						<td class="border p-2 text-right">{{ p.amount }}</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-
-		<!-- Separator -->
-		<div class="border-t border-gray-300 dark:border-gray-600 my-6"></div>
-
-		<!-- TES Table -->
-		<div class="overflow-x-auto">
-			<h2 class="text-lg font-semibold mb-2">TES Records</h2>
-			<table class="w-full border">
-				<thead class="bg-gray-100 dark:bg-gray-700">
-					<tr>
-						<th class="border p-2">Date</th>
-						<th class="border p-2">Check No</th>
-						<th class="border p-2">Name</th>
-						<th class="border p-2">Purpose</th>
-						<th class="border p-2 text-right">Amount</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr
-						v-for="p in tesPayouts"
-						:key="p.checkNo"
-					>
-						<td class="border p-2">{{ p.date }}</td>
-						<td class="border p-2">{{ p.checkNo }}</td>
-						<td class="border p-2">{{ p.name }}</td>
-						<td class="border p-2">{{ p.purpose }}</td>
-						<td class="border p-2 text-right">{{ p.amount }}</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+		<!-- TES Section -->
+		<section>
+			<h1 class="text-2xl font-bold mb-4">TES Liquidation Records</h1>
+			<DownloadButton
+				:payouts="tesPayouts"
+				:totalAmount="totalTesAmount"
+				filename="TES_Liquidation.csv"
+			/>
+			<LiquidationTable
+				:payouts="tesPayouts"
+				:totalAmount="totalTesAmount"
+			/>
+		</section>
 	</div>
 </template>

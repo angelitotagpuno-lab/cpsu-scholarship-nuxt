@@ -42,7 +42,7 @@ const addPayout = () => {
 <template>
 	<div class="p-4 sm:p-6 max-w-xl mx-auto min-h-screen flex flex-col">
 		<h1 class="text-2xl font-bold mb-6 text-center text-foreground dark:text-white">
-			TDP Scholarship Payout Portal
+			TES Scholarship Payout Portal
 		</h1>
 
 		<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
