@@ -5,7 +5,7 @@ import { useToast, navigateTo } from "#imports";
 import LoginFooter from "~/components/LoginFooter.vue"; // import your login footer
 
 definePageMeta({
-	layout: "landing", // keeps your header, but we manually add login footer
+	layout: "login", // keeps your header, but we manually add login footer
 });
 
 const toast = useToast();
@@ -99,9 +99,6 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 				</div>
 			</UPageCard>
 		</div>
-
-		<!-- Use the LoginFooter at the bottom -->
-		<LoginFooter />
 	</div>
 </template>
 

@@ -7,13 +7,13 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
 	{ label: "Home", to: "/user", icon: "i-lucide-book-open", active: route.path === "/user" },
 	{
-		label: "Applicant Portal",
-		to: "/portal",
+		label: "Scholarship Application",
+		to: "/user/portal",
 		icon: "i-lucide-box",
-		active: route.path.startsWith("/portal"),
+		active: route.path.startsWith("/user/portal"),
 	},
 	{
-		label: "Applicant Liquidation",
+		label: "Scholarship Payout",
 		to: "/user/user-liquidation",
 		icon: "i-lucide-user",
 		active: route.path.startsWith("/user/user-liquidation"),

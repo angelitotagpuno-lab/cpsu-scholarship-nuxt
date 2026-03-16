@@ -4,7 +4,7 @@ import { navigateTo } from "#imports";
 import { LoginSchema, type LoginInput } from "~~/shared/schemas/auth";
 
 definePageMeta({
-	layout: "landing",
+	layout: "login",
 });
 
 const store = useAuthStore();

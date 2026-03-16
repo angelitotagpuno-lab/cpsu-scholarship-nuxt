@@ -210,7 +210,7 @@ const columns: TableColumn<Applicant>[] = [
 <template>
 	<UDashboardPanel id="applicants">
 		<template #header>
-			<UDashboardNavbar title="Applicants">
+			<UDashboardNavbar title="TDP Applicants">
 				<template #leading>
 					<UDashboardSidebarCollapse />
 				</template>

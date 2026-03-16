@@ -4,7 +4,7 @@ import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
 import { useToast } from "#imports";
 
 definePageMeta({
-	layout: "landing",
+	layout: "login",
 });
 
 const toast = useToast();
@@ -117,8 +117,19 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 				>
 					Register here
 				</NuxtLink>
+				<!-- Admin Login Button -->
+				<div class="mt-4 flex justify-center">
+					<NuxtLink to="/login">
+						<UButton
+							variant="ghost"
+							size="sm"
+							icon="i-lucide-shield"
+						>
+							Admin Login
+						</UButton>
+					</NuxtLink>
+				</div>
 			</div>
 		</UPageCard>
 	</div>
-	<LoginFooter />
 </template>

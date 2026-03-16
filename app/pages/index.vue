@@ -4,7 +4,7 @@ import type { ButtonProps, PageFeatureProps } from "@nuxt/ui";
 
 // Page layout
 definePageMeta({
-	layout: "landing",
+	layout: "login",
 });
 
 // Hero links

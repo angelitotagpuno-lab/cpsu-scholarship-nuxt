@@ -8,30 +8,78 @@ const router = useRouter();
 const route = useRoute();
 const store = useAuthStore();
 
-// Logout function
 async function logout() {
 	await store.logout();
-	router.push("/login");
+	router.push("/user-login");
 }
 
-// Navigation items
+// Sidebar navigation items
 const items: NavigationMenuItem[][] = [
 	[
-		{ label: "Home", icon: "i-lucide-house", to: "/admin/home" },
-		{ label: "Dashboard", icon: "i-lucide-inbox", to: "/admin/applicants" },
+		{ label: "Dashboard", icon: "i-lucide-house", to: "/admin/home" },
+
+		// Applicants with TDP/TES
+		{
+			label: "Applicants",
+			icon: "i-lucide-inbox",
+			type: "trigger",
+			defaultOpen: true,
+			children: [
+				{ label: "TDP Applicants", to: "/admin/applicants/tdp" },
+				{ label: "TES Applicants", to: "/admin/applicants/tes" },
+			],
+		},
+
 		{ label: "Files", icon: "i-lucide-table", to: "/admin/files" },
-		{ label: "Scholars", icon: "i-lucide-users", to: "/admin/scholars" },
-		{ label: "Liquidation", icon: "i-lucide-book", to: "/admin/liquidation" },
+
+		// Scholars with TDP/TES
+		{
+			label: "Scholars",
+			icon: "i-lucide-users",
+			type: "trigger",
+			children: [
+				{ label: "TDP Scholars", to: "/admin/scholars/tdp" },
+				{ label: "TES Scholars", to: "/admin/scholars/tes" },
+			],
+		},
+
+		// Liquidation with TDP/TES
+		{
+			label: "Liquidation Records",
+			icon: "i-lucide-book",
+			type: "trigger",
+			children: [
+				{ label: "TDP", to: "/admin/liquidation/tdp" },
+				{ label: "TES", to: "/admin/liquidation/tes" },
+			],
+		},
 	],
 ];
 
-// Reactive highlight
+// Reactive highlighting (parent & child)
 const reactiveItems = computed(() =>
 	items.map((group) =>
-		group.map((item) => ({
-			...item,
-			active: route.path === item.to,
-		})),
+		group.map((item) => {
+			const isActive = route.path === item.to;
+
+			// Handle children
+			let children;
+			let hasActiveChild = false;
+			if (item.children) {
+				children = item.children.map((child) => {
+					const childActive = route.path === child.to;
+					if (childActive) hasActiveChild = true;
+					return { ...child, active: childActive };
+				});
+			}
+
+			return {
+				...item,
+				active: isActive || hasActiveChild,
+				defaultOpen: item.type === "trigger" ? hasActiveChild || item.defaultOpen : undefined,
+				children,
+			};
+		}),
 	),
 );
 </script>
@@ -45,6 +93,7 @@ const reactiveItems = computed(() =>
 			class="overflow-y-auto"
 			:ui="{ footer: 'border-t border-default' }"
 		>
+			<!-- Sidebar header -->
 			<template #header="{ collapsed }">
 				<div class="flex flex-col items-center justify-center w-full p-2">
 					<h1
@@ -73,6 +122,7 @@ const reactiveItems = computed(() =>
 					</div>
 				</div>
 			</template>
+
 			<!-- Footer -->
 			<template #footer="{ collapsed }">
 				<UButton

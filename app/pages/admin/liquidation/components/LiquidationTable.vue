@@ -29,8 +29,8 @@ function formatCurrency(amount: number) {
 
 <template>
 	<div class="overflow-x-auto">
-		<table class="w-full border-collapse border border-gray-400">
-			<thead class="bg-gray-100">
+		<table class="w-full border-collapse border border-gray-400 dark:border-gray-600">
+			<thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
 				<tr>
 					<th class="border p-2">Check Issued Date</th>
 					<th class="border p-2">Check No.</th>
@@ -44,6 +44,7 @@ function formatCurrency(amount: number) {
 				<tr
 					v-for="p in payouts"
 					:key="p.checkNo"
+					class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
 				>
 					<td class="border p-2">{{ p.date }}</td>
 					<td class="border p-2">{{ p.checkNo }}</td>
@@ -52,7 +53,7 @@ function formatCurrency(amount: number) {
 					<td class="border p-2">{{ p.purpose }}</td>
 					<td class="border p-2 text-right">{{ formatCurrency(p.amount) }}</td>
 				</tr>
-				<tr class="font-bold bg-gray-100">
+				<tr class="font-bold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
 					<td
 						class="border p-2 text-right"
 						colspan="5"

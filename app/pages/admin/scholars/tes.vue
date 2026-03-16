@@ -68,7 +68,7 @@ function updateScholar(scholar: Scholar) {
 <template>
 	<div class="p-6 space-y-6">
 		<PageHeader
-			title="Approved Applicants"
+			title=" TES Scholars"
 			description="View the list of approved applicants from the ADMIN's perspective."
 		/>
 
