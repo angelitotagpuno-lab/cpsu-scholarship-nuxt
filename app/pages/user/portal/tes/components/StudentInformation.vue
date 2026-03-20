@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
 
-const model = defineModel<any>();
+const formStore = useTesScholarFormStore();
 
-// Options for Sex dropdown
 const sexOptions = [
 	{ label: "Male", value: "Male" },
 	{ label: "Female", value: "Female" },
 ];
 
-// Options for Year Level dropdown
 const yearOptions = [
 	{ label: "1", value: "1" },
 	{ label: "2", value: "2" },
@@ -20,99 +18,87 @@ const yearOptions = [
 </script>
 
 <template>
-	<div>
-		<h2 class="text-xl font-semibold mb-4">Student Information</h2>
+	<div class="space-y-6">
+		<h2 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
+			Student Information
+		</h2>
 
-		<!-- Responsive grid -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-			<!-- Student ID (span 2 columns on desktop) -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<UFormField
 				label="Student ID"
 				class="md:col-span-2"
 			>
 				<UInput
-					v-model="model.studentId"
+					v-model="formStore.student.studentId"
 					placeholder="Enter your Student ID"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Sex -->
 			<UFormField label="Sex">
 				<USelect
-					v-model="model.sex"
+					v-model="formStore.student.sex"
 					:options="sexOptions"
-					option-attribute="label"
-					value-attribute="value"
 					placeholder="Select Sex"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Year Level -->
 			<UFormField label="Year Level">
 				<USelect
-					v-model="model.yearLevel"
+					v-model="formStore.student.yearLevel"
 					:options="yearOptions"
-					option-attribute="label"
-					value-attribute="value"
 					placeholder="Select Year Level"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Last Name -->
 			<UFormField label="Last Name">
 				<UInput
-					v-model="model.lastName"
+					v-model="formStore.student.lastName"
 					placeholder="Enter last name"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- First Name -->
 			<UFormField label="First Name">
 				<UInput
-					v-model="model.firstName"
+					v-model="formStore.student.firstName"
 					placeholder="Enter first name"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Middle Name -->
 			<UFormField label="Middle Name">
 				<UInput
-					v-model="model.middleName"
+					v-model="formStore.student.middleName"
 					placeholder="Enter middle name"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Extension Name -->
 			<UFormField label="Extension Name">
 				<UInput
-					v-model="model.extName"
+					v-model="formStore.student.extName"
 					placeholder="Jr, Sr, III (optional)"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Birthdate -->
 			<UFormField label="Birthdate">
 				<UInput
+					v-model="formStore.student.birthdate"
 					type="date"
-					v-model="model.birthdate"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- Program / Course (span 2 columns on desktop) -->
 			<UFormField
 				label="Program / Course"
 				class="md:col-span-2"
 			>
 				<UInput
-					v-model="model.program"
+					v-model="formStore.student.program"
 					placeholder="Example: BS Information Technology"
 					class="w-full"
 				/>

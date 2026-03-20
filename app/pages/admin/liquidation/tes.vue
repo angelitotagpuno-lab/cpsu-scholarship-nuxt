@@ -7,13 +7,16 @@ definePageMeta({
 	layout: "admin",
 });
 
+// ----- TES payouts -----
 const tesPayouts = ref([
 	{
 		date: "2024-07-10",
 		checkNo: "0001676100",
 		dvPayrollNo: "2024-07-0250",
 		name: "Mark Anthony Santos",
-		purpose: `Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.`,
+		pwd: "No",
+		purpose:
+			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
 		amount: 10000,
 	},
 	{
@@ -21,8 +24,10 @@ const tesPayouts = ref([
 		checkNo: "0001676101",
 		dvPayrollNo: "2024-07-0250",
 		name: "Angela Reyes",
-		purpose: `Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.`,
-		amount: 10000,
+		pwd: "Yes",
+		purpose:
+			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
+		amount: 12000,
 	},
 ]);
 
@@ -30,15 +35,17 @@ const totalTesAmount = computed(() => tesPayouts.value.reduce((sum, r) => sum + 
 </script>
 
 <template>
-	<div>
+	<div class="p-6 space-y-12">
 		<!-- TES Section -->
 		<section>
 			<h1 class="text-2xl font-bold mb-4">TES Liquidation Records</h1>
+
 			<DownloadButton
 				:payouts="tesPayouts"
 				:totalAmount="totalTesAmount"
 				filename="TES_Liquidation.csv"
 			/>
+
 			<LiquidationTable
 				:payouts="tesPayouts"
 				:totalAmount="totalTesAmount"

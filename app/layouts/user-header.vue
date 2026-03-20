@@ -1,16 +1,38 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import type { NavigationMenuItem, DropdownMenuItem } from "@nuxt/ui";
+import { computed, ref, reactive } from "vue";
+import { useRoute } from "vue-router";
+import type { NavigationMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
+const showMobileMenu = ref(false);
 
+// Desktop menu items using Nuxt UI style
 const items = computed<NavigationMenuItem[]>(() => [
-	{ label: "Home", to: "/user", icon: "i-lucide-book-open", active: route.path === "/user" },
+	{
+		label: "Home",
+		to: "/user",
+		active: route.path === "/user",
+		icon: "i-lucide-book-open",
+	},
 	{
 		label: "Scholarship Application",
-		to: "/user/portal",
 		icon: "i-lucide-box",
-		active: route.path.startsWith("/user/portal"),
+		type: "trigger", // enables click dropdown
+		defaultOpen: route.path.startsWith("/user/portal"),
+		children: [
+			{
+				label: "TDP",
+				to: "/user/portal/tdp",
+				icon: "i-lucide-file-text",
+				active: route.path === "/user/portal/tdp",
+			},
+			{
+				label: "TES",
+				to: "/user/portal/tes",
+				icon: "i-lucide-file-text",
+				active: route.path === "/user/portal/tes",
+			},
+		],
 	},
 	{
 		label: "Scholarship Payout",
@@ -20,12 +42,8 @@ const items = computed<NavigationMenuItem[]>(() => [
 	},
 ]);
 
-const dropdownItems = ref<DropdownMenuItem[]>([
-	{ label: "Contacts", icon: "i-lucide-user", to: "/contacts" },
-	{ label: "Help", icon: "i-lucide-credit-card", to: "/help" },
-]);
-
-const showMobileMenu = ref(false);
+// Mobile menu state: track which parent is expanded
+const mobileOpen = reactive<Record<string, boolean>>({});
 </script>
 
 <template>
@@ -33,36 +51,28 @@ const showMobileMenu = ref(false);
 		<!-- Header -->
 		<UHeader toggle-side="left">
 			<template #title>
-				<div class="flex items-center gap-2">
-					<span class="font-semibold text-sm sm:text-base">CPSU Scholarship</span>
-				</div>
+				<div class="font-semibold text-sm sm:text-base">CPSU Scholarship</div>
 			</template>
 
 			<!-- Desktop Navigation -->
-			<div class="hidden sm:flex flex-1 overflow-x-auto">
-				<UNavigationMenu
-					:items="items"
-					class="flex-nowrap"
-				/>
+			<div class="hidden sm:flex flex-1">
+				<UNavigationMenu :items="items" />
 			</div>
 
 			<!-- Right Icons -->
 			<template #right>
-				<div class="flex items-center gap-2">
-					<UColorModeButton />
-					<!-- Mobile Hamburger -->
-					<UButton
-						icon="i-lucide-menu"
-						color="neutral"
-						variant="ghost"
-						class="sm:hidden"
-						@click="showMobileMenu = !showMobileMenu"
-					/>
-				</div>
+				<UColorModeButton />
+				<UButton
+					icon="i-lucide-menu"
+					color="neutral"
+					variant="ghost"
+					class="sm:hidden"
+					@click="showMobileMenu = !showMobileMenu"
+				/>
 			</template>
 		</UHeader>
 
-		<!-- Mobile Menu Overlay -->
+		<!-- Mobile Menu -->
 		<transition name="fade">
 			<div
 				v-if="showMobileMenu"
@@ -74,31 +84,50 @@ const showMobileMenu = ref(false);
 							v-for="item in items"
 							:key="item.label"
 						>
+							<!-- Parent with children -->
+							<button
+								v-if="item.children"
+								class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold flex items-center justify-between"
+								@click="mobileOpen[item.label] = !mobileOpen[item.label]"
+							>
+								<span class="flex items-center gap-2">
+									<i :class="item.icon"></i> {{ item.label }}
+								</span>
+								<i
+									class="i-lucide-chevron-down transition-transform duration-200"
+									:class="{ 'rotate-180': mobileOpen[item.label] }"
+								></i>
+							</button>
+
+							<!-- Parent without children -->
 							<NuxtLink
+								v-else
 								:to="item.to"
 								class="block px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
 								@click="showMobileMenu = false"
 							>
 								<span class="flex items-center gap-2">
-									<i :class="item.icon"></i>
-									{{ item.label }}
+									<i :class="item.icon"></i> {{ item.label }}
 								</span>
 							</NuxtLink>
-						</li>
-						<li
-							v-for="d in dropdownItems"
-							:key="d.label"
-						>
-							<NuxtLink
-								:to="d.to"
-								class="block px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
-								@click="showMobileMenu = false"
-							>
-								<span class="flex items-center gap-2">
-									<i :class="d.icon"></i>
-									{{ d.label }}
-								</span>
-							</NuxtLink>
+
+							<!-- Dropdown children -->
+							<transition name="slide-fade">
+								<div
+									v-if="item.children && mobileOpen[item.label]"
+									class="flex flex-col pl-8"
+								>
+									<NuxtLink
+										v-for="child in item.children"
+										:key="child.label"
+										:to="child.to"
+										class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+										@click="showMobileMenu = false"
+									>
+										{{ child.label }}
+									</NuxtLink>
+								</div>
+							</transition>
 						</li>
 					</ul>
 				</div>
@@ -113,7 +142,7 @@ const showMobileMenu = ref(false);
 </template>
 
 <style>
-/* Fade transition for mobile menu */
+/* Transitions */
 .fade-enter-active,
 .fade-leave-active {
 	transition: opacity 0.2s;
@@ -123,12 +152,16 @@ const showMobileMenu = ref(false);
 	opacity: 0;
 }
 
-/* Hide scrollbar for desktop horizontal menu */
-.sm:flex::-webkit-scrollbar {
-	display: none;
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+	transition: all 0.2s ease;
 }
-.sm:flex {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
+.slide-fade-enter-from {
+	opacity: 0;
+	transform: translateY(-5px);
+}
+.slide-fade-leave-to {
+	opacity: 0;
+	transform: translateY(-5px);
 }
 </style>

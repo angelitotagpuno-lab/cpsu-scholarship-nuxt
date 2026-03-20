@@ -6,6 +6,7 @@ interface Payout {
 	checkNo: string;
 	dvPayrollNo: string;
 	name: string;
+	pwd: string; // NEW: PWD column
 	purpose: string;
 	amount: number;
 }
@@ -36,6 +37,8 @@ function formatCurrency(amount: number) {
 					<th class="border p-2">Check No.</th>
 					<th class="border p-2">DV/Payroll No.</th>
 					<th class="border p-2">Payee</th>
+					<th class="border p-2">PWD</th>
+					<!-- NEW COLUMN -->
 					<th class="border p-2">Purpose of Payment (TES/ASC)</th>
 					<th class="border p-2 text-right">Amount</th>
 				</tr>
@@ -50,13 +53,15 @@ function formatCurrency(amount: number) {
 					<td class="border p-2">{{ p.checkNo }}</td>
 					<td class="border p-2">{{ p.dvPayrollNo }}</td>
 					<td class="border p-2">{{ p.name }}</td>
+					<td class="border p-2 text-center">{{ p.pwd }}</td>
+					<!-- PWD VALUE -->
 					<td class="border p-2">{{ p.purpose }}</td>
 					<td class="border p-2 text-right">{{ formatCurrency(p.amount) }}</td>
 				</tr>
 				<tr class="font-bold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
 					<td
 						class="border p-2 text-right"
-						colspan="5"
+						colspan="6"
 					>
 						TOTAL
 					</td>

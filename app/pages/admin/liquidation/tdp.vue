@@ -14,6 +14,7 @@ const tdpPayouts = ref([
 		checkNo: "0001676056",
 		dvPayrollNo: "2024-07-0245",
 		name: "Raven Ann Abadies",
+		pwd: "No",
 		purpose:
 			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
 		amount: 7500,
@@ -23,9 +24,10 @@ const tdpPayouts = ref([
 		checkNo: "0001676057",
 		dvPayrollNo: "2024-07-0245",
 		name: "Danica Abella",
+		pwd: "Yes",
 		purpose:
 			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: 7500,
+		amount: 9500,
 	},
 ]);
 
@@ -37,11 +39,13 @@ const totalTdpAmount = computed(() => tdpPayouts.value.reduce((sum, r) => sum + 
 		<!-- TDP Section -->
 		<section>
 			<h1 class="text-2xl font-bold mb-4">TDP Liquidation Records</h1>
+
 			<DownloadButton
 				:payouts="tdpPayouts"
 				:totalAmount="totalTdpAmount"
 				filename="TDP_Liquidation.csv"
 			/>
+
 			<LiquidationTable
 				:payouts="tdpPayouts"
 				:totalAmount="totalTdpAmount"

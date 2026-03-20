@@ -6,6 +6,7 @@ interface Payout {
 	checkNo: string;
 	dvPayrollNo: string;
 	name: string;
+	pwd?: string; // added PWD
 	purpose: string;
 	amount: number;
 }
@@ -26,8 +27,9 @@ const props = defineProps({
 });
 
 function downloadExcel() {
+	// Add PWD column to header
 	let csvContent =
-		"Check Issued Date,Check No,DV/Payroll No,Payee,Purpose of Payment (TES/ASC),Amount\n";
+		"Check Issued Date,Check No,DV/Payroll No,Payee,PWD,Purpose of Payment (TES/ASC),Amount\n";
 
 	props.payouts.forEach((record) => {
 		const row = [
@@ -35,13 +37,14 @@ function downloadExcel() {
 			record.checkNo,
 			record.dvPayrollNo,
 			`"${record.name}"`,
+			record.pwd ?? "", // include PWD, leave blank if undefined
 			`"${record.purpose}"`,
 			record.amount.toFixed(2),
 		];
 		csvContent += row.join(",") + "\n";
 	});
 
-	csvContent += `,,,,TOTAL,${props.totalAmount.toFixed(2)}\n`;
+	csvContent += `,,,,,TOTAL,${props.totalAmount.toFixed(2)}\n`;
 
 	const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 	const url = URL.createObjectURL(blob);
