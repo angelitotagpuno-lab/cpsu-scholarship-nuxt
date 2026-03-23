@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { useToast } from "#imports";
+import { useToast, useRouter } from "#imports";
+import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
 	layout: "login",
 });
 
 const toast = useToast();
+const router = useRouter();
+const store = useAuthStore();
 
 // Login form fields
 const fields: AuthFormField[] = [
@@ -32,7 +35,7 @@ const fields: AuthFormField[] = [
 	},
 ];
 
-// Social login buttons (wide)
+// Social login buttons
 const providers = [
 	{
 		label: "Continue with Google",
@@ -54,9 +57,27 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-	console.log("Submitted", payload.data);
-	toast.add({ title: "Success", description: "Logged in!" });
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+	try {
+		const user = await store.login(payload.data.email, payload.data.password);
+
+		if (user.role !== "user") {
+			throw new Error("Not a user");
+		}
+
+		toast.add({
+			title: "Success",
+			description: "Logged in successfully!",
+		});
+
+		router.push("/user");
+	} catch {
+		toast.add({
+			title: "Error",
+			description: "Invalid credentials",
+			color: "error",
+		});
+	}
 }
 </script>
 
@@ -65,31 +86,28 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 		<UPageCard class="w-full max-w-md">
 			<UAuthForm
 				:schema="schema"
-				title="Login"
+				title="User Login"
 				description="Enter your credentials to access your account."
 				icon="i-lucide-user"
 				:fields="fields"
 				@submit="onSubmit"
 			>
-				<!-- Submit button as a link with "Login" centered -->
+				<!-- ✅ FIXED: REAL submit button -->
 				<template #submit>
 					<div class="flex justify-center mt-4">
-						<NuxtLink
-							to="/user"
-							class="w-full md:w-1/2"
+						<UButton
+							type="submit"
+							color="primary"
+							size="lg"
+							class="w-full flex justify-center items-center"
+							:loading="store.isLoading"
 						>
-							<UButton
-								color="primary"
-								size="lg"
-								class="w-full flex justify-center items-center"
-							>
-								Login
-							</UButton>
-						</NuxtLink>
+							Login
+						</UButton>
 					</div>
 				</template>
 
-				<!-- Wide social provider buttons -->
+				<!-- Social providers -->
 				<template #providers>
 					<div class="flex flex-col gap-3 mt-4">
 						<UButton
@@ -117,6 +135,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 				>
 					Register here
 				</NuxtLink>
+
 				<!-- Admin Login Button -->
 				<div class="mt-4 flex justify-center">
 					<NuxtLink to="/login">
