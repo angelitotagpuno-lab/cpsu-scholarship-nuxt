@@ -4,7 +4,9 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 	css: ["~/assets/css/main.css"],
 	runtimeConfig: {
-		baseUrl: process.env.NUXT_BASE_URL,
+		public: {
+			baseUrl: process.env.NUXT_BASE_URL,
+		},
 	},
 	compatibilityDate: "2025-07-15",
 	eslint: {

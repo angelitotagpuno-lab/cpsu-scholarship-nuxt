@@ -12,13 +12,13 @@ const toast = useToast();
 
 // Registration form fields
 const fields: AuthFormField[] = [
-	{
-		name: "name",
-		label: "Full Name",
-		type: "text",
-		placeholder: "Enter your full name",
-		required: true,
-	},
+	// {
+	// 	name: "name",
+	// 	label: "Full Name",
+	// 	type: "text",
+	// 	placeholder: "Enter your full name",
+	// 	required: true,
+	// },
 	{ name: "email", label: "Email", type: "email", placeholder: "Enter your email", required: true },
 	{
 		name: "password",
@@ -53,8 +53,8 @@ const providers = [
 // Validation schema
 const schema = z
 	.object({
-		name: z.string().min(2, "Name is required"),
-		email: z.string().email("Invalid email"),
+		// name: z.string().min(2, "Name is required"),
+		email: z.email("Invalid email"),
 		password: z.string().min(8, "Password must be at least 8 characters"),
 		confirmPassword: z.string().min(8, "Please confirm your password"),
 	})
@@ -83,7 +83,6 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 					description="Create a new account to access the CPSU Scholarship portal."
 					icon="i-lucide-user-plus"
 					:fields="fields"
-					:providers="providers"
 					@submit="onSubmit"
 				/>
 
