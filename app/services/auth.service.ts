@@ -1,28 +1,24 @@
-export function useAuthApi() {
-	const config = useRuntimeConfig();
+const config = useRuntimeConfig();
+const headers = import.meta.server ? useRequestHeaders(["cookie"]) : undefined;
 
-	async function me() {
-		const headers = import.meta.server ? useRequestHeaders(["cookie"]) : undefined;
+export function login(email: string, password: string) {
+	return $fetch(config.public.baseUrl + "/api/auth/login", {
+		method: "POST",
+		body: { email, password },
+		credentials: "include",
+	});
+}
 
-		return await $fetch("/api/v1/auth/me", {
-			headers,
-			credentials: "include",
-		});
-	}
-	async function login(email: string, password: string) {
-		return await $fetch(config.public.baseUrl + "/api/auth/login", {
-			method: "POST",
-			body: { email, password },
-			credentials: "include",
-		});
-	}
+export function logout() {
+	return $fetch("/api/auth/logout", {
+		method: "POST",
+		credentials: "include",
+	});
+}
 
-	async function logout() {
-		return await $fetch("/api/v1/auth/logout", {
-			method: "POST",
-			credentials: "include",
-		});
-	}
-
-	return { me, login, logout };
+export function me() {
+	return $fetch("/api/auth/me", {
+		headers,
+		credentials: "include",
+	});
 }

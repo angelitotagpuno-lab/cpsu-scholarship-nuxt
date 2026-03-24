@@ -1,12 +1,20 @@
-interface Student {
+export type Gender = "male" | "female";
+
+export type YearLevel = "1" | "2" | "3" | "4" | "5" | "6";
+
+export interface Student {
 	id?: string;
-	studentId?: string;
+	schoolId?: string;
 	lastName?: string;
-	givenName?: string;
+	firstName?: string;
 	middleName?: string;
 	extName?: string;
-	sex?: string;
+	sex?: Gender;
 	birthdate?: string;
 	contactNumber?: string;
 	email?: string;
+	yearLevel?: YearLevel;
+	isActive?: boolean;
+	address?: Address;
+	parents?: Parent[];
 }
