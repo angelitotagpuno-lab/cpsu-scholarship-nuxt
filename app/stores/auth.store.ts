@@ -1,5 +1,10 @@
-import type { User } from "@supabase/supabase-js";
 import { useAuthApi } from "~/composables/useAuthApi";
+
+type User = {
+	id: number;
+	email: string;
+	role: "admin" | "user";
+};
 
 export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
@@ -24,11 +29,16 @@ export const useAuthStore = defineStore("auth", () => {
 		errorMessage.value = null;
 
 		try {
-			const { user: loggedInUser } = await api.login(email, password);
-			user.value = loggedInUser;
+			await api.login(email, password);
+
+			const { user: me } = await api.me();
+			user.value = me;
+
+			return me;
 		} catch {
 			errorMessage.value = "Invalid credentials";
 			user.value = null;
+			throw new Error("Login failed");
 		} finally {
 			isLoading.value = false;
 		}
@@ -39,5 +49,13 @@ export const useAuthStore = defineStore("auth", () => {
 		user.value = null;
 	}
 
-	return { user, isLoading, errorMessage, isAuthenticated, fetchUser, login, logout };
+	return {
+		user,
+		isLoading,
+		errorMessage,
+		isAuthenticated,
+		fetchUser,
+		login,
+		logout,
+	};
 });
