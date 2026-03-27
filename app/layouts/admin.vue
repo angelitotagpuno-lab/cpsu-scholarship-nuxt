@@ -17,6 +17,7 @@ async function logout() {
 const items: NavigationMenuItem[][] = [
 	[
 		{ label: "Dashboard", icon: "i-lucide-house", to: "/admin/home" },
+		{ label: "Courses", icon: "i-lucide-lightbulb", to: "/admin/courses" },
 
 		// Applicants with TDP/TES
 		{

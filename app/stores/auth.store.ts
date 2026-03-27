@@ -17,8 +17,8 @@ export const useAuthStore = defineStore("auth", () => {
 
 	async function fetchUser() {
 		try {
-			const { user: me } = await api.me();
-			user.value = me;
+			const res = await api.me();
+			user.value = res.user ?? res;
 		} catch {
 			user.value = null;
 		}
@@ -31,16 +31,26 @@ export const useAuthStore = defineStore("auth", () => {
 		try {
 			await api.login(email, password);
 
-			const { user: me } = await api.me();
-			user.value = me;
+			const res = await api.me();
+			user.value = res.user ?? res;
 
-			return me;
-		} catch {
+			return user.value;
+		} catch (e) {
 			errorMessage.value = "Invalid credentials";
 			user.value = null;
-			throw new Error("Login failed");
+			throw e;
 		} finally {
 			isLoading.value = false;
+		}
+	}
+
+	// ✅ FIXED registerUser
+	async function registerUser(payload: Parameters<typeof api.register>[0]) {
+		try {
+			await api.register(payload.email, payload.password);
+		} catch (e) {
+			console.error("Registration failed:", e);
+			throw e;
 		}
 	}
 
@@ -56,6 +66,7 @@ export const useAuthStore = defineStore("auth", () => {
 		isAuthenticated,
 		fetchUser,
 		login,
+		registerUser,
 		logout,
 	};
 });

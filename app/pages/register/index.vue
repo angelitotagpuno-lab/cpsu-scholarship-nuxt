@@ -2,23 +2,17 @@
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
 import { useToast, navigateTo } from "#imports";
-import LoginFooter from "~/components/LoginFooter.vue"; // import your login footer
+import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
-	layout: "login", // keeps your header, but we manually add login footer
+	layout: "login",
 });
 
 const toast = useToast();
+const store = useAuthStore();
 
 // Registration form fields
 const fields: AuthFormField[] = [
-	// {
-	// 	name: "name",
-	// 	label: "Full Name",
-	// 	type: "text",
-	// 	placeholder: "Enter your full name",
-	// 	required: true,
-	// },
 	{ name: "email", label: "Email", type: "email", placeholder: "Enter your email", required: true },
 	{
 		name: "password",
@@ -28,53 +22,98 @@ const fields: AuthFormField[] = [
 		required: true,
 	},
 	{
-		name: "confirmPassword",
-		label: "Confirm Password",
-		type: "password",
-		placeholder: "Confirm your password",
+		name: "first_name",
+		label: "First Name",
+		type: "text",
+		placeholder: "Enter your first name",
+		required: true,
+	},
+	{
+		name: "last_name",
+		label: "Last Name",
+		type: "text",
+		placeholder: "Enter your last name",
+		required: true,
+	},
+	{
+		name: "middle_name",
+		label: "Middle Name",
+		type: "text",
+		placeholder: "Enter your middle name",
+		required: false,
+	},
+	{
+		name: "year_level",
+		label: "Year Level",
+		type: "number",
+		placeholder: "Enter your year level",
+		required: true,
+	},
+	{
+		name: "ext_name",
+		label: "Extension Name",
+		type: "text",
+		placeholder: "e.g., Jr., Sr.",
+		required: false,
+	},
+	{
+		name: "contact_number",
+		label: "Contact Number",
+		type: "tel",
+		placeholder: "Enter your contact number",
+		required: true,
+	},
+	{
+		name: "sex",
+		label: "Sex",
+		type: "select",
+		options: ["Male", "Female", "Other"],
 		required: true,
 	},
 ];
 
-// Social providers
-const providers = [
-	{
-		label: "Google",
-		icon: "i-simple-icons-google",
-		onClick: () => toast.add({ title: "Google", description: "Register with Google" }),
-	},
-	{
-		label: "GitHub",
-		icon: "i-simple-icons-github",
-		onClick: () => toast.add({ title: "GitHub", description: "Register with GitHub" }),
-	},
-];
-
 // Validation schema
-const schema = z
-	.object({
-		// name: z.string().min(2, "Name is required"),
-		email: z.email("Invalid email"),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-		confirmPassword: z.string().min(8, "Please confirm your password"),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
-		path: ["confirmPassword"],
-	});
+const schema = z.object({
+	email: z.string().email("Invalid email"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+	first_name: z.string().min(1, "First Name is required"),
+	last_name: z.string().min(1, "Last Name is required"),
+	middle_name: z.string().optional(),
+	year_level: z.number().min(1, "Year Level is required"),
+	ext_name: z.string().optional(),
+	contact_number: z.string().min(7, "Contact Number is required"),
+	sex: z.enum(["Male", "Female", "Other"]),
+});
 
 type Schema = z.output<typeof schema>;
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-	console.log("Registered data:", payload.data);
-	toast.add({ title: "Success", description: "Account registered successfully!" });
-	navigateTo("/login"); // redirect after successful registration
+// ✅ Updated onSubmit to call backend
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+	try {
+		await store.registerUser({
+			email: payload.data.email,
+			password: payload.data.password,
+		});
+
+		toast.add({
+			title: "Success",
+			description: "Account registered successfully!",
+		});
+
+		navigateTo("/user-login");
+	} catch (e) {
+		console.error(e);
+		toast.add({
+			title: "Error",
+			description: "Registration failed",
+			color: "error",
+		});
+	}
 }
 </script>
 
 <template>
 	<div class="flex flex-col min-h-screen justify-between bg-background">
-		<!-- Registration form in the middle -->
 		<div class="flex flex-col items-center justify-center gap-4 p-4 flex-1">
 			<UPageCard class="w-full max-w-md">
 				<UAuthForm
@@ -86,7 +125,6 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 					@submit="onSubmit"
 				/>
 
-				<!-- Login CTA -->
 				<div class="mt-4 text-center text-sm text-muted">
 					Already have an account?
 					<NuxtLink
@@ -100,7 +138,3 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 		</div>
 	</div>
 </template>
-
-<style scoped>
-/* Ensure full height so footer sticks at bottom */
-</style>

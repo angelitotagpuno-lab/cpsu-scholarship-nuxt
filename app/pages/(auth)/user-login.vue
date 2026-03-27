@@ -57,12 +57,14 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
+// ✅ Updated onSubmit to call backend through store
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	try {
 		const user = await store.login(payload.data.email, payload.data.password);
 
-		if (user.role !== "user") {
-			throw new Error("Not a user");
+		// Only allow "user" role to access this page
+		if (!user || user.role !== "user") {
+			throw new Error("Not a user account");
 		}
 
 		toast.add({
@@ -70,11 +72,12 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 			description: "Logged in successfully!",
 		});
 
-		router.push("/user");
-	} catch {
+		router.push("/user"); // redirect to user dashboard/home
+	} catch (e) {
+		console.error(e);
 		toast.add({
 			title: "Error",
-			description: "Invalid credentials",
+			description: "Invalid credentials or not a student account",
 			color: "error",
 		});
 	}
@@ -92,7 +95,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 				:fields="fields"
 				@submit="onSubmit"
 			>
-				<!-- ✅ FIXED: REAL submit button -->
+				<!-- Submit button -->
 				<template #submit>
 					<div class="flex justify-center mt-4">
 						<UButton

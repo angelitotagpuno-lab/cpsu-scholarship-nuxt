@@ -29,13 +29,16 @@ const fields: AuthFormField[] = [
 ];
 
 async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
-	const { email, password } = payload.data;
+	console.log("ADMIN LOGIN:", payload.data); // ✅ debug
 
 	try {
-		await store.login(email, password); // Calls server API
-		store.errorMessage = ""; // Clear previous error
-		await navigateTo("/admin/home"); // Redirect after successful login
-	} catch {
+		await store.login(payload.data.email, payload.data.password);
+
+		store.errorMessage = null; // ✅ FIX
+
+		await navigateTo("/admin/home");
+	} catch (e) {
+		console.error(e);
 		store.errorMessage = "Invalid credentials";
 	}
 }
