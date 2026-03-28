@@ -9,6 +9,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
 	const isProtected = PROTECTED_ROUTES.some((route) => to.path.startsWith(route));
 	const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.includes(to.path);
 
+	if (isPublicAuthRoute && !authStore.isAuthenticated) return;
+
 	if (isProtected && !authStore.user) {
 		return showError({ status: 404, statusText: "Page Not Found" });
 	}
