@@ -8,6 +8,9 @@ export default defineNuxtConfig({
 			baseUrl: process.env.NUXT_BASE_URL,
 		},
 	},
+	routeRules: {
+		"/proxy/**": { proxy: `${process.env.NUXT_BASE_URL}/**` },
+	},
 	compatibilityDate: "2025-07-15",
 	eslint: {
 		config: {

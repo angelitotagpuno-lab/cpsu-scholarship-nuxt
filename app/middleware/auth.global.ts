@@ -1,13 +1,19 @@
+const PROTECTED_ROUTES = ["/admin", "/user"];
+
+const PUBLIC_AUTH_ROUTES = ["/login", "/user-login", "/register", "/forgot-password"];
+
 export default defineNuxtRouteMiddleware(async (to) => {
 	const authStore = useAuthStore();
-	if (!to.path.startsWith("/admin") && to.path !== "/login") return;
-	if (!authStore.isAuthenticated) {
-		await authStore.fetchUser();
+	await authStore.getUser();
+
+	const isProtected = PROTECTED_ROUTES.some((route) => to.path.startsWith(route));
+	const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.includes(to.path);
+
+	if (isProtected && !authStore.user) {
+		return showError({ status: 404, statusText: "Page Not Found" });
 	}
-	if (to.path === "/login" && authStore.user) {
-		return navigateTo("/admin/home");
-	}
-	if (to.path.startsWith("/admin") && !authStore.user) {
-		return navigateTo("/login");
+
+	if (isPublicAuthRoute && authStore.isAuthenticated) {
+		return navigateTo(authStore.user?.role === "admin" ? "/admin/home" : "/user");
 	}
 });

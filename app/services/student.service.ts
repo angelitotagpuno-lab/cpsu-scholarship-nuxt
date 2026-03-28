@@ -1,30 +1,40 @@
 import type { Student } from "~/types/student";
 
-const config = useRuntimeConfig();
-const headers = import.meta.server ? useRequestHeaders(["cookie"]) : undefined;
+const baseUrl = "/proxy";
 
-export const showStudent = (id: string): Promise<Student> => {
-	return $fetch(`${config.public.baseUrl}/api/student/${id}`, {
+export function show(id: string): Promise<{ data: Student }> {
+	return $fetch(`${baseUrl}/api/students/${id}`, {
 		method: "GET",
-		headers,
 		credentials: "include",
 	});
-};
+}
 
-export const updateStudent = (id: string, data: Student) => {
-	return $fetch(`${config.public.baseUrl}/api/student/${id}`, {
+export function update(id: string, data: Student): Promise<{ data: Student }> {
+	return $fetch(`${baseUrl}/api/students/${id}`, {
 		method: "PUT",
 		body: data,
-		headers,
 		credentials: "include",
 	});
-};
+}
 
-export const insertStudent = (data: Student) => {
-	return $fetch(`${config.public.baseUrl}/api/student`, {
+export function store(data: Student): Promise<{ data: Student }> {
+	return $fetch(`${baseUrl}/api/students`, {
 		method: "POST",
 		body: data,
-		headers,
 		credentials: "include",
 	});
-};
+}
+
+export function index(): Promise<{ data: Student[] }> {
+	return $fetch(`${baseUrl}/api/students`, {
+		method: "GET",
+		credentials: "include",
+	});
+}
+
+export function destroy(id: string): Promise<{ data: Student }> {
+	return $fetch(`${baseUrl}/api/students/${id}`, {
+		method: "DELETE",
+		credentials: "include",
+	});
+}

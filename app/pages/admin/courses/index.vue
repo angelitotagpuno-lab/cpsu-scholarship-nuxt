@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useCourses } from "~/services/useCourses";
+import { useCourses } from "~/services/course.service";
 import { useToast } from "#imports";
 
 const toast = useToast();

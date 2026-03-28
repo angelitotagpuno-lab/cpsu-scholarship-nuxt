@@ -1,44 +1,25 @@
-import { useRuntimeConfig, useRequestHeaders } from "#imports";
+import type { ApiResponse } from "~/types/api-response";
+import type { Auth, User } from "~/types/user";
 
-export function useAuthApi() {
-	const config = useRuntimeConfig();
-	const baseUrl = config.public.baseUrl;
-
-	const headers = import.meta.server ? useRequestHeaders(["cookie"]) : undefined;
-
-	function login(email: string, password: string) {
-		return $fetch(baseUrl + "/api/auth/login", {
-			method: "POST",
-			body: { email, password },
-			credentials: "include",
-		});
-	}
-
-	function logout() {
-		return $fetch(baseUrl + "/api/auth/logout", {
-			method: "POST",
-			credentials: "include",
-		});
-	}
-
-	function me() {
-		return $fetch(baseUrl + "/api/auth/me", {
-			headers,
-			credentials: "include",
-		});
-	}
-
-	function register(email: string, password: string) {
-		return $fetch(baseUrl + "/api/auth/register", {
-			method: "POST",
-			body: { email, password },
-		});
-	}
-
-	return {
-		login,
-		logout,
-		me,
-		register,
-	};
+function login(body: Auth): Promise<ApiResponse<User>> {
+	return $fetch("/proxy/api/auth/login", { method: "POST", body });
 }
+
+function logout() {
+	return $fetch("/proxy/api/auth/logout", { method: "GET", credentials: "include" });
+}
+
+function me(): Promise<ApiResponse<User>> {
+	return $fetch("/proxy/api/auth/me", { method: "GET", credentials: "include" });
+}
+
+function register(body: Auth): Promise<ApiResponse<User>> {
+	return $fetch("/proxy/api/auth/register", { method: "POST", body });
+}
+
+export const authService = {
+	login,
+	logout,
+	me,
+	register,
+};

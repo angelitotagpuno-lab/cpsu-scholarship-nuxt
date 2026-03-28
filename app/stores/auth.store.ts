@@ -1,10 +1,5 @@
-import { useAuthApi } from "~/composables/useAuthApi";
-
-type User = {
-	id: number;
-	email: string;
-	role: "admin" | "user";
-};
+import { authService } from "~/services/auth.service";
+import type { Auth, User } from "~/types/user";
 
 export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
@@ -13,50 +8,61 @@ export const useAuthStore = defineStore("auth", () => {
 
 	const isAuthenticated = computed(() => !!user.value);
 
-	const api = useAuthApi();
-
-	async function fetchUser() {
-		try {
-			const res = await api.me();
-			user.value = res.user ?? res;
-		} catch {
-			user.value = null;
-		}
-	}
-
-	async function login(email: string, password: string) {
-		isLoading.value = true;
+	async function getUser() {
 		errorMessage.value = null;
-
+		isLoading.value = true;
 		try {
-			await api.login(email, password);
-
-			const res = await api.me();
-			user.value = res.user ?? res;
-
-			return user.value;
+			const res = await authService.me();
+			console.log("here" + res.data.role);
+			user.value = res.data;
 		} catch (e) {
-			errorMessage.value = "Invalid credentials";
-			user.value = null;
-			throw e;
+			errorMessage.value = "Failed to fetch user";
+			console.error("here err" + e);
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	// ✅ FIXED registerUser
-	async function registerUser(payload: Parameters<typeof api.register>[0]) {
+	async function login(body: Auth) {
+		errorMessage.value = null;
+		isLoading.value = true;
 		try {
-			await api.register(payload.email, payload.password);
+			const res = await authService.login(body);
+			user.value = res.data;
 		} catch (e) {
-			console.error("Registration failed:", e);
-			throw e;
+			errorMessage.value = "Invalid credentials";
+			console.log("here err" + e);
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	async function register(body: Auth) {
+		errorMessage.value = null;
+		isLoading.value = true;
+		try {
+			const res = await authService.register(body);
+			user.value = res.data;
+		} catch (e) {
+			errorMessage.value = "Failed to register user";
+			console.error(e);
+		} finally {
+			isLoading.value = false;
 		}
 	}
 
 	async function logout() {
-		await api.logout();
-		user.value = null;
+		errorMessage.value = null;
+		isLoading.value = true;
+		try {
+			await authService.logout();
+			user.value = null;
+		} catch (e) {
+			errorMessage.value = "Failed to logout";
+			console.error(e);
+		} finally {
+			isLoading.value = false;
+		}
 	}
 
 	return {
@@ -64,9 +70,9 @@ export const useAuthStore = defineStore("auth", () => {
 		isLoading,
 		errorMessage,
 		isAuthenticated,
-		fetchUser,
+		getUser,
 		login,
-		registerUser,
+		register,
 		logout,
 	};
 });

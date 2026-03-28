@@ -12,7 +12,6 @@ const toast = useToast();
 const router = useRouter();
 const store = useAuthStore();
 
-// Login form fields
 const fields: AuthFormField[] = [
 	{
 		name: "email",
@@ -35,52 +34,34 @@ const fields: AuthFormField[] = [
 	},
 ];
 
-// Social login buttons
-const providers = [
-	{
-		label: "Continue with Google",
-		icon: "i-simple-icons-google",
-		onClick: () => toast.add({ title: "Google", description: "Login with Google" }),
-	},
-	{
-		label: "Continue with GitHub",
-		icon: "i-simple-icons-github",
-		onClick: () => toast.add({ title: "GitHub", description: "Login with GitHub" }),
-	},
-];
+// const providers = [
+// 	{
+// 		label: "Continue with Google",
+// 		icon: "i-simple-icons-google",
+// 		onClick: () => toast.add({ title: "Google", description: "Login with Google" }),
+// 	},
+// 	{
+// 		label: "Continue with GitHub",
+// 		icon: "i-simple-icons-github",
+// 		onClick: () => toast.add({ title: "GitHub", description: "Login with GitHub" }),
+// 	},
+// ];
 
-// Validation schema
 const schema = z.object({
-	email: z.string().email("Invalid email"),
+	email: z.email("Invalid email"),
 	password: z.string().min(8, "Must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
-// ✅ Updated onSubmit to call backend through store
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
-	try {
-		const user = await store.login(payload.data.email, payload.data.password);
-
-		// Only allow "user" role to access this page
-		if (!user || user.role !== "user") {
-			throw new Error("Not a user account");
-		}
-
-		toast.add({
-			title: "Success",
-			description: "Logged in successfully!",
-		});
-
-		router.push("/user"); // redirect to user dashboard/home
-	} catch (e) {
-		console.error(e);
-		toast.add({
-			title: "Error",
-			description: "Invalid credentials or not a student account",
-			color: "error",
-		});
+	console.log(payload);
+	await store.login({ email: payload.data.email, password: payload.data.password });
+	if (store.errorMessage) {
+		toast.add({ title: "Error", description: store.errorMessage, color: "error" });
+		return;
 	}
+	router.push("/user");
 }
 </script>
 
@@ -89,47 +70,14 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 		<UPageCard class="w-full max-w-md">
 			<UAuthForm
 				:schema="schema"
+				:fields="fields"
 				title="User Login"
 				description="Enter your credentials to access your account."
 				icon="i-lucide-user"
-				:fields="fields"
+				:loading="store.isLoading"
 				@submit="onSubmit"
-			>
-				<!-- Submit button -->
-				<template #submit>
-					<div class="flex justify-center mt-4">
-						<UButton
-							type="submit"
-							color="primary"
-							size="lg"
-							class="w-full flex justify-center items-center"
-							:loading="store.isLoading"
-						>
-							Login
-						</UButton>
-					</div>
-				</template>
+			/>
 
-				<!-- Social providers -->
-				<template #providers>
-					<div class="flex flex-col gap-3 mt-4">
-						<UButton
-							v-for="(provider, index) in providers"
-							:key="index"
-							color="neutral"
-							size="lg"
-							class="w-full flex justify-center items-center gap-2"
-							variant="outline"
-							:icon="provider.icon"
-							@click="provider.onClick"
-						>
-							{{ provider.label }}
-						</UButton>
-					</div>
-				</template>
-			</UAuthForm>
-
-			<!-- Register CTA -->
 			<div class="mt-4 text-center text-sm text-muted">
 				Don't have an account?
 				<NuxtLink
@@ -139,7 +87,6 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 					Register here
 				</NuxtLink>
 
-				<!-- Admin Login Button -->
 				<div class="mt-4 flex justify-center">
 					<NuxtLink to="/login">
 						<UButton
