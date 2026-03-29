@@ -1,12 +1,26 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { NavigationMenuItem } from "@nuxt/ui";
+import { useAuthStore } from "~/stores/auth.store"; // adjust if needed
 
 const route = useRoute();
+const router = useRouter();
+const store = useAuthStore();
+
 const showMobileMenu = ref(false);
 
-// Desktop menu items using Nuxt UI style
+// Logout function
+async function logout() {
+	const confirmLogout = confirm("Are you sure you want to logout?");
+	if (!confirmLogout) return;
+
+	await store.logout();
+	showMobileMenu.value = false; // close mobile menu
+	router.push("/user-login");
+}
+
+// Desktop menu items
 const items = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Home",
@@ -17,7 +31,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Scholarship Application",
 		icon: "i-lucide-box",
-		type: "trigger", // enables click dropdown
+		type: "trigger",
 		defaultOpen: route.path.startsWith("/user/portal"),
 		children: [
 			{
@@ -42,7 +56,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 	},
 ]);
 
-// Mobile menu state: track which parent is expanded
+// Mobile dropdown state
 const mobileOpen = reactive<Record<string, boolean>>({});
 </script>
 
@@ -59,9 +73,21 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 				<UNavigationMenu :items="items" />
 			</div>
 
-			<!-- Right Icons -->
+			<!-- Right Side -->
 			<template #right>
 				<UColorModeButton />
+
+				<!-- Logout (Desktop) -->
+				<UButton
+					label="Logout"
+					icon="i-lucide-log-out"
+					color="error"
+					variant="ghost"
+					class="hidden sm:inline-flex"
+					@click="logout"
+				/>
+
+				<!-- Mobile Menu Button -->
 				<UButton
 					icon="i-lucide-menu"
 					color="neutral"
@@ -111,7 +137,7 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 								</span>
 							</NuxtLink>
 
-							<!-- Dropdown children -->
+							<!-- Children -->
 							<transition name="slide-fade">
 								<div
 									v-if="item.children && mobileOpen[item.label]"
@@ -130,6 +156,18 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 							</transition>
 						</li>
 					</ul>
+
+					<!-- Logout (Mobile) -->
+					<div class="mt-6 border-t pt-4">
+						<UButton
+							label="Logout"
+							icon="i-lucide-log-out"
+							color="error"
+							variant="solid"
+							block
+							@click="logout"
+						/>
+					</div>
 				</div>
 			</div>
 		</transition>
@@ -142,7 +180,6 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 </template>
 
 <style>
-/* Transitions */
 .fade-enter-active,
 .fade-leave-active {
 	transition: opacity 0.2s;
