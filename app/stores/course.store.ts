@@ -17,9 +17,10 @@ export const useCourseStore = defineStore("course", () => {
 		try {
 			const res = await courseService.index();
 			courses.value = res.data;
+			console.log("here" + res.data);
 		} catch (e) {
 			errorMessage.value = "Failed to fetch courses";
-			console.error(e);
+			console.error("err" + e);
 		} finally {
 			isLoading.value = false;
 		}

@@ -1,3 +1,5 @@
+import camelize from "camelize";
+import { ca } from "zod/locales";
 import { personnelService } from "~/services/personnel.service";
 import type { Personnel } from "~/types/personnel";
 
@@ -26,7 +28,7 @@ export const usePersonnelStore = defineStore("personnel", () => {
 		isLoading.value = true;
 		try {
 			const res = await personnelService.show(id);
-			personnel.value = res.data;
+			personnel.value = camelize(res.data);
 		} catch (e) {
 			errorMessage.value = "Failed to fetch personnel";
 			console.error(e);

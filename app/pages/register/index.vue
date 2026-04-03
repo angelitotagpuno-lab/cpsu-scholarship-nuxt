@@ -67,7 +67,7 @@ const fields: AuthFormField[] = [
 		name: "sex",
 		label: "Sex",
 		type: "select",
-		options: ["Male", "Female", "Other"],
+		// options: ["Male", "Female", "Other"],
 		required: true,
 	},
 ];
@@ -90,10 +90,10 @@ type Schema = z.output<typeof schema>;
 // ✅ Updated onSubmit to call backend
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	try {
-		await store.registerUser({
-			email: payload.data.email,
-			password: payload.data.password,
-		});
+		// await store.registerUser({
+		// 	email: payload.data.email,
+		// 	password: payload.data.password,
+		// });
 
 		toast.add({
 			title: "Success",
