@@ -2,6 +2,7 @@
 import type { TableColumn } from "@nuxt/ui";
 import type { Course } from "~/types/course";
 import AddModal from "./components/add-modal.vue";
+import { courseService } from "~/services/course.service";
 
 definePageMeta({ layout: "admin" });
 
@@ -13,6 +14,23 @@ const store = useCourseStore();
 async function open() {
 	await modal.open();
 }
+
+async function openEdit(course: Course) {
+	await modal.open({
+		isEdit: true,
+		data: course,
+	});
+	await store.getCourses();
+}
+
+async function handleDelete(id: string) {
+	try {
+		await courseService.destroy(id);
+		await store.getCourses();
+	} catch (error) {
+		console.error("Delete failed:", error);
+	}
+}
 const columns: TableColumn<Course>[] = [
 	{
 		accessorKey: "id",
@@ -22,6 +40,36 @@ const columns: TableColumn<Course>[] = [
 	{ accessorKey: "name", header: "Name" },
 	{ accessorKey: "abbreviation", header: "Abbreviation" },
 	{ accessorKey: "major", header: "Major" },
+	{
+		id: "actions",
+		header: "Actions",
+		cell: ({ row }) => {
+			const course = row.original;
+
+			return h("div", { class: "flex gap-2" }, [
+				h(
+					resolveComponent("UButton"),
+					{
+						size: "sm",
+						color: "blue",
+						variant: "soft",
+						onClick: () => openEdit(course),
+					},
+					() => "Edit",
+				),
+				h(
+					resolveComponent("UButton"),
+					{
+						size: "sm",
+						color: "red",
+						variant: "soft",
+						onClick: () => handleDelete(course.id ?? row.getValue("id")),
+					},
+					() => "Delete",
+				),
+			]);
+		},
+	},
 ];
 
 onMounted(async () => {

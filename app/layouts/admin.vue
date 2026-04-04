@@ -116,8 +116,8 @@ const reactiveItems = computed(() =>
 					/>
 
 					<div
-						class="mt-4 px-2"
 						v-if="!collapsed"
+						class="mt-4 px-2"
 					>
 						<UColorModeButton class="w-full" />
 					</div>

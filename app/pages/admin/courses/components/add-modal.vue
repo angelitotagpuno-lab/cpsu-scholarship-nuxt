@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import z from "zod";
+import type { Course } from "~/types/course";
 
 const toast = useToast();
 const store = useCourseStore();
 const emit = defineEmits<{ close: [boolean] }>();
+
+const props = defineProps<{
+	isEdit?: boolean;
+	data?: Course;
+}>();
 
 const schema = z.object({
 	name: z.string("Name is required"),
@@ -15,23 +21,66 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Partial<Schema>>({
-	name: undefined,
-	abbreviation: undefined,
-	major: undefined,
+	name: "",
+	abbreviation: "",
+	major: "",
 });
 
+watch(
+	() => props.data,
+	(val) => {
+		if (val) {
+			state.name = val.name;
+			state.abbreviation = val.abbreviation;
+			state.major = val.major || "";
+		}
+	},
+	{ immediate: true },
+);
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.addCourse({
-		name: event.data.name,
-		abbreviation: event.data.abbreviation,
-		major: event.data.major,
-	});
-	if (store.errorMessage) {
-		toast.add({ title: "Error", description: store.errorMessage, color: "error" });
-	} else {
-		toast.add({ title: "Success", description: "Successfully added course", color: "success" });
+	try {
+		if (props.isEdit && props.data?.id) {
+			await store.editCourse(props.data.id, {
+				name: event.data.name,
+				abbreviation: event.data.abbreviation,
+				major: event.data.major,
+			});
+
+			toast.add({
+				title: "Success",
+				description: "Course updated successfully",
+				color: "success",
+			});
+		} else {
+			await store.addCourse({
+				name: event.data.name,
+				abbreviation: event.data.abbreviation,
+				major: event.data.major,
+			});
+
+			toast.add({
+				title: "Success",
+				description: "Successfully added course",
+				color: "success",
+			});
+		}
+
+		if (emit) {
+			emit("close", true);
+		}
+	} catch (error: unknown) {
+		console.error(error);
+
+		const message =
+			error instanceof Error ? error.message : store.errorMessage || "Something went wrong";
+
+		toast.add({
+			title: "Error",
+			description: message,
+			color: "error",
+		});
 	}
-	emit("close", true);
 }
 </script>
 

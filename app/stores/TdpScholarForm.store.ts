@@ -1,6 +1,6 @@
 // ~/stores/TdpScholarForm.store.ts
 import { defineStore } from "pinia";
-import { ref, reactive } from "vue";
+import { reactive } from "vue";
 
 export const useTdpScholarFormStore = defineStore("tdpScholarForm", () => {
 	const student = reactive({
