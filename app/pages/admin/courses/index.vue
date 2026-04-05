@@ -37,8 +37,16 @@ const columns: TableColumn<Course>[] = [
 		header: "ID",
 		cell: ({ row }) => `#${row.getValue("id")}`,
 	},
-	{ accessorKey: "name", header: "Name" },
-	{ accessorKey: "abbreviation", header: "Abbreviation" },
+	{
+		accessorKey: "name",
+		header: "Name",
+		cell: ({ row }) => `${(row.getValue("name") as string).capitalize()}`,
+	},
+	{
+		accessorKey: "abbreviation",
+		header: "Abbreviation",
+		cell: ({ row }) => `${(row.getValue("abbreviation") as string).toUpperCase()}`,
+	},
 	{ accessorKey: "major", header: "Major" },
 	{
 		id: "actions",

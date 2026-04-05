@@ -34,7 +34,6 @@ function store(body: Course): Promise<ApiResponse<Course>> {
 function update(id: string, body: Course): Promise<ApiResponse<Course>> {
 	return $fetch(baseUrl + `/api/courses/${id}`, {
 		method: "PUT",
-
 		body: body,
 		credentials: "include",
 	});
