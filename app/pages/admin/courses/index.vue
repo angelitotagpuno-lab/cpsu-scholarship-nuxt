@@ -2,34 +2,28 @@
 import type { TableColumn } from "@nuxt/ui";
 import type { Course } from "~/types/course";
 import AddModal from "./components/add-modal.vue";
-import { courseService } from "~/services/course.service";
+import EditModal from "./components/edit-modal.vue";
+import DeleteModal from "./components/delete-modal.vue";
 
 definePageMeta({ layout: "admin" });
 
 const overlay = useOverlay();
-const modal = overlay.create(AddModal);
+const addModal = overlay.create(AddModal);
+const editModal = overlay.create(EditModal);
+const deleteModal = overlay.create(DeleteModal);
 
 const store = useCourseStore();
 
-async function open() {
-	await modal.open();
+async function openAdd() {
+	await addModal.open();
 }
 
 async function openEdit(course: Course) {
-	await modal.open({
-		isEdit: true,
-		data: course,
-	});
-	await store.getCourses();
+	await editModal.open({ data: course });
 }
 
-async function handleDelete(id: string) {
-	try {
-		await courseService.destroy(id);
-		await store.getCourses();
-	} catch (error) {
-		console.error("Delete failed:", error);
-	}
+async function openDelete(course: Course) {
+	await deleteModal.open({ data: course });
 }
 const columns: TableColumn<Course>[] = [
 	{
@@ -47,7 +41,11 @@ const columns: TableColumn<Course>[] = [
 		header: "Abbreviation",
 		cell: ({ row }) => `${(row.getValue("abbreviation") as string).toUpperCase()}`,
 	},
-	{ accessorKey: "major", header: "Major" },
+	{
+		accessorKey: "major",
+		header: "Major",
+		cell: ({ row }) => `${(row.getValue("major") as string).capitalize()}`,
+	},
 	{
 		id: "actions",
 		header: "Actions",
@@ -59,7 +57,7 @@ const columns: TableColumn<Course>[] = [
 					resolveComponent("UButton"),
 					{
 						size: "sm",
-						color: "blue",
+						color: "primary", // primary = main action
 						variant: "soft",
 						onClick: () => openEdit(course),
 					},
@@ -69,9 +67,9 @@ const columns: TableColumn<Course>[] = [
 					resolveComponent("UButton"),
 					{
 						size: "sm",
-						color: "red",
+						color: "error", // error = destructive
 						variant: "soft",
-						onClick: () => handleDelete(course.id ?? row.getValue("id")),
+						onClick: () => openDelete(course),
 					},
 					() => "Delete",
 				),
@@ -96,7 +94,8 @@ onMounted(async () => {
 				label="Add Course"
 				icon="i-lucide-plus"
 				size="lg"
-				@click="open"
+				color="primary"
+				@click="openAdd"
 			/>
 		</div>
 		<UTable

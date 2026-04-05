@@ -1,27 +1,32 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import z from "zod";
+import type { Course } from "~/types/course";
 
-const store = useCourseStore();
 const toast = useToast();
+const store = useCourseStore();
 const emit = defineEmits<{ close: [boolean] }>();
 
+const props = defineProps<{
+	data: Course;
+}>();
+
 const schema = z.object({
-	name: z.string("Name is required"),
-	abbreviation: z.string("Abbreviation is required"),
+	name: z.string(),
+	abbreviation: z.string(),
 	major: z.string().optional(),
 });
 
 type Schema = z.output<typeof schema>;
 
-const state = reactive<Partial<Schema>>({
-	name: "",
-	abbreviation: "",
-	major: "",
+const state = reactive<Schema>({
+	name: (props.data.name || "").capitalize(),
+	abbreviation: (props.data.abbreviation || "").toUpperCase(),
+	major: (props.data.major || "").capitalize(),
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.addCourse(event.data);
+	await store.editCourse(props.data.id!, event.data);
 
 	if (store.errorMessage) {
 		toast.add({
@@ -32,7 +37,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	} else {
 		toast.add({
 			title: "Success",
-			description: "Course added successfully",
+			description: "Course updated successfully",
 			color: "success",
 		});
 		emit("close", true);
@@ -41,7 +46,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-	<UModal title="Add New Course">
+	<UModal title="Edit Course">
 		<template #body>
 			<UForm
 				:schema="schema"
@@ -78,12 +83,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						class="w-full"
 					/>
 				</UFormField>
+
 				<div class="flex justify-end">
 					<UButton
 						type="submit"
 						:loading="store.isLoading"
 					>
-						Submit
+						Update
 					</UButton>
 				</div>
 			</UForm>
