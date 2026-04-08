@@ -76,7 +76,20 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 				icon="i-lucide-user"
 				:loading="store.isLoading"
 				@submit="onSubmit"
-			/>
+			>
+				<template #submit>
+					<div class="flex justify-center mt-4">
+						<UButton
+							label="Sign in"
+							type="submit"
+							color="primary"
+							size="lg"
+							class="w-full flex justify-center items-center"
+							:loading="store.isLoading"
+						/>
+					</div>
+				</template>
+			</UAuthForm>
 
 			<div class="mt-4 text-center text-sm text-muted">
 				Don't have an account?

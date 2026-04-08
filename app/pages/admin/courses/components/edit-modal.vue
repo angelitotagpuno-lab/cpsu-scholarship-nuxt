@@ -26,7 +26,7 @@ const state = reactive<Schema>({
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.editCourse(props.data.id!, event.data);
+	await store.editCourse(props.data.id ?? "", event.data);
 
 	if (store.errorMessage) {
 		toast.add({

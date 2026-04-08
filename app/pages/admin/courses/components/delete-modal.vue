@@ -34,8 +34,7 @@ async function confirmDelete() {
 		<template #body>
 			<p class="mb-4">
 				Are you sure you want to delete
-				<strong>{{ (props.data?.name || "").capitalize() }}</strong
-				>?
+				<strong>{{ (props.data?.name || "").capitalize() }} </strong>?
 			</p>
 			<div class="flex justify-end gap-2">
 				<UButton

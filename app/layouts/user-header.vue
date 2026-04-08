@@ -10,14 +10,18 @@ const store = useAuthStore();
 
 const showMobileMenu = ref(false);
 
-// Logout function
 async function logout() {
 	const confirmLogout = confirm("Are you sure you want to logout?");
 	if (!confirmLogout) return;
 
-	await store.logout();
-	showMobileMenu.value = false; // close mobile menu
-	router.push("/user-login");
+	try {
+		await store.logout();
+		showMobileMenu.value = false;
+		router.push("/user-login");
+	} catch (error) {
+		console.error("Logout failed", error);
+		alert("Logout failed. Please try again.");
+	}
 }
 
 // Desktop menu items

@@ -41,8 +41,7 @@ export const useAuthStore = defineStore("auth", () => {
 		errorMessage.value = null;
 		isLoading.value = true;
 		try {
-			const res = await authService.register(body);
-			user.value = res.data;
+			await authService.register(body);
 		} catch (e) {
 			errorMessage.value = "Failed to register user";
 			console.error(e);

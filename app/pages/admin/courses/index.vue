@@ -25,6 +25,7 @@ async function openEdit(course: Course) {
 async function openDelete(course: Course) {
 	await deleteModal.open({ data: course });
 }
+
 const columns: TableColumn<Course>[] = [
 	{
 		accessorKey: "id",

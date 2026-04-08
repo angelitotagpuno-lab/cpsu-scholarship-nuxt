@@ -61,7 +61,7 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 				<template #submit>
 					<div class="flex justify-center mt-4">
 						<UButton
-							label="Sign in"
+							label="Log in"
 							type="submit"
 							color="primary"
 							size="lg"
