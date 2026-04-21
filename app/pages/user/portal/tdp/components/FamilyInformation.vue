@@ -2,10 +2,8 @@
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 const formStore = useTdpScholarFormStore();
-const yesNoOptions = [
-	{ label: "Yes", value: "Yes" },
-	{ label: "No", value: "No" },
-];
+const STATUS_OPTIONS = ["Living", "Deceased"];
+const FINANCIAL_OPTIONS = ["Yes", "No"];
 </script>
 
 <template>
@@ -37,11 +35,8 @@ const yesNoOptions = [
 				<UFormField label="Status">
 					<USelect
 						v-model="formStore.father.fatherStatus"
-						:options="[
-							{ label: 'Living', value: 'Living' },
-							{ label: 'Deceased', value: 'Deceased' },
-						]"
-						placeholder="Select Status"
+						:items="STATUS_OPTIONS"
+						placeholder="Select Sector"
 						class="w-full"
 					/>
 				</UFormField>
@@ -69,11 +64,8 @@ const yesNoOptions = [
 				<UFormField label="Status">
 					<USelect
 						v-model="formStore.mother.motherStatus"
-						:options="[
-							{ label: 'Living', value: 'Living' },
-							{ label: 'Deceased', value: 'Deceased' },
-						]"
-						placeholder="Select Status"
+						:items="STATUS_OPTIONS"
+						placeholder="Select Sector"
 						class="w-full"
 					/>
 				</UFormField>
@@ -98,11 +90,11 @@ const yesNoOptions = [
 				/>
 			</UFormField>
 
-			<UFormField label="Other Financial Assistance">
+			<UFormField label="Other Financial Assistance?">
 				<USelect
 					v-model="formStore.family.financialAid"
-					:options="yesNoOptions"
-					placeholder="Select Yes or No"
+					:items="FINANCIAL_OPTIONS"
+					placeholder="Select Option"
 					class="w-full"
 				/>
 			</UFormField>

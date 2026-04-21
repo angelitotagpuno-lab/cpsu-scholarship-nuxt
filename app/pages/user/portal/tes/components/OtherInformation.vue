@@ -4,10 +4,7 @@ import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
 
 const formStore = useTesScholarFormStore();
 
-const yesNoOptions = [
-	{ label: "Yes", value: "Yes" },
-	{ label: "No", value: "No" },
-];
+const YES_NO_OPTIONS = ["Yes", "No"];
 
 const pwdPreview = ref<string | null>(null);
 const ipPreview = ref<string | null>(null);
@@ -43,7 +40,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 			<UFormField label="Person With Disability (PWD)">
 				<USelect
 					v-model="formStore.other.disability"
-					:options="yesNoOptions"
+					:items="YES_NO_OPTIONS"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
@@ -52,7 +49,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 			<UFormField label="Indigenous People (IP)">
 				<USelect
 					v-model="formStore.other.indigenous"
-					:options="yesNoOptions"
+					:items="YES_NO_OPTIONS"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
@@ -61,7 +58,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 			<UFormField label="4Ps Beneficiary">
 				<USelect
 					v-model="formStore.other.fourPs"
-					:options="yesNoOptions"
+					:items="YES_NO_OPTIONS"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
@@ -79,8 +76,8 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 					Upload PWD ID
 				</button>
 				<input
-					type="file"
 					ref="pwdInput"
+					type="file"
 					class="hidden"
 					@change="(e) => handleFile(e, 'pwd')"
 				/>

@@ -14,22 +14,6 @@ const form = reactive({
 
 const evidencePreview = ref<string | null>(null);
 
-// Generate Auto IDs (similar pattern to TDP)
-const generateIDs = () => {
-	const date = new Date();
-	const dateStr = date.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
-	const randomNum = Math.floor(Math.random() * 1000000000)
-		.toString()
-		.padStart(9, "0");
-	form.awardNo = `TES-${dateStr}-${randomNum}`;
-	form.studentId = `${Math.floor(Math.random() * 100000)
-		.toString()
-		.padStart(5, "0")}-${dateStr}-TS`;
-};
-
-// Call once on load
-generateIDs();
-
 const dateNow = () =>
 	new Date().toLocaleDateString("en-PH", {
 		year: "numeric",
@@ -71,7 +55,6 @@ const addPayout = () => {
 	form.pwd = false;
 	form.evidenceFile = null;
 	evidencePreview.value = null;
-	generateIDs(); // regenerate IDs
 };
 </script>
 
@@ -82,26 +65,14 @@ const addPayout = () => {
 		</h1>
 
 		<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
-			<!-- Auto IDs -->
-			<div>
-				<label class="block mb-1 font-medium text-foreground dark:text-gray-200">
-					Award No.*
-				</label>
-				<input
-					v-model="form.awardNo"
-					class="w-full border rounded p-2 bg-gray-100 dark:bg-gray-700 text-foreground dark:text-gray-200"
-					readonly
-				/>
-			</div>
-
 			<div>
 				<label class="block mb-1 font-medium text-foreground dark:text-gray-200">
 					Student ID No.
 				</label>
 				<input
-					v-model="form.studentId"
-					class="w-full border rounded p-2 bg-gray-100 dark:bg-gray-700 text-foreground dark:text-gray-200"
-					readonly
+					v-model="form.checkNo"
+					class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-foreground dark:text-gray-200"
+					placeholder="Enter Student ID Number"
 				/>
 			</div>
 
@@ -152,11 +123,11 @@ const addPayout = () => {
 						Upload Image
 					</button>
 					<input
-						type="file"
 						ref="evidenceInput"
+						type="file"
 						class="hidden"
-						@change="handleFile"
 						accept="image/*"
+						@change="handleFile"
 					/>
 					<div
 						v-if="form.evidenceFile"

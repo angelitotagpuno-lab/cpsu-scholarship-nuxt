@@ -2,7 +2,7 @@ import type { ApiResponse } from "~/types/api-response";
 import type { Auth, User } from "~/types/user";
 
 function login(body: Auth): Promise<ApiResponse<User>> {
-	return $fetch("/proxy/api/auth/login", { method: "POST", body });
+	return $fetch("/proxy/api/auth/login", { method: "POST", body, credentials: "include" });
 }
 
 function logout() {

@@ -2,6 +2,7 @@
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 const formStore = useTdpScholarFormStore();
+const SECTOR_OPTIONS = ["Public", "Private"];
 </script>
 
 <template>
@@ -44,12 +45,7 @@ const formStore = useTdpScholarFormStore();
 			<UFormField label="School Sector">
 				<USelect
 					v-model="formStore.school.schoolSector"
-					:options="[
-						{ label: 'Public', value: 'Public' },
-						{ label: 'Private', value: 'Private' },
-					]"
-					option-attribute="label"
-					value-attribute="value"
+					:items="SECTOR_OPTIONS"
 					placeholder="Select Sector"
 					class="w-full"
 				/>

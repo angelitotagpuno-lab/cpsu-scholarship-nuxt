@@ -2,10 +2,8 @@
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 const formStore = useTdpScholarFormStore();
-const sexOptions = [
-	{ label: "Male", value: "Male" },
-	{ label: "Female", value: "Female" },
-];
+
+const SEX_OPTIONS = ["Male", "Female"];
 </script>
 
 <template>
@@ -42,18 +40,16 @@ const sexOptions = [
 			<UFormField label="Sex">
 				<USelect
 					v-model="formStore.student.sex"
-					:options="sexOptions"
-					option-attribute="label"
-					value-attribute="value"
-					placeholder="Select Sex"
+					:items="SEX_OPTIONS"
+					placeholder="Select sex"
 					class="w-full"
 				/>
 			</UFormField>
 
 			<UFormField label="Birthdate">
 				<UInput
-					type="date"
 					v-model="formStore.student.birthdate"
+					type="date"
 					class="w-full"
 				/>
 			</UFormField>

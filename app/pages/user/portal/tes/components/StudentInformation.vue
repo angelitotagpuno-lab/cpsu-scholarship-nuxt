@@ -3,25 +3,21 @@ import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
 
 const formStore = useTesScholarFormStore();
 
-const sexOptions = [
-	{ label: "Male", value: "Male" },
-	{ label: "Female", value: "Female" },
-];
-
-const yearOptions = [
-	{ label: "1", value: "1" },
-	{ label: "2", value: "2" },
-	{ label: "3", value: "3" },
-	{ label: "4", value: "4" },
-	{ label: "5", value: "5" },
-];
+const SEX_OPTIONS = ["Male", "Female"];
+const YEAR_OPTIONS = ["1", "2", "3", "4", "5"];
 </script>
 
 <template>
 	<div class="space-y-6">
-		<h2 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
-			Student Information
-		</h2>
+		<!-- TITLE -->
+		<div class="space-y-1">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+				TES Scholarship Application
+			</h2>
+			<p class="text-gray-500 dark:text-gray-400 text-sm">
+				Fill out the required information below
+			</p>
+		</div>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<UFormField
@@ -38,7 +34,7 @@ const yearOptions = [
 			<UFormField label="Sex">
 				<USelect
 					v-model="formStore.student.sex"
-					:options="sexOptions"
+					:items="SEX_OPTIONS"
 					placeholder="Select Sex"
 					class="w-full"
 				/>
@@ -47,7 +43,7 @@ const yearOptions = [
 			<UFormField label="Year Level">
 				<USelect
 					v-model="formStore.student.yearLevel"
-					:options="yearOptions"
+					:items="YEAR_OPTIONS"
 					placeholder="Select Year Level"
 					class="w-full"
 				/>

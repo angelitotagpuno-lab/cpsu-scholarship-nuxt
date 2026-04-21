@@ -29,9 +29,9 @@ export const useAuthStore = defineStore("auth", () => {
 		try {
 			const res = await authService.login(body);
 			user.value = res.data;
-		} catch (e) {
-			errorMessage.value = "Invalid credentials";
-			console.log("here err" + e);
+		} catch (e: any) {
+			errorMessage.value = e?.response?._data?.message || "Login failed";
+			console.error("Login error:", e);
 		} finally {
 			isLoading.value = false;
 		}
