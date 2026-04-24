@@ -3,6 +3,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { ref, h, resolveComponent } from "vue";
 import ApplicantsAddModal from "./components/applicants-add-modal.vue";
 import ApplicantsEditModal from "./components//applicants-edit-modal.vue";
+import { tdpService } from "~/services/tdp.service";
 
 definePageMeta({
 	layout: "admin",
@@ -36,30 +37,13 @@ type Applicant = {
 	eligibility: string;
 };
 
-const applicants = ref<Applicant[]>([
-	{
-		seq: 1,
-		awardNo: "TDP-20250421-044111000000-016515",
-		appId: "06176-20250203-11855-TD",
-		batch: 3,
-		studentId: "0",
-		lastName: "ABELLO",
-		firstName: "SHIR JOHN",
-		extName: "",
-		middleName: "GARCIA",
-		sex: "MALE",
-		course: "BS AGRICULTURAL BUSINESS",
-		yearLevel: 4,
-		contactNo: "9104419504",
-		email: "shirjohnabello@gmail.com",
-		city: "SAN CARLOS CITY",
-		province: "NEGROS OCCIDENTAL",
-		zipcode: "6127",
-		income: 12000,
-		gpa: 1.75,
-		eligibility: "Eligible",
-	},
-]);
+const applicants = ref<any[]>([]);
+
+onMounted(() => {
+	tdpService.index().then((res) => {
+		applicants.value = res.data;
+	});
+});
 
 // ✅ NEW: Edit modal state
 const showEditModal = ref(false);

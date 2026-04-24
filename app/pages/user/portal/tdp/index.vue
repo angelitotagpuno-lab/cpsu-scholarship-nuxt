@@ -4,8 +4,8 @@ import AddressInformation from "./components/AddressInformation.vue";
 import SchoolInformation from "./components/SchoolInformation.vue";
 import FamilyInformation from "./components/FamilyInformation.vue";
 import RequirementsForm from "./components/RequirementsForm.vue";
-
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
+import { tdpService } from "~/services/tdp.service";
 
 definePageMeta({
 	layout: "user-header",
@@ -14,15 +14,77 @@ definePageMeta({
 const formStore = useTdpScholarFormStore();
 
 function submitTdpForm() {
-	console.log({
-		student: formStore.student,
-		address: formStore.address,
-		school: formStore.school,
-		father: formStore.father,
-		mother: formStore.mother,
-		family: formStore.family,
-		requirements: formStore.requirements,
-	});
+	const payload = {
+		...formStore.student,
+		...formStore.address,
+		...formStore.school,
+		...formStore.father,
+		...formStore.mother,
+		...formStore.family,
+	};
+
+	tdpService
+		.store(payload)
+		.then((res) => {
+			console.log(res);
+
+			// ✅ SUCCESS MESSAGE
+			alert("Application submitted successfully!");
+
+			// ✅ OPTIONAL: RESET FORM
+			Object.assign(formStore.student, {
+				lastName: "",
+				firstName: "",
+				middleName: "",
+				maidenName: "",
+				birthdate: "",
+				sex: "",
+				birthPlace: "",
+				citizenship: "",
+				mobile: "",
+				email: "",
+			});
+
+			Object.assign(formStore.address, {
+				street: "",
+				city: "",
+				province: "",
+				zipCode: "",
+			});
+
+			Object.assign(formStore.school, {
+				schoolName: "",
+				schoolId: "",
+				schoolAddress: "",
+				schoolSector: "",
+				yearLevel: "",
+				course: "",
+			});
+
+			Object.assign(formStore.father, {
+				fatherName: "",
+				fatherOccupation: "",
+				fatherStatus: "",
+			});
+
+			Object.assign(formStore.mother, {
+				motherName: "",
+				motherOccupation: "",
+				motherStatus: "",
+			});
+
+			Object.assign(formStore.family, {
+				income: "",
+				siblings: "",
+				financialAid: "",
+			});
+		})
+		.catch((err) => {
+			console.error(err);
+
+			// ❌ ERROR MESSAGE
+			alert("Failed to submit application!");
+		});
 }
 </script>
 
