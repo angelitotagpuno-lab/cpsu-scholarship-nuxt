@@ -1,99 +1,108 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import StudentInformation from "./components/StudentInformation.vue";
 import AddressInformation from "./components/AddressInformation.vue";
 import SchoolInformation from "./components/SchoolInformation.vue";
 import FamilyInformation from "./components/FamilyInformation.vue";
-import RequirementsForm from "./components/RequirementsForm.vue";
+import SubmitModal from "./components/SubmitModal.vue";
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
-import { tdpService } from "~/services/tdp.service";
 
 definePageMeta({
 	layout: "user-header",
 });
 
 const formStore = useTdpScholarFormStore();
+const toast = useToast();
 
-function submitTdpForm() {
-	const payload = {
-		...formStore.student,
-		...formStore.address,
-		...formStore.school,
-		...formStore.father,
-		...formStore.mother,
-		...formStore.family,
+const isConfirmOpen = ref(false);
+
+// CHECK IF FORM IS COMPLETE
+type FormSection = Record<string, string | number | null | undefined>;
+
+function getMissingFields() {
+	const missing: string[] = [];
+
+	const check = (obj: FormSection, prefix: string) => {
+		for (const key in obj) {
+			const value = obj[key];
+
+			// skip conditional field
+			if (
+				prefix === "Family" &&
+				key === "financialAidSpecify" &&
+				formStore.family.financialAid !== "Yes"
+			) {
+				continue;
+			}
+
+			if (
+				value === null ||
+				value === undefined ||
+				(typeof value === "string" && value.trim() === "")
+			) {
+				missing.push(`${prefix} - ${key}`);
+			}
+		}
 	};
 
-	tdpService
-		.store(payload)
-		.then((res) => {
-			console.log(res);
+	check(formStore.student, "Student");
+	check(formStore.address, "Address");
+	check(formStore.school, "School");
+	check(formStore.father, "Father");
+	check(formStore.mother, "Mother");
+	check(formStore.family, "Family");
 
-			// ✅ SUCCESS MESSAGE
-			alert("Application submitted successfully!");
+	return missing;
+}
 
-			// ✅ OPTIONAL: RESET FORM
-			Object.assign(formStore.student, {
-				lastName: "",
-				firstName: "",
-				middleName: "",
-				maidenName: "",
-				birthdate: "",
-				sex: "",
-				birthPlace: "",
-				citizenship: "",
-				mobile: "",
-				email: "",
-			});
+// SUBMIT CLICK (VALIDATION FIRST)
+function onSubmitClick() {
+	const missingFields = getMissingFields();
 
-			Object.assign(formStore.address, {
-				street: "",
-				city: "",
-				province: "",
-				zipCode: "",
-			});
-
-			Object.assign(formStore.school, {
-				schoolName: "",
-				schoolId: "",
-				schoolAddress: "",
-				schoolSector: "",
-				yearLevel: "",
-				course: "",
-			});
-
-			Object.assign(formStore.father, {
-				fatherName: "",
-				fatherOccupation: "",
-				fatherStatus: "",
-			});
-
-			Object.assign(formStore.mother, {
-				motherName: "",
-				motherOccupation: "",
-				motherStatus: "",
-			});
-
-			Object.assign(formStore.family, {
-				income: "",
-				siblings: "",
-				financialAid: "",
-			});
-		})
-		.catch((err) => {
-			console.error(err);
-
-			// ❌ ERROR MESSAGE
-			alert("Failed to submit application!");
+	if (missingFields.length > 0) {
+		toast.add({
+			title: "Incomplete Form",
+			description: `Please fill: ${missingFields.slice(0, 3).join(", ")}${
+				missingFields.length > 3 ? "..." : ""
+			}`,
+			color: "error",
 		});
+
+		isConfirmOpen.value = false;
+		return;
+	}
+
+	// OPEN CONFIRMATION MODAL ONLY IF VALID
+	isConfirmOpen.value = true;
+}
+
+// FINAL SUBMIT
+function submitTdpForm() {
+	const payload = {
+		student: formStore.student,
+		address: formStore.address,
+		school: formStore.school,
+		father: formStore.father,
+		mother: formStore.mother,
+		family: formStore.family,
+		requirements: formStore.requirements,
+	};
+
+	console.log("SUBMIT PAYLOAD:", payload);
+
+	isConfirmOpen.value = false;
+
+	toast.add({
+		title: "Application Submitted",
+		description: "Your TDP application has been successfully submitted.",
+		color: "success",
+	});
 }
 </script>
 
 <template>
 	<div class="max-w-6xl mx-auto p-4 sm:p-6">
-		<!-- CARD CONTAINER -->
-		<div
-			class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-8"
-		>
+		<UCard class="space-y-8">
 			<!-- TITLE -->
 			<div class="space-y-1">
 				<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -104,69 +113,31 @@ function submitTdpForm() {
 				</p>
 			</div>
 
-			<!-- STUDENT INFO -->
+			<!-- FORMS -->
 			<StudentInformation :store="formStore" />
-
-			<!-- ADDRESS INFO -->
 			<AddressInformation :store="formStore" />
-
-			<!-- SCHOOL INFO -->
 			<SchoolInformation :store="formStore" />
-
-			<!-- FAMILY INFO -->
 			<FamilyInformation :store="formStore" />
-
-			<!-- REQUIREMENTS -->
 			<RequirementsForm :store="formStore" />
 
-			<!-- SUBMIT -->
+			<!-- SUBMIT BUTTON -->
 			<div class="pt-4 flex justify-center sm:justify-start">
 				<UButton
-					block
 					size="lg"
+					block
 					color="primary"
 					class="w-full sm:w-auto"
-					@click="submitTdpForm"
+					@click="onSubmitClick"
 				>
 					Submit Application
 				</UButton>
 			</div>
-		</div>
+		</UCard>
+
+		<!-- CONFIRMATION MODAL -->
+		<SubmitModal
+			v-model="isConfirmOpen"
+			@confirm="submitTdpForm"
+		/>
 	</div>
-	<LoginFooter />
 </template>
-
-<style scoped>
-/* Style placeholders and inputs for better visibility */
-input::placeholder,
-select::placeholder {
-	color: #9ca3af; /* Tailwind gray-400 */
-	opacity: 1;
-}
-
-/* Make input boxes taller and full width */
-input,
-select,
-textarea {
-	width: 100%;
-	min-height: 2.5rem; /* Taller input for easier typing */
-	padding: 0.5rem 0.75rem;
-	border-radius: 0.5rem;
-}
-
-/* Dark mode input */
-.dark input,
-.dark select,
-.dark textarea {
-	background-color: #1f2937; /* gray-800 */
-	border-color: #374151; /* gray-700 */
-	color: #f9fafb; /* white */
-}
-
-/* Hover effect for dark/light mode */
-input:hover,
-select:hover,
-textarea:hover {
-	border-color: #2563eb; /* blue-600 */
-}
-</style>

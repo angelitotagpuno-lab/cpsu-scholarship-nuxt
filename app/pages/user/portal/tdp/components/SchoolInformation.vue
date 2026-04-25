@@ -3,6 +3,23 @@ import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 const formStore = useTdpScholarFormStore();
 const SECTOR_OPTIONS = ["Public", "Private"];
+
+const allowLetters = (e: KeyboardEvent) => {
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Space"];
+
+	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) {
+		e.preventDefault();
+	}
+};
+
+// STRICT NUMBERS ONLY
+const allowNumbers = (e: KeyboardEvent) => {
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
+
+	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
+		e.preventDefault();
+	}
+};
 </script>
 
 <template>
@@ -13,21 +30,31 @@ const SECTOR_OPTIONS = ["Public", "Private"];
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<UFormField
+				name="schoolName"
 				label="School Name"
 				class="md:col-span-2"
+				:rules="[isRequired, isName]"
+				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.school.schoolName"
-					placeholder="Ex: Central Philippines State University"
+					placeholder="Ex: Central Mindanao University"
 					class="w-full"
+					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<UFormField label="School ID">
+			<UFormField
+				name="schoolId"
+				label="School ID"
+				:rules="[isRequired, isNumber]"
+				validate-on="input"
+			>
 				<UInput
 					v-model="formStore.school.schoolId"
 					placeholder="Ex: 123456"
 					class="w-full"
+					@keydown="allowNumbers"
 				/>
 			</UFormField>
 
@@ -51,19 +78,30 @@ const SECTOR_OPTIONS = ["Public", "Private"];
 				/>
 			</UFormField>
 
-			<UFormField label="Year Level">
+			<UFormField
+				name="yearLevel"
+				label="Year Level"
+				:rules="[isRequired, isNumber]"
+				validate-on="input"
+			>
 				<UInput
 					v-model="formStore.school.yearLevel"
-					placeholder="Ex: 2nd Year"
+					placeholder="Ex: 2"
 					class="w-full"
+					@keydown="allowNumbers"
 				/>
 			</UFormField>
 
-			<UFormField label="Course">
+			<UFormField
+				label="Course"
+				:rules="[isRequired, isName]"
+				validate-on="input"
+			>
 				<UInput
 					v-model="formStore.school.course"
 					placeholder="Ex: BS Information Technology"
 					class="w-full"
+					@keydown="allowLetters"
 				/>
 			</UFormField>
 		</div>

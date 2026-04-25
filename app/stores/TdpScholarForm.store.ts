@@ -7,7 +7,7 @@ export const useTdpScholarFormStore = defineStore("tdpScholarForm", () => {
 		lastName: "",
 		firstName: "",
 		middleName: "",
-		maidenName: "",
+		// maidenName: "",
 		birthdate: "",
 		sex: "",
 		birthPlace: "",
@@ -48,6 +48,7 @@ export const useTdpScholarFormStore = defineStore("tdpScholarForm", () => {
 		income: "",
 		siblings: "",
 		financialAid: "",
+		financialAidSpecify: "",
 	});
 
 	const requirements = reactive({
