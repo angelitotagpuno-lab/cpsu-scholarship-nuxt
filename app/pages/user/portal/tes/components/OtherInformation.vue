@@ -10,21 +10,28 @@ const pwdPreview = ref<string | null>(null);
 const ipPreview = ref<string | null>(null);
 const fourPsPreview = ref<string | null>(null);
 
+// ✅ FIXED REFS (NO $refs)
+const pwdInput = ref<HTMLInputElement | null>(null);
+const ipInput = ref<HTMLInputElement | null>(null);
+const fourPsInput = ref<HTMLInputElement | null>(null);
+
 function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 	const file = (event.target as HTMLInputElement).files?.[0] || null;
 	if (!file) return;
 
 	if (type === "pwd") {
 		formStore.other.pwdFile = file;
-		pwdPreview.value = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+		pwdPreview.value = URL.createObjectURL(file);
 	}
+
 	if (type === "ip") {
 		formStore.other.ipFile = file;
-		ipPreview.value = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+		ipPreview.value = URL.createObjectURL(file);
 	}
+
 	if (type === "4ps") {
 		formStore.other.fourPsFile = file;
-		fourPsPreview.value = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+		fourPsPreview.value = URL.createObjectURL(file);
 	}
 }
 </script>
@@ -35,8 +42,8 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 			Other Information
 		</h2>
 
-		<!-- Selects -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+		<div class="flex flex-col gap-4">
+			<!-- PWD -->
 			<UFormField label="Person With Disability (PWD)">
 				<USelect
 					v-model="formStore.other.disability"
@@ -46,6 +53,41 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 				/>
 			</UFormField>
 
+			<!-- PWD UPLOAD -->
+			<div
+				v-if="formStore.other.disability === 'Yes'"
+				class="space-y-2"
+			>
+				<button
+					type="button"
+					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+					@click="pwdInput?.click()"
+				>
+					Upload PWD ID
+				</button>
+
+				<input
+					ref="pwdInput"
+					type="file"
+					class="hidden"
+					@change="(e) => handleFile(e, 'pwd')"
+				/>
+
+				<p
+					v-if="formStore.other.pwdFile"
+					class="text-sm"
+				>
+					{{ formStore.other.pwdFile.name }}
+				</p>
+
+				<img
+					v-if="pwdPreview"
+					:src="pwdPreview"
+					class="max-h-40 rounded"
+				/>
+			</div>
+
+			<!-- INDIGENOUS -->
 			<UFormField label="Indigenous People (IP)">
 				<USelect
 					v-model="formStore.other.indigenous"
@@ -55,6 +97,41 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 				/>
 			</UFormField>
 
+			<!-- IP UPLOAD -->
+			<div
+				v-if="formStore.other.indigenous === 'Yes'"
+				class="space-y-2"
+			>
+				<button
+					type="button"
+					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+					@click="ipInput?.click()"
+				>
+					Upload Indigenous Proof
+				</button>
+
+				<input
+					ref="ipInput"
+					type="file"
+					class="hidden"
+					@change="(e) => handleFile(e, 'ip')"
+				/>
+
+				<p
+					v-if="formStore.other.ipFile"
+					class="text-sm"
+				>
+					{{ formStore.other.ipFile.name }}
+				</p>
+
+				<img
+					v-if="ipPreview"
+					:src="ipPreview"
+					class="max-h-40 rounded"
+				/>
+			</div>
+
+			<!-- 4PS -->
 			<UFormField label="4Ps Beneficiary">
 				<USelect
 					v-model="formStore.other.fourPs"
@@ -63,94 +140,40 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 					class="w-full"
 				/>
 			</UFormField>
-		</div>
 
-		<!-- File Uploads as buttons -->
-		<UFormField label="Upload PWD ID / Evidence (Optional)">
-			<div class="flex flex-col gap-2">
+			<!-- 4PS UPLOAD -->
+			<div
+				v-if="formStore.other.fourPs === 'Yes'"
+				class="space-y-2"
+			>
 				<button
 					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto max-w-xs"
-					@click="$refs.pwdInput.click()"
-				>
-					Upload PWD ID
-				</button>
-				<input
-					ref="pwdInput"
-					type="file"
-					class="hidden"
-					@change="(e) => handleFile(e, 'pwd')"
-				/>
-				<div
-					v-if="formStore.other.pwdFile"
-					class="text-sm text-gray-700 dark:text-gray-300"
-				>
-					{{ formStore.other.pwdFile.name }}
-				</div>
-				<img
-					v-if="pwdPreview"
-					:src="pwdPreview"
-					class="max-h-40 mt-2 rounded"
-				/>
-			</div>
-		</UFormField>
-
-		<UFormField label="Upload Indigenous Proof (Optional)">
-			<div class="flex flex-col gap-2">
-				<button
-					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto max-w-xs"
-					@click="$refs.ipInput.click()"
-				>
-					Upload Indigenous Proof
-				</button>
-				<input
-					ref="ipInput"
-					type="file"
-					class="hidden"
-					@change="(e) => handleFile(e, 'ip')"
-				/>
-				<div
-					v-if="formStore.other.ipFile"
-					class="text-sm text-gray-700 dark:text-gray-300"
-				>
-					{{ formStore.other.ipFile.name }}
-				</div>
-				<img
-					v-if="ipPreview"
-					:src="ipPreview"
-					class="max-h-40 mt-2 rounded"
-				/>
-			</div>
-		</UFormField>
-
-		<UFormField label="Upload 4Ps Proof (Optional)">
-			<div class="flex flex-col gap-2">
-				<button
-					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto max-w-xs"
-					@click="$refs.fourPsInput.click()"
+					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+					@click="fourPsInput?.click()"
 				>
 					Upload 4Ps Proof
 				</button>
+
 				<input
 					ref="fourPsInput"
 					type="file"
 					class="hidden"
 					@change="(e) => handleFile(e, '4ps')"
 				/>
-				<div
+
+				<p
 					v-if="formStore.other.fourPsFile"
-					class="text-sm text-gray-700 dark:text-gray-300"
+					class="text-sm"
 				>
 					{{ formStore.other.fourPsFile.name }}
-				</div>
+				</p>
+
 				<img
 					v-if="fourPsPreview"
 					:src="fourPsPreview"
-					class="max-h-40 mt-2 rounded"
+					class="max-h-40 rounded"
 				/>
 			</div>
-		</UFormField>
+		</div>
 	</div>
 </template>

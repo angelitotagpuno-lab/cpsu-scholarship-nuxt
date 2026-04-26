@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import StudentInformation from "./components/StudentInformation.vue";
 import AddressInformation from "./components/AddressInformation.vue";
 import SchoolInformation from "./components/SchoolInformation.vue";
 import FamilyInformation from "./components/FamilyInformation.vue";
-import SubmitModal from "./components/SubmitModal.vue";
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 definePageMeta({
@@ -14,9 +12,6 @@ definePageMeta({
 const formStore = useTdpScholarFormStore();
 const toast = useToast();
 
-const isConfirmOpen = ref(false);
-
-// CHECK IF FORM IS COMPLETE
 type FormSection = Record<string, string | number | null | undefined>;
 
 function getMissingFields() {
@@ -26,7 +21,6 @@ function getMissingFields() {
 		for (const key in obj) {
 			const value = obj[key];
 
-			// skip conditional field
 			if (
 				prefix === "Family" &&
 				key === "financialAidSpecify" &&
@@ -55,27 +49,6 @@ function getMissingFields() {
 	return missing;
 }
 
-// SUBMIT CLICK (VALIDATION FIRST)
-function onSubmitClick() {
-	const missingFields = getMissingFields();
-
-	if (missingFields.length > 0) {
-		toast.add({
-			title: "Incomplete Form",
-			description: `Please fill: ${missingFields.slice(0, 3).join(", ")}${
-				missingFields.length > 3 ? "..." : ""
-			}`,
-			color: "error",
-		});
-
-		isConfirmOpen.value = false;
-		return;
-	}
-
-	// OPEN CONFIRMATION MODAL ONLY IF VALID
-	isConfirmOpen.value = true;
-}
-
 // FINAL SUBMIT
 function submitTdpForm() {
 	const payload = {
@@ -90,12 +63,44 @@ function submitTdpForm() {
 
 	console.log("SUBMIT PAYLOAD:", payload);
 
-	isConfirmOpen.value = false;
-
 	toast.add({
 		title: "Application Submitted",
 		description: "Your TDP application has been successfully submitted.",
 		color: "success",
+	});
+}
+
+// SUBMIT CLICK (VALIDATION + CONFIRM TOAST)
+function onSubmitClick() {
+	const missingFields = getMissingFields();
+
+	if (missingFields.length > 0) {
+		toast.add({
+			title: "Incomplete Form",
+			description: `Please fill: ${missingFields.slice(0, 3).join(", ")}${
+				missingFields.length > 3 ? "..." : ""
+			}`,
+			color: "error",
+		});
+		return;
+	}
+
+	// CONFIRMATION NOTIFICATION (NO MODAL)
+	toast.add({
+		title: "Confirm Submission",
+		description: "All fields are complete. Do you want to submit now?",
+		color: "primary",
+		actions: [
+			{
+				label: "Submit",
+				color: "primary",
+				onClick: () => submitTdpForm(),
+			},
+			{
+				label: "Cancel",
+				color: "neutral",
+			},
+		],
 	});
 }
 </script>
@@ -133,11 +138,5 @@ function submitTdpForm() {
 				</UButton>
 			</div>
 		</UCard>
-
-		<!-- CONFIRMATION MODAL -->
-		<SubmitModal
-			v-model="isConfirmOpen"
-			@confirm="submitTdpForm"
-		/>
 	</div>
 </template>

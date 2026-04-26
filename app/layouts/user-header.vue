@@ -2,7 +2,8 @@
 import { computed, ref, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { NavigationMenuItem } from "@nuxt/ui";
-import { useAuthStore } from "~/stores/auth.store"; // adjust if needed
+import { useAuthStore } from "~/stores/auth.store";
+import { index } from "~/services/student.service";
 
 const route = useRoute();
 const router = useRouter();
@@ -10,6 +11,7 @@ const store = useAuthStore();
 
 const showMobileMenu = ref(false);
 
+// logout
 async function logout() {
 	const confirmLogout = confirm("Are you sure you want to logout?");
 	if (!confirmLogout) return;
@@ -24,7 +26,7 @@ async function logout() {
 	}
 }
 
-// Desktop menu items
+// Desktop menu items (Nuxt UI compatible)
 const items = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Home",
@@ -62,6 +64,12 @@ const items = computed<NavigationMenuItem[]>(() => [
 
 // Mobile dropdown state
 const mobileOpen = reactive<Record<string, boolean>>({});
+
+// safe toggle helper (prevents TS issues)
+function toggleMenu(label?: string) {
+	if (!label) return;
+	mobileOpen[label] = !mobileOpen[label];
+}
 </script>
 
 <template>
@@ -69,7 +77,19 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 		<!-- Header -->
 		<UHeader toggle-side="left">
 			<template #title>
-				<div class="font-semibold text-sm sm:text-base">CPSU Scholarship</div>
+				<div class="flex items-center gap-2">
+					<!-- Logo -->
+					<NuxtImg
+						src="/ai-logo.png"
+						alt="CPSU Logo"
+						width="38"
+						height="38"
+						class="object-contain"
+					/>
+
+					<!-- Title -->
+					<div class="font-semibold text-sm sm:text-base">CPSU Scholarship</div>
+				</div>
 			</template>
 
 			<!-- Desktop Navigation -->
@@ -112,20 +132,23 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 					<ul class="flex flex-col divide-y divide-gray-200 dark:divide-gray-700">
 						<li
 							v-for="item in items"
-							:key="item.label"
+							:key="item.label || item.to || item.icon || index"
 						>
 							<!-- Parent with children -->
 							<button
 								v-if="item.children"
 								class="w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold flex items-center justify-between"
-								@click="mobileOpen[item.label] = !mobileOpen[item.label]"
+								@click="toggleMenu(item.label)"
 							>
 								<span class="flex items-center gap-2">
 									<i :class="item.icon"></i> {{ item.label }}
 								</span>
+
 								<i
 									class="i-lucide-chevron-down transition-transform duration-200"
-									:class="{ 'rotate-180': mobileOpen[item.label] }"
+									:class="{
+										'rotate-180': item.label && mobileOpen[item.label],
+									}"
 								></i>
 							</button>
 
@@ -144,7 +167,7 @@ const mobileOpen = reactive<Record<string, boolean>>({});
 							<!-- Children -->
 							<transition name="slide-fade">
 								<div
-									v-if="item.children && mobileOpen[item.label]"
+									v-if="item.children && item.label && mobileOpen[item.label]"
 									class="flex flex-col pl-8"
 								>
 									<NuxtLink

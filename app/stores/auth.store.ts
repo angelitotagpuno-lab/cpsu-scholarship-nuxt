@@ -1,5 +1,6 @@
 import { authService } from "~/services/auth.service";
 import type { Auth, User } from "~/types/user";
+import type { FetchError } from "ofetch";
 
 export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
@@ -15,9 +16,14 @@ export const useAuthStore = defineStore("auth", () => {
 			const res = await authService.me();
 			console.log("here" + res.data.role);
 			user.value = res.data;
-		} catch (e) {
-			errorMessage.value = "Failed to fetch user";
-			console.error("here err" + e);
+		} catch (e: unknown) {
+			const err = e as FetchError;
+
+			if (err?.response?.status !== 401) {
+				errorMessage.value = "Failed to fetch user";
+			}
+
+			console.error("here err", e);
 		} finally {
 			isLoading.value = false;
 		}
@@ -29,8 +35,17 @@ export const useAuthStore = defineStore("auth", () => {
 		try {
 			const res = await authService.login(body);
 			user.value = res.data;
-		} catch (e: any) {
-			errorMessage.value = e?.response?._data?.message || "Login failed";
+		} catch (e: unknown) {
+			let message = "Login failed";
+
+			if (e && typeof e === "object" && "response" in e) {
+				const err = e as FetchError;
+
+				message = (err.response?._data as { message?: string })?.message || message;
+			}
+
+			errorMessage.value = message;
+
 			console.error("Login error:", e);
 		} finally {
 			isLoading.value = false;

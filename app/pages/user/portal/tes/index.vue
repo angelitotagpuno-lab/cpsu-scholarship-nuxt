@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { reactive } from "vue";
-
 import StudentInformation from "./components/StudentInformation.vue";
 import FatherInformation from "./components/FatherInformation.vue";
 import MotherInformation from "./components/MotherInformation.vue";
@@ -8,79 +6,125 @@ import AddressInformation from "./components/AddressInformation.vue";
 import OtherInformation from "./components/OtherInformation.vue";
 import ContactInformation from "./components/ContactInformation.vue";
 
+import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
+
 definePageMeta({
 	layout: "user-header",
 });
 
-const state = reactive({
-	studentId: "",
-	lastName: "",
-	firstName: "",
-	middleName: "",
-	extName: "",
-	sex: "",
-	birthdate: "",
-	program: "",
-	yearLevel: "",
+const formStore = useTesScholarFormStore();
+const toast = useToast();
 
-	fatherLastName: "",
-	fatherFirstName: "",
-	fatherMiddleName: "",
-	fatherOccupation: "",
-	fatherIncome: "",
+/**
+ * VALIDATION
+ */
+function getMissingFields() {
+	const missing: string[] = [];
 
-	motherLastName: "",
-	motherFirstName: "",
-	motherMiddleName: "",
-	motherOccupation: "",
-	motherIncome: "",
+	const s = formStore.student;
+	const a = formStore.address;
+	const c = formStore.contact;
+	const f = formStore.father;
+	const m = formStore.mother;
+	const o = formStore.other;
 
-	streetBarangay: "",
-	zipcode: "",
+	// Student
+	if (!s.studentId) missing.push("Student ID");
+	if (!s.lastName) missing.push("Last Name");
+	if (!s.firstName) missing.push("First Name");
+	if (!s.birthdate) missing.push("Birthdate");
+	if (!s.sex) missing.push("Sex");
+	if (!s.yearLevel) missing.push("Year Level");
+	if (!s.program) missing.push("Program");
 
-	disability: "",
-	indigenous: "",
-	fourPs: "",
-	enrolled: "",
+	// Address
+	if (!a.streetBarangay) missing.push("Street/Barangay");
+	if (!a.zipcode) missing.push("Zipcode");
 
-	contactNumber: "",
-});
+	// Contact
+	if (!c.contactNumber) missing.push("Contact Number");
+
+	// Father
+	if (!f.fatherLastName) missing.push("Father Last Name");
+
+	// Mother
+	if (!m.motherLastName) missing.push("Mother Last Name");
+
+	// Conditional files
+	if (o.disability === "Yes" && !o.pwdFile) missing.push("PWD Proof");
+	if (o.indigenous === "Yes" && !o.ipFile) missing.push("Indigenous Proof");
+	if (o.fourPs === "Yes" && !o.fourPsFile) missing.push("4Ps Proof");
+
+	return missing;
+}
 
 function submitForm() {
-	console.log("Application Data:", state);
+	console.log("TES DATA:", {
+		student: formStore.student,
+		address: formStore.address,
+		contact: formStore.contact,
+		father: formStore.father,
+		mother: formStore.mother,
+		other: formStore.other,
+	});
+
+	toast.add({
+		title: "Submitted",
+		description: "TES application submitted successfully",
+		color: "success",
+	});
+
+	formStore.resetAll();
+}
+
+function onSubmitClick() {
+	const missing = getMissingFields();
+
+	if (missing.length) {
+		toast.add({
+			title: "Incomplete Form",
+			description: `Missing: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? "..." : ""}`,
+			color: "error",
+		});
+		return;
+	}
+
+	toast.add({
+		title: "Confirm Submission",
+		description: "Submit TES application?",
+		color: "primary",
+		actions: [
+			{
+				label: "Submit",
+				onClick: submitForm,
+			},
+			{
+				label: "Cancel",
+			},
+		],
+	});
 }
 </script>
 
 <template>
 	<div class="flex justify-center p-4 sm:p-6">
-		<UPageCard class="w-full max-w-md sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
-			<UForm
-				:state="state"
-				class="space-y-6 sm:space-y-8 px-2 sm:px-6"
-				@submit="submitForm"
-			>
-				<!-- All the sections -->
-				<StudentInformation v-model="state" />
-				<FatherInformation v-model="state" />
-				<MotherInformation v-model="state" />
-				<AddressInformation v-model="state" />
-				<OtherInformation v-model="state" />
-				<ContactInformation v-model="state" />
+		<UPageCard class="w-full max-w-6xl">
+			<div class="space-y-6">
+				<StudentInformation />
+				<FatherInformation />
+				<MotherInformation />
+				<AddressInformation />
+				<OtherInformation />
+				<ContactInformation />
 
-				<!-- Submit Button -->
-				<div class="pt-4">
-					<UButton
-						type="submit"
-						block
-						size="lg"
-						class="w-full sm:w-auto"
-					>
-						Submit TES Application
-					</UButton>
-				</div>
-			</UForm>
+				<UButton
+					block
+					size="lg"
+					@click="onSubmitClick"
+				>
+					Submit TES Application
+				</UButton>
+			</div>
 		</UPageCard>
 	</div>
-
-	<LoginFooter />
 </template>

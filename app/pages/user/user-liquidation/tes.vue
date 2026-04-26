@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
 
 definePageMeta({ layout: "user-header" });
+
+const toast = useToast();
 
 const form = reactive({
 	checkNo: "",
@@ -13,13 +15,37 @@ const form = reactive({
 });
 
 const evidencePreview = ref<string | null>(null);
+const evidenceInput = ref<HTMLInputElement | null>(null);
 
+/* =========================
+   RESET FILE WHEN PWD OFF
+========================= */
+watch(
+	() => form.pwd,
+	(val) => {
+		if (!val) {
+			form.evidenceFile = null;
+			evidencePreview.value = null;
+		}
+	},
+);
+
+/* =========================
+   DATE
+========================= */
 const dateNow = () =>
 	new Date().toLocaleDateString("en-PH", {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
 	});
+
+/* =========================
+   FILE HANDLING
+========================= */
+const openFile = () => {
+	evidenceInput.value?.click();
+};
 
 const handleFile = (event: Event) => {
 	const file = (event.target as HTMLInputElement).files?.[0] || null;
@@ -29,10 +55,29 @@ const handleFile = (event: Event) => {
 	evidencePreview.value = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
 };
 
-const addPayout = () => {
-	if (!form.checkNo || !form.name) return alert("Please fill all fields.");
+/* =========================
+   INPUT VALIDATION
+========================= */
+const allowLetters = (e: KeyboardEvent) => {
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Space"];
+	if (!/[a-zA-Z\s]/.test(e.key) && !allowed.includes(e.key)) {
+		e.preventDefault();
+	}
+};
 
+const allowNumbers = (e: KeyboardEvent) => {
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
+	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
+		e.preventDefault();
+	}
+};
+
+/* =========================
+   FINAL SUBMIT
+========================= */
+const submitTesPayout = () => {
 	const amount = 7500 + (form.pwd ? 2000 : 0);
+
 	const payoutData = {
 		date: dateNow(),
 		checkNo: form.checkNo,
@@ -47,81 +92,117 @@ const addPayout = () => {
 	};
 
 	console.log("Submitted TES payout:", payoutData);
-	alert("TES Payout submitted successfully!");
 
-	// Reset
+	toast.add({
+		title: "TES Payout Submitted",
+		description: "TES payout has been successfully recorded.",
+		color: "success",
+	});
+
+	// reset
 	form.checkNo = "";
 	form.name = "";
 	form.pwd = false;
+	form.studentId = "";
 	form.evidenceFile = null;
 	evidencePreview.value = null;
+};
+
+/* =========================
+   SUBMIT CLICK (SAME AS TDP STYLE)
+========================= */
+const onSubmitClick = () => {
+	if (!form.studentId || !form.checkNo || !form.name) {
+		toast.add({
+			title: "Incomplete Form",
+			description: "Please fill all required fields.",
+			color: "error",
+		});
+		return;
+	}
+
+	if (form.pwd && !form.evidenceFile) {
+		toast.add({
+			title: "Missing Requirement",
+			description: "PWD users must upload evidence image.",
+			color: "error",
+		});
+		return;
+	}
+
+	toast.add({
+		title: "Confirm Submission",
+		description: "All fields are valid. Submit TES payout now?",
+		color: "primary",
+		actions: [
+			{
+				label: "Submit",
+				color: "primary",
+				onClick: () => submitTesPayout(),
+			},
+			{
+				label: "Cancel",
+				color: "neutral",
+			},
+		],
+	});
 };
 </script>
 
 <template>
-	<div class="p-4 sm:p-6 max-w-xl mx-auto min-h-screen flex flex-col">
-		<h1 class="text-2xl font-bold mb-6 text-center text-foreground dark:text-white">
-			TES Scholarship Payout Portal
-		</h1>
+	<div class="min-h-screen flex items-center justify-center p-4">
+		<UCard class="w-full max-w-xl">
+			<h1 class="text-xl font-bold text-center mb-6">TES Scholarship Payout Portal</h1>
 
-		<div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
-			<div>
-				<label class="block mb-1 font-medium text-foreground dark:text-gray-200">
-					Student ID No.
-				</label>
-				<input
-					v-model="form.checkNo"
-					class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-foreground dark:text-gray-200"
-					placeholder="Enter Student ID Number"
+			<div class="space-y-5">
+				<!-- Student ID -->
+				<UInput
+					v-model="form.studentId"
+					label="Student ID No."
+					placeholder="Enter Student ID"
+					class="w-full"
+					@keydown="allowNumbers"
 				/>
-			</div>
 
-			<div>
-				<label class="block mb-1 font-medium text-foreground dark:text-gray-200">
-					Check Number
-				</label>
-				<input
+				<!-- Check Number -->
+				<UInput
 					v-model="form.checkNo"
-					class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-foreground dark:text-gray-200"
+					label="Check Number"
 					placeholder="Enter Check Number"
+					class="w-full"
+					@keydown="allowNumbers"
 				/>
-			</div>
 
-			<div>
-				<label class="block mb-1 font-medium text-foreground dark:text-gray-200">Full Name</label>
-				<input
+				<!-- Full Name -->
+				<UInput
 					v-model="form.name"
-					class="w-full border rounded p-2 bg-white dark:bg-gray-700 text-foreground dark:text-gray-200"
-					placeholder="Enter your name"
+					label="Full Name"
+					placeholder="Enter Full Name"
+					class="w-full"
+					@keydown="allowLetters"
 				/>
-			</div>
 
-			<div class="flex items-center gap-2">
-				<input
-					id="pwd"
+				<!-- PWD -->
+				<UCheckbox
 					v-model="form.pwd"
-					type="checkbox"
+					label="PWD"
 				/>
-				<label
-					for="pwd"
-					class="text-foreground dark:text-gray-200"
-					>PWD</label
-				>
-			</div>
 
-			<!-- Evidence Upload Button -->
-			<div>
-				<label class="block mb-2 font-medium text-foreground dark:text-gray-200">
-					Upload Evidence (Optional)
-				</label>
-				<div class="flex flex-col gap-2">
-					<button
-						type="button"
-						class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto max-w-xs"
-						@click="$refs.evidenceInput.click()"
+				<!-- Upload (ONLY IF PWD) -->
+				<div
+					v-if="form.pwd"
+					class="space-y-3"
+				>
+					<p class="text-sm font-medium">Upload Evidence (Required for PWD)</p>
+
+					<UButton
+						color="primary"
+						block
+						@click="openFile"
 					>
 						Upload Image
-					</button>
+					</UButton>
+
 					<input
 						ref="evidenceInput"
 						type="file"
@@ -129,27 +210,32 @@ const addPayout = () => {
 						accept="image/*"
 						@change="handleFile"
 					/>
-					<div
+
+					<p
 						v-if="form.evidenceFile"
-						class="text-sm text-gray-700 dark:text-gray-300"
+						class="text-sm text-gray-500 break-all"
 					>
 						{{ form.evidenceFile.name }}
-					</div>
+					</p>
+
 					<img
 						v-if="evidencePreview"
 						:src="evidencePreview"
-						class="max-h-40 mt-2 rounded"
+						class="max-h-40 w-full object-contain rounded-lg border"
 					/>
 				</div>
-			</div>
 
-			<button
-				class="w-full bg-green-600 dark:bg-green-500 text-white py-2 rounded-lg hover:bg-green-700 dark:hover:bg-green-600"
-				@click="addPayout"
-			>
-				Submit TES Payout
-			</button>
-		</div>
+				<!-- Submit -->
+				<UButton
+					color="success"
+					block
+					class="mt-4"
+					@click="onSubmitClick"
+				>
+					Submit TES Payout
+				</UButton>
+			</div>
+		</UCard>
 	</div>
 
 	<LoginFooter />
