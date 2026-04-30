@@ -1,9 +1,16 @@
 export interface Personnel {
-	id?: number;
+	id?: string;
+	email?: string; // ✅ add this
+
+	first_name?: string;
 	last_name?: string;
 	middle_name?: string;
 	sex?: "male" | "female";
+
 	position?: string;
 	department?: string;
+
 	role?: "admin" | "staff";
+
+	password?: string; // ✅ optional (ONLY for forms)
 }

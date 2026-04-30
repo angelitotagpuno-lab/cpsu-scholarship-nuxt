@@ -47,10 +47,12 @@ function save() {
 	<!-- Overlay background -->
 	<div
 		v-if="props.show"
-		class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+		class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50"
 	>
 		<!-- Centered modal box -->
-		<div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+		<div
+			class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg w-full max-w-lg p-6 relative"
+		>
 			<h2 class="text-lg font-semibold mb-4">Update Scholar</h2>
 
 			<template v-if="localScholar">
@@ -60,7 +62,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">Last Name</label>
 						<input
 							v-model="localScholar.lastName"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						/>
 					</div>
 
@@ -69,7 +71,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">First Name</label>
 						<input
 							v-model="localScholar.firstName"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						/>
 					</div>
 
@@ -78,7 +80,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">M.I.</label>
 						<input
 							v-model="localScholar.middleInitial"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						/>
 					</div>
 
@@ -87,7 +89,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">Course</label>
 						<select
 							v-model="localScholar.course"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						>
 							<option
 								disabled
@@ -110,7 +112,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">Year Level</label>
 						<select
 							v-model="localScholar.yearLevel"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						>
 							<option
 								disabled
@@ -133,7 +135,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">Semester</label>
 						<select
 							v-model="localScholar.semester"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						>
 							<option
 								disabled
@@ -156,7 +158,7 @@ function save() {
 						<label class="block text-sm font-medium mb-1">Status</label>
 						<select
 							v-model="localScholar.enrolled"
-							class="border rounded px-2 py-1 w-full"
+							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
 						>
 							<option
 								disabled

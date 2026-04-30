@@ -10,13 +10,6 @@ definePageMeta({
 // Hero links
 const links = ref<ButtonProps[]>([
 	{ label: "Apply Now", to: "/user-login", icon: "i-lucide-square-play" },
-	{
-		label: "Learn more",
-		to: "/",
-		color: "neutral",
-		variant: "subtle",
-		trailingIcon: "i-lucide-arrow-right",
-	},
 ]);
 
 // Features section
