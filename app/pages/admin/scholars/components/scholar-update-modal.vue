@@ -44,141 +44,169 @@ function save() {
 </script>
 
 <template>
-	<!-- Overlay background -->
 	<div
 		v-if="props.show"
-		class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm dark:bg-black/75"
 	>
-		<!-- Centered modal box -->
 		<div
-			class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg w-full max-w-lg p-6 relative"
+			class="w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
 		>
-			<h2 class="text-lg font-semibold mb-4">Update Scholar</h2>
+			<!-- Header -->
+			<div class="bg-blue-50 p-5 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900">
+				<div class="flex items-start gap-3">
+					<div class="rounded-md bg-blue-600 p-2 text-white">
+						<UIcon
+							name="i-lucide-user-pen"
+							class="size-5"
+						/>
+					</div>
+
+					<div>
+						<h2 class="text-lg font-semibold text-slate-900 dark:text-white">Update Scholar</h2>
+						<p class="text-sm text-slate-500 dark:text-slate-400">
+							Edit scholar details, academic information, and enrollment status.
+						</p>
+					</div>
+				</div>
+			</div>
 
 			<template v-if="localScholar">
-				<div class="space-y-4">
-					<!-- Last Name -->
-					<div>
-						<label class="block text-sm font-medium mb-1">Last Name</label>
-						<input
-							v-model="localScholar.lastName"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						/>
-					</div>
+				<div class="max-h-[70vh] overflow-y-auto p-6">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								Last Name
+							</label>
+							<input
+								v-model="localScholar.lastName"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
+								placeholder="Last name"
+							/>
+						</div>
 
-					<!-- First Name -->
-					<div>
-						<label class="block text-sm font-medium mb-1">First Name</label>
-						<input
-							v-model="localScholar.firstName"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						/>
-					</div>
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								First Name
+							</label>
+							<input
+								v-model="localScholar.firstName"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
+								placeholder="First name"
+							/>
+						</div>
 
-					<!-- Middle Initial -->
-					<div>
-						<label class="block text-sm font-medium mb-1">M.I.</label>
-						<input
-							v-model="localScholar.middleInitial"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						/>
-					</div>
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								M.I.
+							</label>
+							<input
+								v-model="localScholar.middleInitial"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
+								placeholder="Middle initial"
+							/>
+						</div>
 
-					<!-- Course -->
-					<div>
-						<label class="block text-sm font-medium mb-1">Course</label>
-						<select
-							v-model="localScholar.course"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						>
-							<option
-								disabled
-								value=""
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								Course
+							</label>
+							<select
+								v-model="localScholar.course"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
 							>
-								Select course
-							</option>
-							<option
-								v-for="c in COURSES"
-								:key="c"
-								:value="c"
-							>
-								{{ c }}
-							</option>
-						</select>
-					</div>
+								<option
+									disabled
+									value=""
+								>
+									Select course
+								</option>
+								<option
+									v-for="c in COURSES"
+									:key="c"
+									:value="c"
+								>
+									{{ c }}
+								</option>
+							</select>
+						</div>
 
-					<!-- Year Level -->
-					<div>
-						<label class="block text-sm font-medium mb-1">Year Level</label>
-						<select
-							v-model="localScholar.yearLevel"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						>
-							<option
-								disabled
-								value=""
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								Year Level
+							</label>
+							<select
+								v-model="localScholar.yearLevel"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
 							>
-								Select year
-							</option>
-							<option
-								v-for="y in YEAR_LEVELS"
-								:key="y"
-								:value="y"
-							>
-								{{ y }}
-							</option>
-						</select>
-					</div>
+								<option
+									disabled
+									value=""
+								>
+									Select year
+								</option>
+								<option
+									v-for="y in YEAR_LEVELS"
+									:key="y"
+									:value="y"
+								>
+									{{ y }}
+								</option>
+							</select>
+						</div>
 
-					<!-- Semester -->
-					<div>
-						<label class="block text-sm font-medium mb-1">Semester</label>
-						<select
-							v-model="localScholar.semester"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						>
-							<option
-								disabled
-								value=""
+						<div>
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								Semester
+							</label>
+							<select
+								v-model="localScholar.semester"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
 							>
-								Select semester
-							</option>
-							<option
-								v-for="s in SEMESTERS"
-								:key="s"
-								:value="s"
-							>
-								{{ s }}
-							</option>
-						</select>
-					</div>
+								<option
+									disabled
+									value=""
+								>
+									Select semester
+								</option>
+								<option
+									v-for="s in SEMESTERS"
+									:key="s"
+									:value="s"
+								>
+									{{ s }}
+								</option>
+							</select>
+						</div>
 
-					<!-- Status -->
-					<div>
-						<label class="block text-sm font-medium mb-1">Status</label>
-						<select
-							v-model="localScholar.enrolled"
-							class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded px-2 py-1 w-full text-gray-900 dark:text-gray-100"
-						>
-							<option
-								disabled
-								value=""
+						<div class="sm:col-span-2">
+							<label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+								Status
+							</label>
+							<select
+								v-model="localScholar.enrolled"
+								class="h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-950"
 							>
-								Select status
-							</option>
-							<option
-								v-for="s in STATUS_OPTIONS"
-								:key="s"
-								:value="s"
-							>
-								{{ s }}
-							</option>
-						</select>
+								<option
+									disabled
+									value=""
+								>
+									Select status
+								</option>
+								<option
+									v-for="s in STATUS_OPTIONS"
+									:key="s"
+									:value="s"
+								>
+									{{ s }}
+								</option>
+							</select>
+						</div>
 					</div>
 				</div>
 
-				<!-- Modal Buttons -->
-				<div class="mt-6 flex justify-end gap-2">
+				<div
+					class="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+				>
 					<UButton
 						label="Cancel"
 						variant="outline"
@@ -187,7 +215,9 @@ function save() {
 					/>
 					<UButton
 						label="Save"
+						icon="i-lucide-save"
 						color="primary"
+						class="bg-blue-600 hover:bg-blue-700"
 						@click="save"
 					/>
 				</div>

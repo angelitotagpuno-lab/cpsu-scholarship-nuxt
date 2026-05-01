@@ -1,20 +1,40 @@
-export type Gender = "male" | "female";
+export type StudentSex = "male" | "female";
 
-export type YearLevel = "1" | "2" | "3" | "4" | "5" | "6";
+export type ParentType = "father" | "mother" | "guardian";
+
+export interface StudentAddress {
+	street?: string;
+	barangay: string;
+	city: string;
+	province: string;
+	zipcode: string;
+}
+
+export interface StudentParent {
+	type: ParentType;
+	firstName: string;
+	lastName: string;
+	middleName?: string;
+	contactNumber?: string;
+	occupation?: string;
+}
 
 export interface Student {
 	id?: string;
+	userId?: string;
+	studentId?: string;
 	schoolId?: string;
-	lastName?: string;
-	firstName?: string;
+
+	firstName: string;
+	lastName: string;
 	middleName?: string;
 	extName?: string;
-	sex?: Gender;
-	birthdate?: string;
-	contactNumber?: string;
-	email?: string;
-	yearLevel?: YearLevel;
-	isActive?: boolean;
-	address?: Address;
-	parents?: Parent[];
+
+	birthdate: string;
+	contactNumber: string;
+	sex: StudentSex;
+	yearLevel: number;
+
+	address: StudentAddress;
+	parents: StudentParent[];
 }

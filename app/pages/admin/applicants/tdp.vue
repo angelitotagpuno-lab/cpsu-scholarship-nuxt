@@ -2,7 +2,7 @@
 import type { TableColumn } from "@nuxt/ui";
 import { ref, h, resolveComponent } from "vue";
 import ApplicantsAddModal from "./components/applicants-add-modal.vue";
-import ApplicantsEditModal from "./components//applicants-edit-modal.vue";
+import ApplicantsEditModal from "./components/applicants-edit-modal.vue";
 
 definePageMeta({
 	layout: "admin",
@@ -61,10 +61,8 @@ const applicants = ref<Applicant[]>([
 	},
 ]);
 
-// ✅ NEW: Edit modal state
 const showEditModal = ref(false);
 const selectedApplicant = ref<Applicant | null>(null);
-
 const showAddModal = ref(false);
 
 const newApplicant = ref<Applicant>({
@@ -95,13 +93,11 @@ function computeEligibility(gpa: number, income: number) {
 	return "Not Eligible";
 }
 
-// ✅ NEW: open edit modal
 function openEdit(applicant: Applicant) {
 	selectedApplicant.value = { ...applicant };
 	showEditModal.value = true;
 }
 
-// ✅ NEW: save edited applicant
 function saveEditedApplicant(data: any) {
 	if (!selectedApplicant.value) return;
 
@@ -152,15 +148,30 @@ function addApplicant() {
 
 const columns: TableColumn<Applicant>[] = [
 	{ accessorKey: "seq", header: "SEQ" },
-	{ accessorKey: "awardNo", header: "Award No" },
-	{ accessorKey: "appId", header: "App ID" },
-	{ accessorKey: "batch", header: "Batch" },
 	{ accessorKey: "studentId", header: "Student ID" },
+	{ accessorKey: "batch", header: "Batch" },
 	{ accessorKey: "lastName", header: "Last Name" },
 	{ accessorKey: "firstName", header: "First Name" },
 	{ accessorKey: "middleName", header: "Middle Name" },
 	{ accessorKey: "extName", header: "Ext." },
-	{ accessorKey: "sex", header: "Sex" },
+	{
+		accessorKey: "sex",
+		header: "Sex",
+		cell: ({ row }) => {
+			const sex = row.original.sex;
+
+			return h(
+				"span",
+				{
+					class:
+						sex === "MALE"
+							? "inline-flex rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+							: "inline-flex rounded bg-pink-100 px-2 py-1 text-xs font-medium text-pink-700 dark:bg-pink-900 dark:text-pink-200",
+				},
+				sex || "—",
+			);
+		},
+	},
 	{ accessorKey: "course", header: "Course" },
 	{ accessorKey: "yearLevel", header: "Year Level" },
 	{ accessorKey: "contactNo", header: "Contact" },
@@ -168,9 +179,31 @@ const columns: TableColumn<Applicant>[] = [
 	{ accessorKey: "city", header: "City" },
 	{ accessorKey: "province", header: "Province" },
 	{ accessorKey: "zipcode", header: "Zipcode" },
-	{ accessorKey: "income", header: "Income" },
+	{
+		accessorKey: "income",
+		header: "Income",
+		cell: ({ row }) =>
+			`₱${Number(row.original.income).toLocaleString("en-PH", {
+				minimumFractionDigits: 2,
+			})}`,
+	},
 	{ accessorKey: "gpa", header: "GPA" },
-	{ accessorKey: "eligibility", header: "Eligibility" },
+	{
+		accessorKey: "eligibility",
+		header: "Eligibility",
+		cell: ({ row }) => {
+			const eligibility = row.original.eligibility;
+
+			const className =
+				eligibility === "Approved"
+					? "inline-flex rounded bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+					: eligibility === "Eligible"
+						? "inline-flex rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+						: "inline-flex rounded bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-900 dark:text-rose-200";
+
+			return h("span", { class: className }, eligibility);
+		},
+	},
 	{
 		id: "actions",
 		header: "Actions",
@@ -182,6 +215,8 @@ const columns: TableColumn<Applicant>[] = [
 					label: "Approve",
 					size: "xs",
 					color: "success",
+					variant: "soft",
+					icon: "i-lucide-check",
 					onClick: () => {
 						applicant.eligibility = "Approved";
 					},
@@ -190,13 +225,16 @@ const columns: TableColumn<Applicant>[] = [
 					label: "Edit",
 					size: "xs",
 					color: "primary",
-					onClick: () => openEdit(applicant), // ✅ UPDATED
+					variant: "soft",
+					icon: "i-lucide-pencil",
+					onClick: () => openEdit(applicant),
 				}),
 				h(resolveComponent("UButton"), {
 					label: "Delete",
 					size: "xs",
 					color: "error",
-					variant: "outline",
+					variant: "soft",
+					icon: "i-lucide-trash-2",
 					onClick: () => {
 						applicants.value = applicants.value.filter((a) => a.seq !== applicant.seq);
 					},
@@ -208,31 +246,75 @@ const columns: TableColumn<Applicant>[] = [
 </script>
 
 <template>
-	<UDashboardPanel id="applicants">
-		<template #header>
-			<UDashboardNavbar title="TDP Applicants">
-				<template #leading>
-					<UDashboardSidebarCollapse />
-				</template>
+	<div class="h-full overflow-y-auto bg-slate-50 p-6 space-y-6 dark:bg-slate-950">
+		<div
+			class="flex flex-col gap-4 rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 sm:flex-row sm:items-center sm:justify-between"
+		>
+			<div class="flex items-center gap-3">
+				<UDashboardSidebarCollapse />
 
-				<template #right>
-					<ApplicantsAddModal />
-				</template>
-			</UDashboardNavbar>
-		</template>
+				<div>
+					<h1 class="text-2xl font-bold text-slate-900 dark:text-white">TDP Applicants</h1>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						Review, approve, edit, and manage TDP scholarship applicants.
+					</p>
+				</div>
+			</div>
 
-		<template #body>
-			<UTable
-				:data="applicants"
-				:columns="columns"
-			/>
-		</template>
-	</UDashboardPanel>
+			<ApplicantsAddModal />
+		</div>
 
-	<!-- ✅ NEW: Edit Modal -->
-	<ApplicantsEditModal
-		v-model="showEditModal"
-		:applicant="selectedApplicant"
-		@save="saveEditedApplicant"
-	/>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<UCard class="border-l-4 border-l-blue-500 bg-blue-50/80 dark:bg-blue-950/30">
+				<p class="text-sm font-medium text-blue-700 dark:text-blue-300">Total Applicants</p>
+				<p class="mt-1 text-3xl font-bold text-blue-950 dark:text-blue-100">
+					{{ applicants.length }}
+				</p>
+			</UCard>
+
+			<UCard class="border-l-4 border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/30">
+				<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Approved</p>
+				<p class="mt-1 text-3xl font-bold text-emerald-950 dark:text-emerald-100">
+					{{ applicants.filter((applicant) => applicant.eligibility === "Approved").length }}
+				</p>
+			</UCard>
+
+			<UCard class="border-l-4 border-l-rose-500 bg-rose-50/80 dark:bg-rose-950/30">
+				<p class="text-sm font-medium text-rose-700 dark:text-rose-300">Not Eligible</p>
+				<p class="mt-1 text-3xl font-bold text-rose-950 dark:text-rose-100">
+					{{ applicants.filter((applicant) => applicant.eligibility === "Not Eligible").length }}
+				</p>
+			</UCard>
+		</div>
+
+		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<div>
+					<h2 class="font-semibold text-slate-900 dark:text-white">Applicant List</h2>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						Student ID is used as the main applicant reference.
+					</p>
+				</div>
+
+				<span
+					class="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+				>
+					{{ applicants.length }} records
+				</span>
+			</div>
+			<div class="rounded-md border border-slate-200 dark:border-slate-800">
+				<UTable
+					:data="applicants"
+					:columns="columns"
+					class="w-full"
+				/>
+			</div>
+		</UCard>
+
+		<ApplicantsEditModal
+			v-model="showEditModal"
+			:applicant="selectedApplicant"
+			@save="saveEditedApplicant"
+		/>
+	</div>
 </template>

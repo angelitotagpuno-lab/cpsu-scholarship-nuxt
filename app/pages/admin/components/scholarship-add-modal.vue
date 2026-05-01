@@ -2,46 +2,38 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import z from "zod";
 
-const store = useCourseStore();
 const toast = useToast();
 const emit = defineEmits<{ close: [boolean] }>();
 
 const schema = z.object({
-	name: z.string("Name is required"),
-	abbreviation: z.string("Abbreviation is required"),
-	major: z.string().optional(),
+	name: z.string().min(1, "Name is required"),
+	description: z.string().min(1, "Description is required"),
+	funds: z.number().min(1, "Funds must be greater than 0"),
 });
 
 type Schema = z.output<typeof schema>;
 
-const state = reactive<Partial<Schema>>({
+const state = reactive<Schema>({
 	name: "",
-	abbreviation: "",
-	major: "",
+	description: "",
+	funds: 0,
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.addCourse(event.data);
+	console.log("Scholarship Data:", event.data);
 
-	if (store.errorMessage) {
-		toast.add({
-			title: "Error",
-			description: store.errorMessage,
-			color: "error",
-		});
-	} else {
-		toast.add({
-			title: "Success",
-			description: "Course added successfully",
-			color: "success",
-		});
-		emit("close", true);
-	}
+	toast.add({
+		title: "Success",
+		description: "Scholarship program added successfully",
+		color: "success",
+	});
+
+	emit("close", true);
 }
 </script>
 
 <template>
-	<UModal title="Add New Course">
+	<UModal title="Add Scholarship Program">
 		<template #body>
 			<div class="space-y-6">
 				<!-- Header -->
@@ -51,17 +43,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					<div class="flex items-start gap-3">
 						<div class="rounded-md bg-emerald-600 p-2 text-white">
 							<UIcon
-								name="i-lucide-book-open"
+								name="i-lucide-award"
 								class="size-5"
 							/>
 						</div>
 
 						<div>
 							<h3 class="text-base font-semibold text-slate-900 dark:text-white">
-								Create course record
+								Create scholarship program
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Add a new course with its abbreviation and optional major.
+								Fill in the details below to publish a new scholarship.
 							</p>
 						</div>
 					</div>
@@ -74,53 +66,60 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					@submit="onSubmit"
 				>
 					<UFormField
-						label="Name"
+						label="Program Name"
 						name="name"
 					>
 						<UInput
 							v-model="state.name"
-							class="w-full"
 							size="lg"
 							icon="i-lucide-graduation-cap"
-							placeholder="e.g. Bachelor of Science in Information Technology"
+							placeholder="e.g. Academic Excellence Scholarship"
+							class="w-full"
 						/>
 					</UFormField>
 
 					<UFormField
-						label="Abbreviation"
-						name="abbreviation"
+						label="Description"
+						name="description"
 					>
-						<UInput
-							v-model="state.abbreviation"
+						<UTextarea
+							v-model="state.description"
+							:rows="4"
+							placeholder="Supports high-achieving students in IT and Engineering programs..."
 							class="w-full"
-							size="lg"
-							icon="i-lucide-badge"
-							placeholder="e.g. BSIT"
 						/>
 					</UFormField>
 
 					<UFormField
-						label="Major"
-						name="major"
+						label="Total Funds"
+						name="funds"
 					>
 						<UInput
-							v-model="state.major"
-							class="w-full"
+							v-model.number="state.funds"
 							size="lg"
-							icon="i-lucide-bookmark"
-							placeholder="e.g. Web Development"
+							type="number"
+							icon="i-lucide-wallet"
+							placeholder="e.g. 50000"
+							class="w-full"
 						/>
 					</UFormField>
 
-					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+					<div class="flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+						<UButton
+							color="neutral"
+							variant="outline"
+							@click="emit('close', false)"
+						>
+							Cancel
+						</UButton>
+
 						<UButton
 							type="submit"
-							:loading="store.isLoading"
-							icon="i-lucide-save"
 							color="primary"
+							icon="i-lucide-save"
 							class="bg-emerald-600 hover:bg-emerald-700"
 						>
-							Submit
+							Save Scholarship
 						</UButton>
 					</div>
 				</UForm>

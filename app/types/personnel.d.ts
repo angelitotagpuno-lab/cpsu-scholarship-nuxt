@@ -10,7 +10,7 @@ export interface Personnel {
 	position?: string;
 	department?: string;
 
-	role?: "admin" | "staff";
+  role?: "admin" | "student" | "personnel";
 
 	password?: string; // ✅ optional (ONLY for forms)
 }
