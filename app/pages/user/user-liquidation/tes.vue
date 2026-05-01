@@ -17,9 +17,6 @@ const form = reactive({
 const evidencePreview = ref<string | null>(null);
 const evidenceInput = ref<HTMLInputElement | null>(null);
 
-/* =========================
-   RESET FILE WHEN PWD OFF
-========================= */
 watch(
 	() => form.pwd,
 	(val) => {
@@ -30,9 +27,6 @@ watch(
 	},
 );
 
-/* =========================
-   DATE
-========================= */
 const dateNow = () =>
 	new Date().toLocaleDateString("en-PH", {
 		year: "numeric",
@@ -40,12 +34,7 @@ const dateNow = () =>
 		day: "2-digit",
 	});
 
-/* =========================
-   FILE HANDLING
-========================= */
-const openFile = () => {
-	evidenceInput.value?.click();
-};
+const openFile = () => evidenceInput.value?.click();
 
 const handleFile = (event: Event) => {
 	const file = (event.target as HTMLInputElement).files?.[0] || null;
@@ -55,26 +44,16 @@ const handleFile = (event: Event) => {
 	evidencePreview.value = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
 };
 
-/* =========================
-   INPUT VALIDATION
-========================= */
 const allowLetters = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Space"];
-	if (!/[a-zA-Z\s]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	if (!/[a-zA-Z\s]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight"];
-	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 
-/* =========================
-   FINAL SUBMIT
-========================= */
 const submitTesPayout = () => {
 	const amount = 7500 + (form.pwd ? 2000 : 0);
 
@@ -99,7 +78,6 @@ const submitTesPayout = () => {
 		color: "success",
 	});
 
-	// reset
 	form.checkNo = "";
 	form.name = "";
 	form.pwd = false;
@@ -108,9 +86,6 @@ const submitTesPayout = () => {
 	evidencePreview.value = null;
 };
 
-/* =========================
-   SUBMIT CLICK (SAME AS TDP STYLE)
-========================= */
 const onSubmitClick = () => {
 	if (!form.studentId || !form.checkNo || !form.name) {
 		toast.add({
@@ -150,12 +125,35 @@ const onSubmitClick = () => {
 </script>
 
 <template>
-	<div class="min-h-screen flex items-center justify-center p-4">
-		<UCard class="w-full max-w-xl">
-			<h1 class="text-xl font-bold text-center mb-6">TES Scholarship Payout Portal</h1>
+	<div class="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+		<UCard
+			class="w-full max-w-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6"
+		>
+			<!-- HEADER -->
+			<div
+				class="rounded-lg bg-indigo-50 p-4 ring-1 ring-indigo-100 dark:bg-indigo-950/30 dark:ring-indigo-900"
+			>
+				<div class="flex items-start gap-3">
+					<div class="rounded-md bg-indigo-600 p-2 text-white">
+						<UIcon
+							name="i-lucide-wallet"
+							class="size-5"
+						/>
+					</div>
 
-			<div class="space-y-5">
-				<!-- Student ID -->
+					<div>
+						<h1 class="text-base font-semibold text-slate-900 dark:text-white">
+							TES Scholarship Payout Portal
+						</h1>
+						<p class="text-sm text-slate-500 dark:text-slate-400">
+							Enter payout details and submit TES stipend records
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- FORM -->
+			<div class="space-y-4">
 				<UInput
 					v-model="form.studentId"
 					label="Student ID No."
@@ -164,7 +162,6 @@ const onSubmitClick = () => {
 					@keydown="allowNumbers"
 				/>
 
-				<!-- Check Number -->
 				<UInput
 					v-model="form.checkNo"
 					label="Check Number"
@@ -173,7 +170,6 @@ const onSubmitClick = () => {
 					@keydown="allowNumbers"
 				/>
 
-				<!-- Full Name -->
 				<UInput
 					v-model="form.name"
 					label="Full Name"
@@ -182,22 +178,28 @@ const onSubmitClick = () => {
 					@keydown="allowLetters"
 				/>
 
-				<!-- PWD -->
 				<UCheckbox
 					v-model="form.pwd"
-					label="PWD"
+					label="PWD Beneficiary"
 				/>
 
-				<!-- Upload (ONLY IF PWD) -->
+				<!-- PWD SECTION -->
 				<div
 					v-if="form.pwd"
-					class="space-y-3"
+					class="space-y-3 rounded-lg border border-slate-200 dark:border-slate-800 p-4"
 				>
-					<p class="text-sm font-medium">Upload Evidence (Required for PWD)</p>
+					<div class="flex items-center gap-2 font-medium">
+						<UIcon
+							name="i-lucide-upload"
+							class="size-5 text-rose-500"
+						/>
+						Upload Evidence (Required)
+					</div>
 
 					<UButton
 						color="primary"
 						block
+						icon="i-lucide-image"
 						@click="openFile"
 					>
 						Upload Image
@@ -213,7 +215,7 @@ const onSubmitClick = () => {
 
 					<p
 						v-if="form.evidenceFile"
-						class="text-sm text-gray-500 break-all"
+						class="text-sm text-slate-500 break-all"
 					>
 						{{ form.evidenceFile.name }}
 					</p>
@@ -221,15 +223,17 @@ const onSubmitClick = () => {
 					<img
 						v-if="evidencePreview"
 						:src="evidencePreview"
-						class="max-h-40 w-full object-contain rounded-lg border"
+						class="w-full max-h-40 object-contain rounded-lg border"
 					/>
 				</div>
 
-				<!-- Submit -->
+				<!-- SUBMIT -->
 				<UButton
-					color="success"
+					color="primary"
 					block
-					class="mt-4"
+					size="lg"
+					icon="i-lucide-send"
+					class="bg-indigo-600 hover:bg-indigo-700"
 					@click="onSubmitClick"
 				>
 					Submit TES Payout

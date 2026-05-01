@@ -24,7 +24,6 @@ export const useStudentStore = defineStore("student", () => {
 		if (typeof data?.statusMessage === "string") return data.statusMessage;
 		if (typeof data?.data?.message === "string") return data.data.message;
 		if (typeof data?.error?.message === "string") return data.error.message;
-
 		if (typeof error?.message === "string") return error.message;
 
 		return fallback;
@@ -38,8 +37,22 @@ export const useStudentStore = defineStore("student", () => {
 		return camelize(data) as Student[];
 	}
 
-	function getStudentId(student: Student) {
-		return student.id || student.studentId || student.schoolId || student.userId || "";
+	function getStudentId(student?: Student | null) {
+		return student?.id || student?.studentId || student?.schoolId || student?.userId || "";
+	}
+
+	function getUpdatedStudentFromResponse(response: any, fallback: Student): Student {
+		const normalizedBody = normalizeStudent(
+			response?.body || response?.data?.body || response?.data || fallback,
+		);
+
+		return {
+			...normalizedBody,
+			id: response?.id || response?.data?.id || fallback.id,
+			studentId: normalizedBody.studentId || fallback.studentId,
+			schoolId: normalizedBody.schoolId || fallback.schoolId,
+			userId: normalizedBody.userId || fallback.userId,
+		};
 	}
 
 	async function getStudents() {
@@ -82,6 +95,7 @@ export const useStudentStore = defineStore("student", () => {
 			return createdStudent;
 		} catch (error: any) {
 			errorMessage.value = getErrorMessage(error, "Failed to add student");
+			return undefined;
 		} finally {
 			isLoading.value = false;
 		}
@@ -93,11 +107,11 @@ export const useStudentStore = defineStore("student", () => {
 
 		try {
 			const response = await StudentService.update(id, data);
-			const updatedStudent = normalizeStudent(response.data);
+			const updatedStudent = getUpdatedStudentFromResponse(response, data);
 			const updatedId = getStudentId(updatedStudent) || id;
 
 			const index = students.value.findIndex(
-				(student) => getStudentId(student) === updatedId || getStudentId(student) === id,
+				(student) => getStudentId(student) === id || getStudentId(student) === updatedId,
 			);
 
 			if (index !== -1) {
@@ -107,11 +121,10 @@ export const useStudentStore = defineStore("student", () => {
 				};
 			}
 
-			await getStudents();
-
 			return updatedStudent;
 		} catch (error: any) {
 			errorMessage.value = getErrorMessage(error, "Failed to update student");
+			return undefined;
 		} finally {
 			isLoading.value = false;
 		}

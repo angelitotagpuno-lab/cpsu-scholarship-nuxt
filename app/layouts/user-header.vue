@@ -34,30 +34,11 @@ const items = computed<NavigationMenuItem[]>(() => [
 		active: route.path === "/user",
 		icon: "i-lucide-book-open",
 	},
-	{
-		label: "Scholarship Application",
-		icon: "i-lucide-box",
-		type: "trigger",
-		defaultOpen: route.path.startsWith("/user/portal"),
-		children: [
-			{
-				label: "TDP",
-				to: "/user/portal/tdp",
-				icon: "i-lucide-file-text",
-				active: route.path === "/user/portal/tdp",
-			},
-			{
-				label: "TES",
-				to: "/user/portal/tes",
-				icon: "i-lucide-file-text",
-				active: route.path === "/user/portal/tes",
-			},
-		],
-	},
+	{ label: "Approved Applicants", to: "/user/user-dashboard", icon: "i-lucide-users" },
 	{
 		label: "Scholarship Payout",
 		to: "/user/user-liquidation",
-		icon: "i-lucide-user",
+		icon: "i-lucide-wallet",
 		active: route.path.startsWith("/user/user-liquidation"),
 	},
 ]);

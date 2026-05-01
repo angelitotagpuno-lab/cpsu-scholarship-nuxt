@@ -1,6 +1,8 @@
 <script setup lang="ts">
 type Scholar = {
+	id: number;
 	no: number;
+	scholarshipType: "TDP" | "TES";
 	lastName: string;
 	firstName: string;
 	middleInitial: string;

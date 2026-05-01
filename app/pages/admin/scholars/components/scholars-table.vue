@@ -5,7 +5,9 @@ import ScholarUpdateModal from "./scholar-update-modal.vue";
 import ScholarDeleteModal from "./scholar-delete-modal.vue";
 
 type Scholar = {
+	id: number;
 	no: number;
+	scholarshipType: "TDP" | "TES";
 	lastName: string;
 	firstName: string;
 	middleInitial: string;
@@ -29,6 +31,20 @@ const scholarToDelete = ref<Scholar | null>(null);
 
 const columns: TableColumn<Scholar>[] = [
 	{ accessorKey: "no", header: "No.", size: 60 },
+	{
+		accessorKey: "scholarshipType",
+		header: "Type",
+		size: 100,
+		cell: ({ row }) => {
+			const type = row.original.scholarshipType;
+			const className =
+				type === "TDP"
+					? "inline-flex rounded bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700 dark:bg-violet-900 dark:text-violet-200"
+					: "inline-flex rounded bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-900 dark:text-cyan-200";
+
+			return h("span", { class: className }, type);
+		},
+	},
 	{ accessorKey: "lastName", header: "Last Name", size: 120 },
 	{ accessorKey: "firstName", header: "First Name", size: 120 },
 	{ accessorKey: "middleInitial", header: "M.I.", size: 60 },
@@ -105,6 +121,7 @@ const columns: TableColumn<Scholar>[] = [
 function handleSave(updatedScholar: Scholar) {
 	props.onUpdate(updatedScholar);
 	showModal.value = false;
+	selectedScholar.value = null;
 }
 
 function handleDelete(scholar: Scholar) {
@@ -121,7 +138,7 @@ function handleDelete(scholar: Scholar) {
 		<UTable
 			:data="scholars"
 			:columns="columns"
-			class="min-w-[900px]"
+			class="min-w-[1020px]"
 		/>
 
 		<ScholarUpdateModal

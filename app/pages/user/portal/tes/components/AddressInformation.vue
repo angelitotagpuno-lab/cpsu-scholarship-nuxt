@@ -19,8 +19,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 		:state="formStore.address"
 		:validate-on="['input']"
 	>
-		<h2 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">Address</h2>
-
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<!-- FULL ADDRESS -->
 			<UFormField

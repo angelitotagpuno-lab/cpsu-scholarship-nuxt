@@ -3,33 +3,19 @@ import type { TableColumn } from "@nuxt/ui";
 import type { Student } from "~/types/student";
 import { h, resolveComponent } from "vue";
 
-import AddModal from "./components/add-modal.vue";
 import EditModal from "./components/edit-modal.vue";
 import DeleteModal from "./components/delete-modal.vue";
 
 definePageMeta({ layout: "admin" });
 
 const overlay = useOverlay();
-const addModal = overlay.create(AddModal);
 const editModal = overlay.create(EditModal);
 const deleteModal = overlay.create(DeleteModal);
 
 const store = useStudentStore();
 
-async function openAdd() {
-	const result = await addModal.open();
-
-	if (result) {
-		await store.getStudents();
-	}
-}
-
 async function openEdit(student: Student) {
-	const result = await editModal.open({ data: student });
-
-	if (result) {
-		await store.getStudents();
-	}
+	await editModal.open({ data: student });
 }
 
 async function openDelete(student: Student) {
@@ -164,15 +150,6 @@ onMounted(async () => {
 					</p>
 				</div>
 			</div>
-
-			<UButton
-				label="Add Student"
-				icon="i-lucide-plus"
-				size="lg"
-				color="primary"
-				class="bg-emerald-600 hover:bg-emerald-700"
-				@click="openAdd"
-			/>
 		</div>
 
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

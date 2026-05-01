@@ -14,8 +14,9 @@ export const isNumber = (value: string, field = "Field") => {
 	const regex = /^[0-9]+$/;
 	return regex.test(value) || `${field} must contain only numbers`;
 };
-export const isEmail = (value: string) => {
-	if (!value) return true;
+export const isEmail = (value: string, field = "Email") => {
+	if (!value) return `${field} is required`;
 
-	return value.includes("@") && value.includes(".") ? true : "Invalid email format";
+	const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return regex.test(value) || `${field} must be a valid email`;
 };

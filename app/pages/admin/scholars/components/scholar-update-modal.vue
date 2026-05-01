@@ -2,7 +2,9 @@
 import { ref, watch } from "vue";
 
 type Scholar = {
+	id: number;
 	no: number;
+	scholarshipType: "TDP" | "TES";
 	lastName: string;
 	firstName: string;
 	middleInitial: string;

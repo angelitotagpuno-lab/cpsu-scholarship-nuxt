@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
-import { isRequired, isNumber, isEmail } from "~/utils/validators";
+import z from "zod";
 
 const formStore = useTesScholarFormStore();
 
-// 🔒 STRICT NUMBERS ONLY (CONTACT NUMBER)
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
 
@@ -12,24 +11,32 @@ const allowNumbers = (e: KeyboardEvent) => {
 		e.preventDefault();
 	}
 };
+
+/**
+ * ZOD SCHEMA
+ */
+const schema = z.object({
+	contactNumber: z
+		.string()
+		.min(1, "Contact number is required")
+		.regex(/^[0-9]+$/, "Numbers only"),
+
+	email: z.string().min(1, "Email is required").email("Enter a valid email address"),
+});
 </script>
 
 <template>
+	<!-- IMPORTANT: pass .contact.value (because it's a ref in your store) -->
 	<UForm
+		:schema="schema"
 		:state="formStore.contact"
 		:validate-on="['input']"
 	>
-		<h2 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
-			Contact Information
-		</h2>
-
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<!-- CONTACT NUMBER -->
 			<UFormField
 				label="Contact Number"
 				name="contactNumber"
-				:rules="[isRequired, isNumber]"
-				validate-on="input"
 				class="md:col-span-1"
 			>
 				<UInput
@@ -44,8 +51,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 			<UFormField
 				label="Email"
 				name="email"
-				:rules="[isRequired, isEmail]"
-				validate-on="input"
 				class="md:col-span-2"
 			>
 				<UInput

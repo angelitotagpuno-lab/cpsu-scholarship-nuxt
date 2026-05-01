@@ -1,12 +1,24 @@
 <script setup lang="ts">
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
-import { isRequired, isName, isNumber, isEmail } from "~/utils/validators";
+import { isRequired, isName, isNumber } from "~/utils/validators";
+import { z } from "zod";
 
 const formStore = useTdpScholarFormStore();
 
 const SEX_OPTIONS = ["Male", "Female"];
 
-// STRICT LETTERS ONLY
+/* -----------------------------
+   ZOD EMAIL VALIDATOR (WORKING)
+------------------------------ */
+const isEmail = (value: string): true | string => {
+	if (!value) return "Email is required";
+
+	return z.string().email().safeParse(value).success ? true : "Invalid email format";
+};
+
+/* -----------------------------
+   STRICT LETTERS ONLY
+------------------------------ */
 const allowLetters = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Space"];
 
@@ -15,7 +27,9 @@ const allowLetters = (e: KeyboardEvent) => {
 	}
 };
 
-// STRICT NUMBERS ONLY
+/* -----------------------------
+   STRICT NUMBERS ONLY
+------------------------------ */
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
 
@@ -30,17 +44,12 @@ const allowNumbers = (e: KeyboardEvent) => {
 		:state="formStore.student"
 		:validate-on="['input']"
 	>
-		<h3 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
-			Student Information
-		</h3>
-
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<!-- LAST NAME -->
 			<UFormField
 				label="Last Name"
 				name="lastName"
 				:rules="[isRequired, isName]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.lastName"
@@ -55,7 +64,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="First Name"
 				name="firstName"
 				:rules="[isRequired, isName]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.firstName"
@@ -70,7 +78,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Middle Name"
 				name="middleName"
 				:rules="[isName]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.middleName"
@@ -85,7 +92,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Sex"
 				name="sex"
 				:rules="[isRequired]"
-				validate-on="input"
 			>
 				<USelect
 					v-model="formStore.student.sex"
@@ -100,7 +106,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Birthdate"
 				name="birthdate"
 				:rules="[isRequired]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.birthdate"
@@ -114,7 +119,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Place of Birth"
 				name="birthPlace"
 				:rules="[isRequired]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.birthPlace"
@@ -128,7 +132,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Citizenship"
 				name="citizenship"
 				:rules="[isRequired, isName]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.citizenship"
@@ -143,7 +146,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Mobile Number"
 				name="mobile"
 				:rules="[isRequired, isNumber]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.mobile"
@@ -158,10 +160,10 @@ const allowNumbers = (e: KeyboardEvent) => {
 				label="Email Address"
 				name="email"
 				:rules="[isRequired, isEmail]"
-				validate-on="input"
 			>
 				<UInput
 					v-model="formStore.student.email"
+					type="email"
 					placeholder="Ex: example@gmail.com"
 					class="w-full"
 				/>

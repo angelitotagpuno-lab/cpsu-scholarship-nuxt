@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import { computed, reactive, ref } from "vue";
+import { computed } from "vue";
 import z from "zod";
+import type { Student } from "~/types/student";
 
 const store = useStudentStore();
 const toast = useToast();
 const emit = defineEmits<{ close: [boolean] }>();
-
-const errorMessage = ref("");
+const props = defineProps<{ data: Student }>();
 
 const requiredString = (field: string) => z.string().trim().min(1, `${field} is required`);
 
@@ -16,12 +16,14 @@ const parentSchema = z.object({
 	firstName: requiredString("Parent first name"),
 	lastName: requiredString("Parent last name"),
 	middleName: z.string().trim().optional(),
-	contactNumber: z.string().trim().optional(),
+	extName: z.string().trim().optional(),
 	occupation: z.string().trim().optional(),
+	monthlyIncome: z.string().trim().optional(),
+	contactNumber: z.string().trim().optional(),
+	email: z.string().trim().email("Invalid email").optional().or(z.literal("")),
 });
 
 const schema = z.object({
-	schoolId: requiredString("Student ID").max(50),
 	firstName: requiredString("First name").max(100),
 	lastName: requiredString("Last name").max(100),
 	middleName: z.string().trim().max(100).optional(),
@@ -43,30 +45,32 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
-	schoolId: "",
-	firstName: "",
-	lastName: "",
-	middleName: "",
-	extName: "",
-	birthdate: "",
-	contactNumber: "",
-	sex: "male",
-	yearLevel: 1,
+	firstName: props.data.firstName || "",
+	lastName: props.data.lastName || "",
+	middleName: props.data.middleName || "",
+	extName: props.data.extName || "",
+	birthdate: props.data.birthdate || "",
+	contactNumber: props.data.contactNumber?.replace(/^\+63/, "0") || "",
+	sex: props.data.sex || "male",
+	yearLevel: props.data.yearLevel || 1,
 	address: {
-		street: "",
-		barangay: "",
-		city: "",
-		province: "",
-		zipcode: "",
+		street: props.data.address?.street || "",
+		barangay: props.data.address?.barangay || "",
+		city: props.data.address?.city || "",
+		province: props.data.address?.province || "",
+		zipcode: props.data.address?.zipcode || "",
 	},
 	parents: [
 		{
-			type: "father",
-			firstName: "",
-			lastName: "",
-			middleName: "",
-			contactNumber: "",
-			occupation: "",
+			type: props.data.parents?.[0]?.type || "father",
+			firstName: props.data.parents?.[0]?.firstName || "",
+			lastName: props.data.parents?.[0]?.lastName || "",
+			middleName: props.data.parents?.[0]?.middleName || "",
+			extName: props.data.parents?.[0]?.extName || "",
+			occupation: props.data.parents?.[0]?.occupation || "",
+			monthlyIncome: props.data.parents?.[0]?.monthlyIncome || "",
+			contactNumber: props.data.parents?.[0]?.contactNumber || "",
+			email: props.data.parents?.[0]?.email || "",
 		},
 	],
 });
@@ -90,34 +94,41 @@ const parentTypeOptions = [
 ];
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	errorMessage.value = "";
+	const studentId =
+		props.data.userId || props.data.id || props.data.studentId || props.data.schoolId;
 
-	await store.addStudent(event.data);
-
-	if (store.errorMessage) {
-		let message = store.errorMessage;
-
-		try {
-			const parsed = JSON.parse(store.errorMessage);
-			message = parsed?.message || parsed?.error?.message || store.errorMessage;
-		} catch {
-			message = store.errorMessage;
-		}
-
-		errorMessage.value = message;
-
+	if (!studentId) {
 		toast.add({
-			title: "Unable to add student",
-			description: message,
+			title: "Error",
+			description: "Student ID is missing. Cannot update this record.",
 			color: "error",
 		});
+		return;
+	}
 
+	const payload: Student = {
+		...props.data,
+		...event.data,
+		id: props.data.id,
+		userId: props.data.userId,
+		studentId: props.data.studentId,
+		schoolId: props.data.schoolId,
+	};
+
+	const updatedStudent = await store.editStudent(studentId, payload);
+
+	if (!updatedStudent || store.errorMessage) {
+		toast.add({
+			title: "Error",
+			description: store.errorMessage || "Student was not updated.",
+			color: "error",
+		});
 		return;
 	}
 
 	toast.add({
 		title: "Success",
-		description: "Student added successfully",
+		description: "Student updated successfully",
 		color: "success",
 	});
 
@@ -126,39 +137,30 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-	<UModal title="Add Student">
+	<UModal title="Edit Student">
 		<template #body>
 			<div class="space-y-6">
 				<div
-					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
+					class="rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900"
 				>
 					<div class="flex items-start gap-3">
-						<div class="rounded-md bg-emerald-600 p-2 text-white">
+						<div class="rounded-md bg-blue-600 p-2 text-white">
 							<UIcon
-								name="i-lucide-user-plus"
+								name="i-lucide-user-pen"
 								class="size-5"
 							/>
 						</div>
 
 						<div>
 							<h3 class="text-base font-semibold text-slate-900 dark:text-white">
-								Create student profile
+								Update student profile
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Add personal, address, and parent information.
+								Edit personal, address, and parent information.
 							</p>
 						</div>
 					</div>
 				</div>
-
-				<UAlert
-					v-if="errorMessage"
-					icon="i-lucide-circle-alert"
-					color="error"
-					variant="soft"
-					title="Unable to add student"
-					:description="errorMessage"
-				/>
 
 				<UForm
 					:schema="schema"
@@ -167,19 +169,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					@submit="onSubmit"
 				>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<UFormField
-							label="Student ID"
-							name="schoolId"
-						>
-							<UInput
-								v-model="state.schoolId"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-id-card"
-								placeholder="SCHOOL-001"
-							/>
-						</UFormField>
-
 						<UFormField
 							label="First Name"
 							name="firstName"
@@ -393,13 +382,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							</UFormField>
 
 							<UFormField
-								label="Contact Number"
-								name="parents.0.contactNumber"
+								label="Extension"
+								name="parents.0.extName"
 							>
 								<UInput
-									v-model="parent.contactNumber"
+									v-model="parent.extName"
 									class="w-full"
 									size="lg"
+									placeholder="Jr., Sr."
 								/>
 							</UFormField>
 
@@ -411,6 +401,40 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 									v-model="parent.occupation"
 									class="w-full"
 									size="lg"
+								/>
+							</UFormField>
+
+							<UFormField
+								label="Monthly Income"
+								name="parents.0.monthlyIncome"
+							>
+								<UInput
+									v-model="parent.monthlyIncome"
+									class="w-full"
+									size="lg"
+								/>
+							</UFormField>
+
+							<UFormField
+								label="Contact Number"
+								name="parents.0.contactNumber"
+							>
+								<UInput
+									v-model="parent.contactNumber"
+									class="w-full"
+									size="lg"
+								/>
+							</UFormField>
+
+							<UFormField
+								label="Email"
+								name="parents.0.email"
+							>
+								<UInput
+									v-model="parent.email"
+									class="w-full"
+									size="lg"
+									type="email"
 								/>
 							</UFormField>
 						</div>
@@ -430,9 +454,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							:loading="store.isLoading"
 							icon="i-lucide-save"
 							color="primary"
-							class="bg-emerald-600 hover:bg-emerald-700"
+							class="bg-blue-600 hover:bg-blue-700"
 						>
-							Save Student
+							Update Student
 						</UButton>
 					</div>
 				</UForm>

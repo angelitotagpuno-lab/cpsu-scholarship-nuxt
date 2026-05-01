@@ -24,8 +24,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 
 <template>
 	<div class="space-y-6">
-		<h3 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">Address</h3>
-
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			<!-- STREET / BARANGAY (NO RESTRICTION) -->
 			<UFormField label="Street / Barangay">

@@ -29,10 +29,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 <template>
 	<UForm :state="formStore">
 		<div class="space-y-6">
-			<h3 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
-				Family Background
-			</h3>
-
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 				<!-- FATHER -->
 				<div>

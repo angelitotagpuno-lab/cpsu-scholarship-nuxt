@@ -28,28 +28,30 @@ const items: NavigationMenuItem[][] = [
 	[
 		{ label: "Dashboard", icon: "i-lucide-layout-dashboard", to: "/admin/home" },
 		{ label: "Personnel", icon: "i-lucide-id-card", to: "/admin/personnel" },
-		{ label: "Students", icon: "i-lucide-graduation-cap", to: "/admin/students" },
+		{
+			label: "Students",
+			icon: "i-lucide-graduation-cap",
+			type: "trigger",
+			children: [
+				{ label: "Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/students" },
+				{
+					label: "Applicants",
+					icon: "i-lucide-clipboard-list",
+					type: "trigger",
+					children: [
+						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/tdp" },
+						{
+							label: "TES/TDP Applicants",
+							icon: "i-lucide-file-check-2",
+							to: "/admin/applicants/students",
+						},
+					],
+				},
+				{ label: "Scholars", icon: "i-lucide-medal", to: "/admin/scholars" },
+			],
+		},
 		{ label: "Courses", icon: "i-lucide-book-open", to: "/admin/courses" },
-		{
-			label: "Applicants",
-			icon: "i-lucide-clipboard-list",
-			type: "trigger",
-			defaultOpen: true,
-			children: [
-				{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/tdp" },
-				{ label: "TES Applicants", icon: "i-lucide-file-check-2", to: "/admin/applicants/tes" },
-			],
-		},
 		{ label: "Files", icon: "i-lucide-folder-open", to: "/admin/files" },
-		{
-			label: "Scholars",
-			icon: "i-lucide-award",
-			type: "trigger",
-			children: [
-				{ label: "TDP Scholars", icon: "i-lucide-medal", to: "/admin/scholars/tdp" },
-				{ label: "TES Scholars", icon: "i-lucide-trophy", to: "/admin/scholars/tes" },
-			],
-		},
 		{
 			label: "Liquidation Records",
 			icon: "i-lucide-receipt-text",
@@ -62,38 +64,22 @@ const items: NavigationMenuItem[][] = [
 	],
 ];
 
-const reactiveItems = computed(() =>
-	items.map((group) =>
-		group.map((item) => {
-			const isActive = route.path === item.to;
+function markActiveItems(items: NavigationMenuItem[]): NavigationMenuItem[] {
+	return items.map((item) => {
+		const children = item.children ? markActiveItems(item.children) : undefined;
+		const hasActiveChild = children?.some((child) => child.active) ?? false;
+		const isActive = route.path === item.to;
 
-			let children;
-			let hasActiveChild = false;
+		return {
+			...item,
+			active: isActive || hasActiveChild,
+			defaultOpen: item.type === "trigger" ? hasActiveChild || item.defaultOpen : undefined,
+			children,
+		};
+	});
+}
 
-			if (item.children) {
-				children = item.children.map((child) => {
-					const childActive = route.path === child.to;
-
-					if (childActive) {
-						hasActiveChild = true;
-					}
-
-					return {
-						...child,
-						active: childActive,
-					};
-				});
-			}
-
-			return {
-				...item,
-				active: isActive || hasActiveChild,
-				defaultOpen: item.type === "trigger" ? hasActiveChild || item.defaultOpen : undefined,
-				children,
-			};
-		}),
-	),
-);
+const reactiveItems = computed(() => items.map((group) => markActiveItems(group)));
 </script>
 
 <template>

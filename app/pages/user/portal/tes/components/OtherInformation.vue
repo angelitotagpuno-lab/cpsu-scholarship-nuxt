@@ -38,10 +38,6 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 
 <template>
 	<div class="space-y-6">
-		<h2 class="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl">
-			Other Information
-		</h2>
-
 		<div class="flex flex-col gap-4">
 			<!-- PWD -->
 			<UFormField label="Person With Disability (PWD)">
