@@ -1,3 +1,5 @@
+import type { Role } from "~/types/user";
+
 export interface Personnel {
 	id?: string;
 	email?: string; // ✅ add this
@@ -10,7 +12,7 @@ export interface Personnel {
 	position?: string;
 	department?: string;
 
-  role?: "admin" | "student" | "personnel";
+	role: Role;
 
 	password?: string; // ✅ optional (ONLY for forms)
 }

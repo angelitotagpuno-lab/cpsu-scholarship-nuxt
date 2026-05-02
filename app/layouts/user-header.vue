@@ -3,7 +3,6 @@ import { computed, ref, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { NavigationMenuItem } from "@nuxt/ui";
 import { useAuthStore } from "~/stores/auth.store";
-import { index } from "~/services/student.service";
 
 const route = useRoute();
 const router = useRouter();
@@ -112,8 +111,8 @@ function toggleMenu(label?: string) {
 				<div class="p-4 flex flex-col gap-2">
 					<ul class="flex flex-col divide-y divide-gray-200 dark:divide-gray-700">
 						<li
-							v-for="item in items"
-							:key="item.label || item.to || item.icon || index"
+							v-for="(item, index) in items"
+							:key="String(item.label ?? item.to ?? index)"
 						>
 							<!-- Parent with children -->
 							<button

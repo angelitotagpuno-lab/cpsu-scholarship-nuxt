@@ -29,15 +29,11 @@ async function openDelete(personnel: Personnel) {
 }
 
 const columns: TableColumn<Personnel>[] = [
-	{
-		accessorKey: "id",
-		header: "ID",
-		cell: ({ row }) => `#${row.getValue("id")}`,
-	},
 	{ accessorKey: "email", header: "Email" },
 	{ accessorKey: "first_name", header: "First Name" },
 	{ accessorKey: "last_name", header: "Last Name" },
 	{ accessorKey: "middle_name", header: "Middle Name" },
+
 	{
 		accessorKey: "sex",
 		header: "Gender",
@@ -58,7 +54,9 @@ const columns: TableColumn<Personnel>[] = [
 			);
 		},
 	},
+
 	{ accessorKey: "position", header: "Position" },
+
 	{
 		accessorKey: "role",
 		header: "Role",
@@ -71,14 +69,17 @@ const columns: TableColumn<Personnel>[] = [
 					class:
 						role === "admin"
 							? "px-2 py-1 text-xs rounded bg-red-100 text-red-700"
-							: role === "personnel"
+							: role === "staff"
 								? "px-2 py-1 text-xs rounded bg-green-100 text-green-700"
-								: "px-2 py-1 text-xs rounded bg-slate-100 text-slate-700",
+								: role === "student"
+									? "px-2 py-1 text-xs rounded bg-blue-100 text-blue-700"
+									: "px-2 py-1 text-xs rounded bg-slate-100 text-slate-700",
 				},
 				role?.toUpperCase() || "—",
 			);
 		},
 	},
+
 	{
 		id: "actions",
 		header: "Actions",
@@ -143,24 +144,24 @@ onMounted(() => {
 		</div>
 
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-			<UCard class="border-l-4 border-l-blue-500 bg-blue-50/80 dark:bg-blue-950/30">
-				<p class="text-sm font-medium text-blue-700 dark:text-blue-300">Total Personnel</p>
-				<p class="mt-1 text-3xl font-bold text-blue-950 dark:text-blue-100">
-					{{ store.personnels.length }}
-				</p>
-			</UCard>
-
 			<UCard class="border-l-4 border-l-red-500 bg-red-50/80 dark:bg-red-950/30">
 				<p class="text-sm font-medium text-red-700 dark:text-red-300">Admins</p>
 				<p class="mt-1 text-3xl font-bold text-red-950 dark:text-red-100">
-					{{ store.personnels.filter((personnel) => personnel.role === "admin").length }}
+					{{ store.personnels.filter((p) => p.role === "admin").length }}
 				</p>
 			</UCard>
 
 			<UCard class="border-l-4 border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/30">
-				<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Personnel</p>
+				<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Staff</p>
 				<p class="mt-1 text-3xl font-bold text-emerald-950 dark:text-emerald-100">
-					{{ store.personnels.filter((personnel) => personnel.role === "personnel").length }}
+					{{ store.personnels.filter((p) => p.role === "staff").length }}
+				</p>
+			</UCard>
+
+			<UCard class="border-l-4 border-l-blue-500 bg-blue-50/80 dark:bg-blue-950/30">
+				<p class="text-sm font-medium text-blue-700 dark:text-blue-300">Students</p>
+				<p class="mt-1 text-3xl font-bold text-blue-950 dark:text-blue-100">
+					{{ store.personnels.filter((p) => p.role === "student").length }}
 				</p>
 			</UCard>
 		</div>

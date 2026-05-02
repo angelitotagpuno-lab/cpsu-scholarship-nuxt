@@ -24,45 +24,59 @@ const allowNumbers = (e: KeyboardEvent) => {
 
 <template>
 	<div class="space-y-6">
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-			<!-- STREET / BARANGAY (NO RESTRICTION) -->
+		<!-- TITLE -->
+		<div class="flex items-center gap-2">
+			<UIcon
+				name="i-lucide-map-pin"
+				class="text-emerald-600 size-5"
+			/>
+			<h2 class="text-lg font-semibold">Address Information</h2>
+		</div>
+
+		<!-- STACKED FORM -->
+		<UForm class="space-y-5">
+			<!-- STREET / BARANGAY -->
 			<UFormField label="Street / Barangay">
 				<UInput
 					v-model="formStore.address.street"
-					placeholder="Ex: Purok 5, Brgy. San Jose"
+					placeholder="Purok 5, Brgy. San Jose"
+					icon="i-lucide-home"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- CITY (LETTERS ONLY) -->
+			<!-- CITY -->
 			<UFormField label="City">
 				<UInput
 					v-model="formStore.address.city"
-					placeholder="Ex: San Carlos City"
+					placeholder="San Carlos City"
+					icon="i-lucide-building"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- PROVINCE (LETTERS ONLY) -->
+			<!-- PROVINCE -->
 			<UFormField label="Province">
 				<UInput
 					v-model="formStore.address.province"
-					placeholder="Ex: Negros Occidental"
+					placeholder="Negros Occidental"
+					icon="i-lucide-map"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- ZIP CODE (NUMBERS ONLY) -->
+			<!-- ZIP CODE -->
 			<UFormField label="Zip Code">
 				<UInput
 					v-model="formStore.address.zipCode"
-					placeholder="Ex: 6100"
+					placeholder="6100"
+					icon="i-lucide-hash"
 					class="w-full"
 					@keydown="allowNumbers"
 				/>
 			</UFormField>
-		</div>
+		</UForm>
 	</div>
 </template>

@@ -37,30 +37,30 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 </script>
 
 <template>
-	<div class="space-y-6">
-		<div class="flex flex-col gap-4">
-			<!-- PWD -->
+	<div class="space-y-8">
+		<!-- PWD -->
+		<div class="space-y-3">
 			<UFormField label="Person With Disability (PWD)">
 				<USelect
 					v-model="formStore.other.disability"
 					:items="YES_NO_OPTIONS"
+					icon="i-lucide-eye"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- PWD UPLOAD -->
 			<div
 				v-if="formStore.other.disability === 'Yes'"
-				class="space-y-2"
+				class="space-y-3"
 			>
-				<button
-					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+				<UButton
+					icon="i-lucide-upload"
+					class="w-full sm:w-auto"
 					@click="pwdInput?.click()"
 				>
 					Upload PWD ID
-				</button>
+				</UButton>
 
 				<input
 					ref="pwdInput"
@@ -71,7 +71,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 
 				<p
 					v-if="formStore.other.pwdFile"
-					class="text-sm"
+					class="text-sm text-slate-500"
 				>
 					{{ formStore.other.pwdFile.name }}
 				</p>
@@ -79,32 +79,34 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 				<img
 					v-if="pwdPreview"
 					:src="pwdPreview"
-					class="max-h-40 rounded"
+					class="max-h-40 rounded-lg border"
 				/>
 			</div>
+		</div>
 
-			<!-- INDIGENOUS -->
+		<!-- IP -->
+		<div class="space-y-3">
 			<UFormField label="Indigenous People (IP)">
 				<USelect
 					v-model="formStore.other.indigenous"
 					:items="YES_NO_OPTIONS"
+					icon="i-lucide-users"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- IP UPLOAD -->
 			<div
 				v-if="formStore.other.indigenous === 'Yes'"
-				class="space-y-2"
+				class="space-y-3"
 			>
-				<button
-					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+				<UButton
+					icon="i-lucide-upload"
+					class="w-full sm:w-auto"
 					@click="ipInput?.click()"
 				>
 					Upload Indigenous Proof
-				</button>
+				</UButton>
 
 				<input
 					ref="ipInput"
@@ -115,7 +117,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 
 				<p
 					v-if="formStore.other.ipFile"
-					class="text-sm"
+					class="text-sm text-slate-500"
 				>
 					{{ formStore.other.ipFile.name }}
 				</p>
@@ -123,32 +125,34 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 				<img
 					v-if="ipPreview"
 					:src="ipPreview"
-					class="max-h-40 rounded"
+					class="max-h-40 rounded-lg border"
 				/>
 			</div>
+		</div>
 
-			<!-- 4PS -->
+		<!-- 4PS -->
+		<div class="space-y-3">
 			<UFormField label="4Ps Beneficiary">
 				<USelect
 					v-model="formStore.other.fourPs"
 					:items="YES_NO_OPTIONS"
+					icon="i-lucide-heart-handshake"
 					placeholder="Select Yes or No"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- 4PS UPLOAD -->
 			<div
 				v-if="formStore.other.fourPs === 'Yes'"
-				class="space-y-2"
+				class="space-y-3"
 			>
-				<button
-					type="button"
-					class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full sm:w-auto"
+				<UButton
+					icon="i-lucide-upload"
+					class="w-full sm:w-auto"
 					@click="fourPsInput?.click()"
 				>
 					Upload 4Ps Proof
-				</button>
+				</UButton>
 
 				<input
 					ref="fourPsInput"
@@ -159,7 +163,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 
 				<p
 					v-if="formStore.other.fourPsFile"
-					class="text-sm"
+					class="text-sm text-slate-500"
 				>
 					{{ formStore.other.fourPsFile.name }}
 				</p>
@@ -167,7 +171,7 @@ function handleFile(event: Event, type: "pwd" | "ip" | "4ps") {
 				<img
 					v-if="fourPsPreview"
 					:src="fourPsPreview"
-					class="max-h-40 rounded"
+					class="max-h-40 rounded-lg border"
 				/>
 			</div>
 		</div>

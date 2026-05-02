@@ -10,6 +10,7 @@ const scholarships = [
 		icon: "i-lucide-graduation-cap",
 		color: "emerald",
 		to: "/user/portal/tdp",
+		benefits: "₱7,000 Financial Assistance",
 		requirements: [
 			"Currently enrolled student",
 			"Valid school ID or certificate of registration",
@@ -24,6 +25,7 @@ const scholarships = [
 		icon: "i-lucide-award",
 		color: "blue",
 		to: "user/portal/tes",
+		benefits: "₱10,000 Educational Subsidy",
 		requirements: [
 			"Qualified tertiary student",
 			"Proof of enrollment",
@@ -81,6 +83,7 @@ function cardClasses(color: string) {
 					:class="['border shadow-sm', cardClasses(scholarship.color).card]"
 				>
 					<div class="space-y-5">
+						<!-- HEADER -->
 						<div class="flex items-start justify-between gap-4">
 							<div class="flex items-start gap-3">
 								<div :class="['rounded-md p-3', cardClasses(scholarship.color).icon]">
@@ -110,10 +113,22 @@ function cardClasses(color: string) {
 							</span>
 						</div>
 
+						<!-- DESCRIPTION -->
 						<p class="text-sm leading-6 text-slate-600 dark:text-slate-300">
 							{{ scholarship.description }}
 						</p>
 
+						<!-- 💰 BENEFITS (NEW SECTION - CLEAN ADDITION) -->
+						<div
+							class="rounded-md bg-white/80 p-3 text-center ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800"
+						>
+							<p class="text-xs text-slate-500 dark:text-slate-400">Benefits</p>
+							<p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+								{{ scholarship.benefits }}
+							</p>
+						</div>
+
+						<!-- REQUIREMENTS -->
 						<div
 							class="rounded-md bg-white/80 p-4 ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800"
 						>
@@ -136,6 +151,7 @@ function cardClasses(color: string) {
 							</ul>
 						</div>
 
+						<!-- BUTTON -->
 						<div class="flex justify-end">
 							<UButton
 								:to="scholarship.to"

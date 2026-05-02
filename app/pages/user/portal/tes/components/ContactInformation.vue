@@ -26,21 +26,20 @@ const schema = z.object({
 </script>
 
 <template>
-	<!-- IMPORTANT: pass .contact.value (because it's a ref in your store) -->
 	<UForm
 		:schema="schema"
 		:state="formStore.contact"
 		:validate-on="['input']"
 	>
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+		<div class="space-y-5">
 			<!-- CONTACT NUMBER -->
 			<UFormField
 				label="Contact Number"
 				name="contactNumber"
-				class="md:col-span-1"
 			>
 				<UInput
 					v-model="formStore.contact.contactNumber"
+					icon="i-lucide-phone"
 					placeholder="Ex: 09XXXXXXXXX"
 					class="w-full"
 					@keydown="allowNumbers"
@@ -51,10 +50,10 @@ const schema = z.object({
 			<UFormField
 				label="Email"
 				name="email"
-				class="md:col-span-2"
 			>
 				<UInput
 					v-model="formStore.contact.email"
+					icon="i-lucide-mail"
 					type="email"
 					placeholder="example@email.com"
 					class="w-full"

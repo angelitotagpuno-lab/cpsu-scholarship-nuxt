@@ -2,6 +2,7 @@
 import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 const formStore = useTdpScholarFormStore();
+
 const SECTOR_OPTIONS = ["Public", "Private"];
 
 const allowLetters = (e: KeyboardEvent) => {
@@ -12,7 +13,6 @@ const allowLetters = (e: KeyboardEvent) => {
 	}
 };
 
-// STRICT NUMBERS ONLY
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
 
@@ -24,82 +24,93 @@ const allowNumbers = (e: KeyboardEvent) => {
 
 <template>
 	<div class="space-y-6">
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-			<UFormField
-				name="schoolName"
-				label="School Name"
-				class="md:col-span-2"
-				:rules="[isRequired, isName]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.school.schoolName"
-					placeholder="Ex: Central Mindanao University"
-					class="w-full"
-					@keydown="allowLetters"
-				/>
-			</UFormField>
+		<UForm
+			:state="formStore.school"
+			class="space-y-5"
+		>
+			<!-- STACKED FIELDS (ONLY THESE TWO) -->
+			<div class="space-y-4">
+				<UFormField
+					name="schoolName"
+					label="School Name"
+					:rules="[isRequired, isName]"
+					validate-on="input"
+				>
+					<UInput
+						v-model="formStore.school.schoolName"
+						icon="i-lucide-building"
+						placeholder="Central Mindanao University"
+						class="w-full"
+						@keydown="allowLetters"
+					/>
+				</UFormField>
 
-			<UFormField
-				name="schoolId"
-				label="School ID"
-				:rules="[isRequired, isNumber]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.school.schoolId"
-					placeholder="Ex: 123456"
-					class="w-full"
-					@keydown="allowNumbers"
-				/>
-			</UFormField>
+				<UFormField label="School Address">
+					<UInput
+						v-model="formStore.school.schoolAddress"
+						icon="i-lucide-map-pin"
+						placeholder="Brgy. San Jose, San Carlos City"
+						class="w-full"
+					/>
+				</UFormField>
+			</div>
 
-			<UFormField
-				label="School Address"
-				class="md:col-span-2"
-			>
-				<UInput
-					v-model="formStore.school.schoolAddress"
-					placeholder="Ex: Brgy. San Jose, San Carlos City"
-					class="w-full"
-				/>
-			</UFormField>
+			<!-- GRID FIELDS -->
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<UFormField
+					name="schoolId"
+					label="School ID"
+					:rules="[isRequired, isNumber]"
+					validate-on="input"
+				>
+					<UInput
+						v-model="formStore.school.schoolId"
+						icon="i-lucide-id-card"
+						placeholder="123456"
+						class="w-full"
+						@keydown="allowNumbers"
+					/>
+				</UFormField>
 
-			<UFormField label="School Sector">
-				<USelect
-					v-model="formStore.school.schoolSector"
-					:items="SECTOR_OPTIONS"
-					placeholder="Select Sector"
-					class="w-full"
-				/>
-			</UFormField>
+				<UFormField label="School Sector">
+					<USelect
+						v-model="formStore.school.schoolSector"
+						:items="SECTOR_OPTIONS"
+						icon="i-lucide-building-2"
+						placeholder="Select Sector"
+						class="w-full"
+					/>
+				</UFormField>
 
-			<UFormField
-				name="yearLevel"
-				label="Year Level"
-				:rules="[isRequired, isNumber]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.school.yearLevel"
-					placeholder="Ex: 2"
-					class="w-full"
-					@keydown="allowNumbers"
-				/>
-			</UFormField>
+				<UFormField
+					name="yearLevel"
+					label="Year Level"
+					:rules="[isRequired, isNumber]"
+					validate-on="input"
+				>
+					<UInput
+						v-model="formStore.school.yearLevel"
+						icon="i-lucide-hash"
+						placeholder="2"
+						class="w-full"
+						@keydown="allowNumbers"
+					/>
+				</UFormField>
 
-			<UFormField
-				label="Course"
-				:rules="[isRequired, isName]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.school.course"
-					placeholder="Ex: BS Information Technology"
-					class="w-full"
-					@keydown="allowLetters"
-				/>
-			</UFormField>
-		</div>
+				<UFormField
+					label="Course"
+					:rules="[isRequired, isName]"
+					validate-on="input"
+				>
+					<UInput
+						v-model="formStore.school.course"
+						icon="i-lucide-book-open"
+						placeholder="BS Information Technology"
+						class="w-full"
+						@keydown="allowLetters"
+					/>
+				</UFormField>
+			</div>
+		</UForm>
 	</div>
 </template>

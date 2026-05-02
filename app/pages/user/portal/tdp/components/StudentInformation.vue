@@ -7,44 +7,39 @@ const formStore = useTdpScholarFormStore();
 
 const SEX_OPTIONS = ["Male", "Female"];
 
-/* -----------------------------
-   ZOD EMAIL VALIDATOR (WORKING)
------------------------------- */
 const isEmail = (value: string): true | string => {
 	if (!value) return "Email is required";
-
 	return z.string().email().safeParse(value).success ? true : "Invalid email format";
 };
 
-/* -----------------------------
-   STRICT LETTERS ONLY
------------------------------- */
 const allowLetters = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Space"];
-
-	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 
-/* -----------------------------
-   STRICT NUMBERS ONLY
------------------------------- */
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
-
-	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 </script>
 
 <template>
-	<UForm
-		:state="formStore.student"
-		:validate-on="['input']"
-	>
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+	<div class="space-y-6">
+		<!-- TITLE -->
+		<div class="flex items-center gap-2">
+			<UIcon
+				name="i-lucide-user-round"
+				class="text-emerald-600 size-5"
+			/>
+			<h2 class="text-lg font-semibold">Student Information</h2>
+		</div>
+
+		<!-- FORM -->
+		<UForm
+			:state="formStore.student"
+			:validate-on="['input']"
+			class="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full"
+		>
 			<!-- LAST NAME -->
 			<UFormField
 				label="Last Name"
@@ -53,7 +48,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.lastName"
-					placeholder="Ex: Dela Cruz"
+					icon="i-lucide-user"
+					placeholder="Dela Cruz"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
@@ -67,7 +63,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.firstName"
-					placeholder="Ex: Juan"
+					icon="i-lucide-user"
+					placeholder="Juan"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
@@ -81,7 +78,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.middleName"
-					placeholder="Ex: Delapena"
+					icon="i-lucide-user"
+					placeholder="Delapena"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
@@ -96,6 +94,7 @@ const allowNumbers = (e: KeyboardEvent) => {
 				<USelect
 					v-model="formStore.student.sex"
 					:items="SEX_OPTIONS"
+					icon="i-lucide-user"
 					placeholder="Select Sex"
 					class="w-full"
 				/>
@@ -110,6 +109,7 @@ const allowNumbers = (e: KeyboardEvent) => {
 				<UInput
 					v-model="formStore.student.birthdate"
 					type="date"
+					icon="i-lucide-calendar"
 					class="w-full"
 				/>
 			</UFormField>
@@ -122,7 +122,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.birthPlace"
-					placeholder="Ex: San Carlos City"
+					icon="i-lucide-map-pin"
+					placeholder="San Carlos City"
 					class="w-full"
 				/>
 			</UFormField>
@@ -135,7 +136,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.citizenship"
-					placeholder="Ex: Filipino"
+					icon="i-lucide-globe"
+					placeholder="Filipino"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
@@ -149,7 +151,8 @@ const allowNumbers = (e: KeyboardEvent) => {
 			>
 				<UInput
 					v-model="formStore.student.mobile"
-					placeholder="Ex: 09385254043"
+					icon="i-lucide-phone"
+					placeholder="09XXXXXXXXX"
 					class="w-full"
 					@keydown="allowNumbers"
 				/>
@@ -164,10 +167,11 @@ const allowNumbers = (e: KeyboardEvent) => {
 				<UInput
 					v-model="formStore.student.email"
 					type="email"
-					placeholder="Ex: example@gmail.com"
+					icon="i-lucide-mail"
+					placeholder="example@gmail.com"
 					class="w-full"
 				/>
 			</UFormField>
-		</div>
-	</UForm>
+		</UForm>
+	</div>
 </template>

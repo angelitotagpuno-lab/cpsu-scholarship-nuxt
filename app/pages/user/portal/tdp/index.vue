@@ -12,6 +12,42 @@ definePageMeta({
 const formStore = useTdpScholarFormStore();
 const toast = useToast();
 
+/* -------------------------
+   STEP CONTROL
+-------------------------- */
+const currentStep = ref(1);
+const totalSteps = 4;
+
+const steps = ref([
+	{ id: 1, title: "Student Information", icon: "i-lucide-user", done: false },
+	{ id: 2, title: "Address Information", icon: "i-lucide-map-pin", done: false },
+	{ id: 3, title: "School Information", icon: "i-lucide-graduation-cap", done: false },
+	{ id: 4, title: "Family Information", icon: "i-lucide-users", done: false },
+]);
+
+/* -------------------------
+   NAVIGATION
+-------------------------- */
+function nextStep() {
+	if (currentStep.value < totalSteps) {
+		const step = steps.value[currentStep.value - 1];
+
+		if (step) {
+			step.done = true;
+		}
+
+		currentStep.value++;
+	}
+}
+
+function prevStep() {
+	if (currentStep.value > 1) {
+		currentStep.value--;
+	}
+}
+/* -------------------------
+   VALIDATION
+-------------------------- */
 type FormSection = Record<string, string | number | null | undefined>;
 
 function getMissingFields() {
@@ -49,18 +85,11 @@ function getMissingFields() {
 	return missing;
 }
 
+/* -------------------------
+   SUBMIT
+-------------------------- */
 function submitTdpForm() {
-	const payload = {
-		student: formStore.student,
-		address: formStore.address,
-		school: formStore.school,
-		father: formStore.father,
-		mother: formStore.mother,
-		family: formStore.family,
-		requirements: formStore.requirements,
-	};
-
-	console.log("SUBMIT PAYLOAD:", payload);
+	console.log("SUBMIT PAYLOAD:", formStore);
 
 	toast.add({
 		title: "Application Submitted",
@@ -69,6 +98,9 @@ function submitTdpForm() {
 	});
 }
 
+/* -------------------------
+   FINAL VALIDATION
+-------------------------- */
 function onSubmitClick() {
 	const missingFields = getMissingFields();
 
@@ -85,7 +117,7 @@ function onSubmitClick() {
 
 	toast.add({
 		title: "Confirm Submission",
-		description: "All fields are complete. Do you want to submit now?",
+		description: "All fields are complete. Submit now?",
 		color: "primary",
 		actions: [
 			{
@@ -104,103 +136,125 @@ function onSubmitClick() {
 
 <template>
 	<div class="max-w-6xl mx-auto p-4 sm:p-6">
-		<UCard
-			class="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-8"
-		>
-			<!-- HEADER -->
-			<div
-				class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
-			>
-				<div class="flex items-start gap-3">
-					<div class="rounded-md bg-emerald-600 p-2 text-white">
-						<UIcon
-							name="i-lucide-file-text"
-							class="size-5"
-						/>
+		<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+			<!-- LEFT SIDEBAR STEPPER -->
+			<div class="md:col-span-4">
+				<UCard class="h-full border border-slate-200 dark:border-slate-800">
+					<h2 class="text-lg font-semibold text-emerald-700">Scholarship Application</h2>
+
+					<p class="text-xs text-slate-500 mb-4">Complete all required steps</p>
+
+					<div class="space-y-2">
+						<div
+							v-for="step in steps"
+							:key="step.id"
+							class="flex items-center gap-3 p-3 rounded-lg cursor-pointer"
+							:class="{
+								'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200':
+									currentStep === step.id,
+								'hover:bg-slate-50 dark:hover:bg-slate-800': currentStep !== step.id,
+							}"
+							@click="currentStep = step.id"
+						>
+							<div
+								class="p-2 rounded-md"
+								:class="{
+									'bg-emerald-600 text-white': currentStep === step.id,
+									'bg-slate-200 dark:bg-slate-700': currentStep !== step.id,
+								}"
+							>
+								<UIcon
+									:name="step.icon"
+									class="size-4"
+								/>
+							</div>
+
+							<div class="flex-1">
+								<p class="text-sm font-medium">
+									{{ step.title }}
+								</p>
+								<p class="text-xs text-slate-500">Step {{ step.id }}</p>
+							</div>
+
+							<UIcon
+								v-if="step.done"
+								name="i-lucide-check-circle"
+								class="text-emerald-600 size-5"
+							/>
+						</div>
 					</div>
 
-					<div>
-						<h2 class="text-base font-semibold text-slate-900 dark:text-white">
-							TDP Scholarship Application
-						</h2>
-						<p class="text-sm text-slate-500 dark:text-slate-400">
-							Fill out all required information carefully before submitting.
-						</p>
+					<!-- PROGRESS -->
+					<div class="mt-6">
+						<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+							<div
+								class="bg-emerald-500 h-2 rounded-full transition-all"
+								:style="{ width: (currentStep / totalSteps) * 100 + '%' }"
+							/>
+						</div>
 					</div>
-				</div>
+				</UCard>
 			</div>
 
-			<!-- FORMS -->
-			<div class="space-y-6">
-				<!-- STUDENT -->
-				<div class="space-y-3">
-					<div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-						<UIcon
-							name="i-lucide-user"
-							class="size-5 text-blue-600"
-						/>
-						Student Information
+			<!-- RIGHT CONTENT -->
+			<div class="md:col-span-8">
+				<UCard class="border border-slate-200 dark:border-slate-800 min-h-[500px]">
+					<h2 class="text-xl font-semibold mb-4">
+						{{ steps[currentStep - 1]?.title }}
+					</h2>
+
+					<!-- STEPS -->
+					<StudentInformation
+						v-if="currentStep === 1"
+						:store="formStore"
+					/>
+					<AddressInformation
+						v-if="currentStep === 2"
+						:store="formStore"
+					/>
+					<SchoolInformation
+						v-if="currentStep === 3"
+						:store="formStore"
+					/>
+					<FamilyInformation
+						v-if="currentStep === 4"
+						:store="formStore"
+					/>
+
+					<!-- NAV -->
+					<div class="flex justify-between mt-6">
+						<UButton
+							v-if="currentStep > 1"
+							color="neutral"
+							variant="soft"
+							icon="i-lucide-arrow-left"
+							@click="prevStep"
+						>
+							Back
+						</UButton>
+
+						<div class="ml-auto flex gap-2">
+							<UButton
+								v-if="currentStep < totalSteps"
+								color="success"
+								icon="i-lucide-arrow-right"
+								@click="nextStep"
+							>
+								Next
+							</UButton>
+
+							<UButton
+								v-else
+								color="success"
+								icon="i-lucide-send"
+								@click="onSubmitClick"
+							>
+								Submit
+							</UButton>
+						</div>
 					</div>
-					<StudentInformation :store="formStore" />
-				</div>
-
-				<div class="border-t border-slate-200 dark:border-slate-800" />
-
-				<!-- ADDRESS -->
-				<div class="space-y-3">
-					<div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-						<UIcon
-							name="i-lucide-map-pin"
-							class="size-5 text-emerald-600"
-						/>
-						Address Information
-					</div>
-					<AddressInformation :store="formStore" />
-				</div>
-
-				<div class="border-t border-slate-200 dark:border-slate-800" />
-
-				<!-- SCHOOL -->
-				<div class="space-y-3">
-					<div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-						<UIcon
-							name="i-lucide-school"
-							class="size-5 text-indigo-600"
-						/>
-						School Information
-					</div>
-					<SchoolInformation :store="formStore" />
-				</div>
-
-				<div class="border-t border-slate-200 dark:border-slate-800" />
-
-				<!-- FAMILY -->
-				<div class="space-y-3">
-					<div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-						<UIcon
-							name="i-lucide-users"
-							class="size-5 text-rose-600"
-						/>
-						Family Information
-					</div>
-					<FamilyInformation :store="formStore" />
-				</div>
-
-				<div class="border-t border-slate-200 dark:border-slate-800" />
+				</UCard>
 			</div>
-
-			<!-- SUBMIT -->
-			<div class="pt-2 flex justify-center sm:justify-end">
-				<UButton
-					size="lg"
-					color="primary"
-					icon="i-lucide-send"
-					class="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
-					@click="onSubmitClick"
-				>
-					Submit Application
-				</UButton>
-			</div>
-		</UCard>
+		</div>
 	</div>
 </template>

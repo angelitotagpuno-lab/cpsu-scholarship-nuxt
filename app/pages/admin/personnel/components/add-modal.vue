@@ -21,9 +21,9 @@ const schema = z.object({
 	sex: z.enum(["male", "female"]),
 	position: requiredString("Position"),
 	department: requiredString("Department"),
-	role: z.enum(["admin", "personnel", "student"]),
-});
 
+	role: z.enum(["admin", "staff", "student"]), // ✅ FIXED
+});
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
@@ -35,7 +35,7 @@ const state = reactive<Schema>({
 	sex: "male",
 	position: "",
 	department: "",
-	role: "personnel",
+	role: "staff",
 });
 
 const sexOptions = [
@@ -45,7 +45,7 @@ const sexOptions = [
 
 const roleOptions = [
 	{ label: "Admin", value: "admin" },
-	{ label: "Personnel", value: "personnel" },
+	{ label: "Staff", value: "staff" },
 	{ label: "Student", value: "student" },
 ];
 

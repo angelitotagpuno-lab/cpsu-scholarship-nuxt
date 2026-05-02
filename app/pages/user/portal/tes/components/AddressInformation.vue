@@ -19,19 +19,19 @@ const allowNumbers = (e: KeyboardEvent) => {
 		:state="formStore.address"
 		:validate-on="['input']"
 	>
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+		<div class="space-y-5">
 			<!-- FULL ADDRESS -->
 			<UFormField
 				label="Full Address"
 				name="streetBarangay"
 				:rules="[isRequired]"
 				validate-on="input"
-				class="md:col-span-2"
 			>
 				<UInput
 					v-model="formStore.address.streetBarangay"
 					placeholder="Ex: Purok 5, Brgy. San Jose, San Carlos City"
 					class="w-full"
+					icon="i-lucide-map-pin"
 				/>
 			</UFormField>
 
@@ -41,12 +41,12 @@ const allowNumbers = (e: KeyboardEvent) => {
 				name="zipcode"
 				:rules="[isRequired, isNumber]"
 				validate-on="input"
-				class="md:col-span-1"
 			>
 				<UInput
 					v-model="formStore.address.zipcode"
 					placeholder="Ex: 6100"
 					class="w-full"
+					icon="i-lucide-hash"
 					@keydown="allowNumbers"
 				/>
 			</UFormField>

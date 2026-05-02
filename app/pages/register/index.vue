@@ -13,17 +13,34 @@ const store = useAuthStore();
 
 // Registration form fields
 const fields: AuthFormField[] = [
-	{ name: "email", label: "Email", type: "email", placeholder: "Enter your email", required: true },
+	{
+		name: "schoolId",
+		label: "School ID",
+		type: "text",
+		placeholder: "Enter your School ID",
+		required: true,
+		icon: "i-lucide-id-card",
+	},
+	{
+		name: "email",
+		label: "Email",
+		type: "email",
+		placeholder: "Enter your email",
+		required: true,
+		icon: "i-lucide-mail",
+	},
 	{
 		name: "password",
 		label: "Password",
 		type: "password",
 		placeholder: "Enter a password",
 		required: true,
+		icon: "i-lucide-lock",
 	},
 ];
 
 const schema = z.object({
+	schoolId: z.string().min(1, "School ID is required"),
 	email: z.email("Invalid email"),
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -33,6 +50,7 @@ type Schema = z.output<typeof schema>;
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	try {
 		await store.register({
+			schoolId: payload.data.schoolId,
 			email: payload.data.email,
 			password: payload.data.password,
 		});

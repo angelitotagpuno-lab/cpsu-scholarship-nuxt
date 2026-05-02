@@ -94,45 +94,40 @@ const parentTypeOptions = [
 ];
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	const studentId =
-		props.data.userId || props.data.id || props.data.studentId || props.data.schoolId;
+	const studentId = props.data.id;
 
 	if (!studentId) {
 		toast.add({
 			title: "Error",
-			description: "Student ID is missing. Cannot update this record.",
+			description: "Missing student ID",
 			color: "error",
 		});
 		return;
 	}
 
-	const payload: Student = {
-		...props.data,
-		...event.data,
-		id: props.data.id,
-		userId: props.data.userId,
-		studentId: props.data.studentId,
-		schoolId: props.data.schoolId,
-	};
+	try {
+		// ✅ call store (same pattern as course)
+		await store.editStudent(studentId, {
+			...event.data,
+			id: studentId,
+		} as Student);
 
-	const updatedStudent = await store.editStudent(studentId, payload);
+		// ✅ success toast
+		toast.add({
+			title: "Success",
+			description: "Student updated successfully",
+			color: "success",
+		});
 
-	if (!updatedStudent || store.errorMessage) {
+		// ✅ close modal
+		emit("close", true);
+	} catch (error: any) {
 		toast.add({
 			title: "Error",
-			description: store.errorMessage || "Student was not updated.",
+			description: "Student update failed",
 			color: "error",
 		});
-		return;
 	}
-
-	toast.add({
-		title: "Success",
-		description: "Student updated successfully",
-		color: "success",
-	});
-
-	emit("close", true);
 }
 </script>
 

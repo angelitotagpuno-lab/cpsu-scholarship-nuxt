@@ -26,13 +26,30 @@ const allowNumbers = (e: KeyboardEvent) => {
 <template>
 	<UForm class="space-y-6">
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-			<!-- ID -->
-			<UFormField label="Student ID">
+			<!-- STUDENT ID (HALF STACK) -->
+			<UFormField
+				label="Student ID"
+				class="sm:col-span-1"
+			>
 				<UInput
 					v-model="formStore.student.studentId"
+					icon="i-lucide-id-card"
 					placeholder="Student ID"
 					class="w-full"
 					@keydown="allowNumbers"
+				/>
+			</UFormField>
+
+			<!-- STUDENT GRADE -->
+			<UFormField
+				label="Student Grade"
+				class="sm:col-span-1"
+			>
+				<UInput
+					v-model="formStore.student.studentGrade"
+					icon="i-lucide-bar-chart-3"
+					placeholder="Ex: 85 / A / 2.5"
+					class="w-full"
 				/>
 			</UFormField>
 
@@ -40,19 +57,21 @@ const allowNumbers = (e: KeyboardEvent) => {
 			<UFormField label="Sex">
 				<USelect
 					v-model="formStore.student.sex"
-					placeholder="Male"
-					class="w-full"
+					icon="i-lucide-user"
 					:items="SEX_OPTIONS"
+					placeholder="Select Sex"
+					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- YEAR -->
+			<!-- YEAR LEVEL -->
 			<UFormField label="Year Level">
 				<USelect
 					v-model="formStore.student.yearLevel"
-					placeholder="1"
-					class="w-full"
+					icon="i-lucide-cog"
 					:items="YEAR_OPTIONS"
+					placeholder="Select Year"
+					class="w-full"
 				/>
 			</UFormField>
 
@@ -60,6 +79,7 @@ const allowNumbers = (e: KeyboardEvent) => {
 			<UFormField label="Last Name">
 				<UInput
 					v-model="formStore.student.lastName"
+					icon="i-lucide-user"
 					placeholder="Dela Cruz"
 					class="w-full"
 					@keydown="allowLetters"
@@ -70,27 +90,30 @@ const allowNumbers = (e: KeyboardEvent) => {
 			<UFormField label="First Name">
 				<UInput
 					v-model="formStore.student.firstName"
+					icon="i-lucide-user-round"
 					placeholder="Juan"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- MIDDLE -->
+			<!-- MIDDLE NAME -->
 			<UFormField label="Middle Name">
 				<UInput
 					v-model="formStore.student.middleName"
+					icon="i-lucide-user"
 					placeholder="Delapena"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- EXT -->
+			<!-- EXTENSION -->
 			<UFormField label="Extension">
 				<UInput
 					v-model="formStore.student.extName"
-					placeholder="Ex: Jr, Sr, III"
+					icon="i-lucide-award"
+					placeholder="Jr, Sr, III"
 					class="w-full"
 				/>
 			</UFormField>
@@ -99,16 +122,21 @@ const allowNumbers = (e: KeyboardEvent) => {
 			<UFormField label="Birthdate">
 				<UInput
 					v-model="formStore.student.birthdate"
-					class="w-full"
 					type="date"
+					icon="i-lucide-calendar"
+					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- PROGRAM -->
-			<UFormField label="Program">
+			<!-- PROGRAM (FULL WIDTH) -->
+			<UFormField
+				label="Program"
+				class="sm:col-span-2 md:col-span-3"
+			>
 				<UInput
 					v-model="formStore.student.program"
-					placeholder="Ex. Bachelor of Science in Information Technology"
+					icon="i-lucide-graduation-cap"
+					placeholder="BS Information Technology"
 					class="w-full"
 				/>
 			</UFormField>
