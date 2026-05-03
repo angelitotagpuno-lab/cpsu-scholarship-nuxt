@@ -11,9 +11,12 @@ export const usePersonnelStore = defineStore("personnel", () => {
 	async function getPersonnels() {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await personnelService.index();
-			personnels.value = res.data;
+
+			// ✅ FIX: normalize list
+			personnels.value = camelize(res.data);
 		} catch (e) {
 			errorMessage.value = "Failed to fetch personnels";
 			console.error(e);
@@ -25,8 +28,11 @@ export const usePersonnelStore = defineStore("personnel", () => {
 	async function getPersonnel(id: string) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await personnelService.show(id);
+
+			// already correct
 			personnel.value = camelize(res.data);
 		} catch (e) {
 			errorMessage.value = "Failed to fetch personnel";
@@ -36,12 +42,14 @@ export const usePersonnelStore = defineStore("personnel", () => {
 		}
 	}
 
-	async function addPersonnel(body: Personnel) {
+	async function addPersonnel(body: any) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await personnelService.store(body);
-			personnel.value = res.data;
+			personnel.value = camelize(res.data);
+
 			await getPersonnels();
 		} catch (e) {
 			errorMessage.value = "Failed to add personnel";
@@ -51,12 +59,14 @@ export const usePersonnelStore = defineStore("personnel", () => {
 		}
 	}
 
-	async function editPersonnel(id: string, body: Personnel) {
+	async function editPersonnel(id: string, body: any) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await personnelService.update(id, body);
-			personnel.value = res.data;
+			personnel.value = camelize(res.data);
+
 			await getPersonnels();
 		} catch (e) {
 			errorMessage.value = "Failed to update personnel";
@@ -69,9 +79,9 @@ export const usePersonnelStore = defineStore("personnel", () => {
 	async function deletePersonnel(id: string) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
-			const res = await personnelService.destroy(id);
-			personnel.value = res.data;
+			await personnelService.destroy(id);
 			await getPersonnels();
 		} catch (e) {
 			errorMessage.value = "Failed to delete personnel";

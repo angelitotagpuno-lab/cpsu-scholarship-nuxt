@@ -28,6 +28,8 @@ const items: NavigationMenuItem[][] = [
 	[
 		{ label: "Dashboard", icon: "i-lucide-layout-dashboard", to: "/admin/home" },
 		{ label: "Personnel", icon: "i-lucide-id-card", to: "/admin/personnel" },
+		{ label: "Scholarship Programs", icon: "i-lucide-id-card", to: "/admin/scholarship" },
+
 		{
 			label: "Students",
 			icon: "i-lucide-graduation-cap",

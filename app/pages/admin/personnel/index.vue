@@ -30,9 +30,10 @@ async function openDelete(personnel: Personnel) {
 
 const columns: TableColumn<Personnel>[] = [
 	{ accessorKey: "email", header: "Email" },
-	{ accessorKey: "first_name", header: "First Name" },
-	{ accessorKey: "last_name", header: "Last Name" },
-	{ accessorKey: "middle_name", header: "Middle Name" },
+
+	{ accessorKey: "firstName", header: "First Name" },
+	{ accessorKey: "lastName", header: "Last Name" },
+	{ accessorKey: "middleName", header: "Middle Name" },
 
 	{
 		accessorKey: "sex",
@@ -61,7 +62,7 @@ const columns: TableColumn<Personnel>[] = [
 		accessorKey: "role",
 		header: "Role",
 		cell: ({ row }) => {
-			const role = row.getValue("role") as string;
+			const role = (row.getValue("role") as string)?.toLowerCase();
 
 			return h(
 				"span",

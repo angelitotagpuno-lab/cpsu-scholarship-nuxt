@@ -2,21 +2,9 @@
 import { ref, computed } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 
-import ScholarshipAddModal from "./components/scholarship-add-modal.vue";
-
 definePageMeta({ layout: "admin" });
 
 // ✅ Modal setup
-const overlay = useOverlay();
-const addScholarshipModal = overlay.create(ScholarshipAddModal);
-
-async function openAddScholarship() {
-	const result = await addScholarshipModal.open();
-
-	if (result) {
-		console.log("Scholarship created (UI only)");
-	}
-}
 
 type Applicant = {
 	firstName: string;
@@ -24,6 +12,18 @@ type Applicant = {
 	gpa: number;
 	eligibility: string;
 };
+const config = useRuntimeConfig();
+
+async function testFetch() {
+	try {
+		const res = await $fetch(`${config.public.baseUrl}/api/scholarship-programs`);
+		console.log("SUCCESS:", res);
+		alert("Fetch OK");
+	} catch (err) {
+		console.error("ERROR:", err);
+		alert("Fetch FAILED");
+	}
+}
 
 // Example dataset
 const applicants = ref<Applicant[]>([
@@ -80,17 +80,14 @@ const columns: TableColumn<Applicant>[] = [
 					</p>
 				</div>
 			</div>
-
-			<div class="flex items-center gap-3">
-				<UButton
-					icon="i-heroicons-plus"
-					color="primary"
-					class="bg-emerald-600 hover:bg-emerald-700"
-					@click="openAddScholarship"
-				>
-					Add Scholarship
-				</UButton>
-			</div>
+		</div>
+		<div class="p-10">
+			<button
+				class="px-4 py-2 bg-emerald-600 text-white rounded"
+				@click="testFetch"
+			>
+				Test API Fetch
+			</button>
 		</div>
 
 		<!-- Metrics -->
