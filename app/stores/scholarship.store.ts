@@ -1,50 +1,79 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { defineStore } from "pinia";
-import * as ScholarshipService from "~/services/scholarship.service";
-import type { ScholarshipProgram } from "~/types/scholarship";
+import { scholarshipService } from "~/services/scholarship.service";
+import type {
+	ScholarshipProgram,
+	CreateScholarshipProgramPayload,
+	UpdateScholarshipProgramPayload,
+} from "~/types/scholarship";
 
 export const useScholarshipStore = defineStore("scholarship", () => {
 	const items = ref<ScholarshipProgram[]>([]);
+	const item = ref<ScholarshipProgram | null>(null);
+
 	const loading = ref(false);
-	const error = ref("");
+	const error = ref<string | null>(null);
+
+	const activeItems = computed(() => items.value.filter((i) => i.is_active));
+
+	const inactiveItems = computed(() => items.value.filter((i) => !i.is_active));
 
 	async function fetchAll() {
 		loading.value = true;
-		error.value = "";
+		error.value = null;
 
 		try {
-			items.value = await ScholarshipService.getAll();
-		} catch (err: any) {
-			error.value = err?.data?.message || "Unauthorized or failed to fetch";
+			const res = await scholarshipService.index();
+			items.value = res.data;
+		} catch (e) {
+			error.value = "Failed to fetch scholarship programs";
+			console.error(e);
 		} finally {
 			loading.value = false;
 		}
 	}
 
-	async function create(payload: Partial<ScholarshipProgram>) {
+	async function fetchOne(id: string) {
 		loading.value = true;
-		error.value = "";
+		error.value = null;
 
 		try {
-			const newItem = await ScholarshipService.create(payload);
-			items.value.unshift(newItem);
-		} catch (err: any) {
-			error.value = err?.data?.message || "Create failed (check auth)";
+			const res = await scholarshipService.show(id);
+			item.value = res.data;
+		} catch (e) {
+			error.value = "Failed to fetch scholarship program";
+			console.error(e);
 		} finally {
 			loading.value = false;
 		}
 	}
 
-	async function update(id: string, payload: Partial<ScholarshipProgram>) {
+	async function create(body: CreateScholarshipProgramPayload) {
 		loading.value = true;
-		error.value = "";
+		error.value = null;
 
 		try {
-			const updated = await ScholarshipService.update(id, payload);
-			const index = items.value.findIndex((i) => i.id === id);
-			if (index !== -1) items.value[index] = updated;
-		} catch (err: any) {
-			error.value = err?.data?.message || "Update failed";
+			const res = await scholarshipService.store(body);
+			item.value = res.data;
+			await fetchAll();
+		} catch (e) {
+			error.value = "Failed to create scholarship program";
+			console.error(e);
+		} finally {
+			loading.value = false;
+		}
+	}
+
+	async function updateItem(id: string, body: UpdateScholarshipProgramPayload) {
+		loading.value = true;
+		error.value = null;
+
+		try {
+			const res = await scholarshipService.update(id, body);
+			item.value = res.data;
+			await fetchAll();
+		} catch (e) {
+			error.value = "Failed to update scholarship program";
+			console.error(e);
 		} finally {
 			loading.value = false;
 		}
@@ -52,13 +81,14 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 	async function remove(id: string) {
 		loading.value = true;
-		error.value = "";
+		error.value = null;
 
 		try {
-			await ScholarshipService.remove(id);
-			items.value = items.value.filter((i) => i.id !== id);
-		} catch (err: any) {
-			error.value = err?.data?.message || "Delete failed";
+			await scholarshipService.destroy(id);
+			await fetchAll();
+		} catch (e) {
+			error.value = "Failed to delete scholarship program";
+			console.error(e);
 		} finally {
 			loading.value = false;
 		}
@@ -66,11 +96,16 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 	return {
 		items,
+		item,
 		loading,
 		error,
+		activeItems,
+		inactiveItems,
+
 		fetchAll,
+		fetchOne,
 		create,
-		update,
+		updateItem,
 		remove,
 	};
 });

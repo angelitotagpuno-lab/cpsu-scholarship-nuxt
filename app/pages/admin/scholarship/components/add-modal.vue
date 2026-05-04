@@ -10,10 +10,10 @@ const errorMessage = ref("");
 
 const schema = z.object({
 	code: z.string().optional(),
-	name: z.string().min(1),
+	name: z.string().min(1, "Name is required"),
 	description: z.string().optional(),
 	intakeType: z.enum(["public_application", "staff_nomination"]),
-	defaultAmountPerSemester: z.number().min(1),
+	defaultAmountPerSemester: z.number().min(1, "Amount is required"),
 	isActive: z.boolean(),
 });
 
@@ -34,16 +34,29 @@ const intakeOptions = [
 ];
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.create(event.data);
+	errorMessage.value = "";
+
+	await store.create({
+		...event.data,
+		code: event.data.code || undefined,
+		description: event.data.description || undefined,
+		defaultAmountPerSemester: Number(event.data.defaultAmountPerSemester),
+	});
 
 	if (store.error) {
 		errorMessage.value = store.error;
+
+		toast.add({
+			title: "Error",
+			description: store.error,
+			color: "error",
+		});
 		return;
 	}
 
 	toast.add({
 		title: "Success",
-		description: "Scholarship created successfully",
+		description: "Scholarship program created",
 		color: "success",
 	});
 
@@ -52,10 +65,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-	<UModal title="Add Scholarship">
+	<UModal title="Add Scholarship Program">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER CARD -->
+				<!-- HEADER (same style as Personnel) -->
 				<div
 					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 				>
@@ -72,7 +85,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								Create scholarship program
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Fill in scholarship details, funding, and intake type.
+								Fill in scholarship details and funding configuration.
 							</p>
 						</div>
 					</div>
@@ -96,21 +109,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					@submit="onSubmit"
 				>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<!-- CODE -->
 						<UFormField
 							label="Code"
 							name="code"
 						>
 							<UInput
 								v-model="state.code"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-hash"
-								placeholder="TES, TDP (optional)"
+								placeholder="TES, TDP..."
 							/>
 						</UFormField>
 
-						<!-- NAME -->
 						<UFormField
 							label="Name"
 							name="name"
@@ -118,14 +126,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						>
 							<UInput
 								v-model="state.name"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-book-open"
 								placeholder="Scholarship name"
 							/>
 						</UFormField>
 
-						<!-- DESCRIPTION -->
 						<UFormField
 							label="Description"
 							name="description"
@@ -133,30 +137,22 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						>
 							<UInput
 								v-model="state.description"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-align-left"
 								placeholder="Optional description"
 							/>
 						</UFormField>
 
-						<!-- INTAKE TYPE -->
 						<UFormField
 							label="Intake Type"
 							name="intakeType"
 						>
 							<USelect
 								v-model="state.intakeType"
-								class="w-full"
-								size="lg"
 								:items="intakeOptions"
 								label-key="label"
 								value-key="value"
-								placeholder="Select intake type"
 							/>
 						</UFormField>
 
-						<!-- AMOUNT -->
 						<UFormField
 							label="Amount per Semester"
 							name="defaultAmountPerSemester"
@@ -164,27 +160,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							<UInput
 								v-model.number="state.defaultAmountPerSemester"
 								type="number"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-banknote"
-								placeholder="Enter amount"
+								placeholder="Amount"
 							/>
 						</UFormField>
 
-						<!-- ACTIVE -->
 						<UFormField
-							label="Active Status"
+							label="Active"
 							name="isActive"
-							class="sm:col-span-2"
 						>
-							<div class="flex items-center justify-between">
-								<p class="text-sm text-slate-500">Enable or disable this scholarship program</p>
-								<USwitch v-model="state.isActive" />
-							</div>
+							<USwitch v-model="state.isActive" />
 						</UFormField>
 					</div>
 
-					<!-- ACTIONS -->
 					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
 						<UButton
 							type="submit"

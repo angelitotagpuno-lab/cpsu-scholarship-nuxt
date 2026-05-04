@@ -1,19 +1,13 @@
 <script setup lang="ts">
-import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
+import { useApplicationStore } from "~/stores/application.store";
 import { isRequired, isName, isNumber } from "~/utils/validators";
-import { z } from "zod";
 
-const formStore = useTdpScholarFormStore();
+const store = useApplicationStore();
 
 const SEX_OPTIONS = ["Male", "Female"];
 
-const isEmail = (value: string): true | string => {
-	if (!value) return "Email is required";
-	return z.string().email().safeParse(value).success ? true : "Invalid email format";
-};
-
 const allowLetters = (e: KeyboardEvent) => {
-	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Space"];
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", " "];
 	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 
@@ -21,11 +15,30 @@ const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
 	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
+
+/* =========================
+   FILE HANDLER (PINIA)
+========================= */
+function onFileChange(e: Event) {
+	const target = e.target as HTMLInputElement;
+	const file = target.files?.[0] || null;
+
+	// ✅ store directly in Pinia
+	store.item.documentFile = file;
+}
 </script>
 
 <template>
 	<div class="space-y-6">
-		<!-- TITLE -->
+		<!-- STUDENT ID -->
+		<UFormField
+			label="Student ID"
+			:rules="[isRequired]"
+		>
+			<UInput v-model="store.item.studentId" />
+		</UFormField>
+
+		<!-- HEADER -->
 		<div class="flex items-center gap-2">
 			<UIcon
 				name="i-lucide-user-round"
@@ -36,141 +49,91 @@ const allowNumbers = (e: KeyboardEvent) => {
 
 		<!-- FORM -->
 		<UForm
-			:state="formStore.student"
-			:validate-on="['input']"
+			:state="store.item.profile"
 			class="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full"
 		>
-			<!-- LAST NAME -->
 			<UFormField
 				label="Last Name"
-				name="lastName"
 				:rules="[isRequired, isName]"
 			>
 				<UInput
-					v-model="formStore.student.lastName"
-					icon="i-lucide-user"
-					placeholder="Dela Cruz"
-					class="w-full"
+					v-model="store.item.profile.lastName"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- FIRST NAME -->
 			<UFormField
 				label="First Name"
-				name="firstName"
 				:rules="[isRequired, isName]"
 			>
 				<UInput
-					v-model="formStore.student.firstName"
-					icon="i-lucide-user"
-					placeholder="Juan"
-					class="w-full"
+					v-model="store.item.profile.firstName"
 					@keydown="allowLetters"
 				/>
 			</UFormField>
 
-			<!-- MIDDLE NAME -->
-			<UFormField
-				label="Middle Name"
-				name="middleName"
-				:rules="[isName]"
-			>
-				<UInput
-					v-model="formStore.student.middleName"
-					icon="i-lucide-user"
-					placeholder="Delapena"
-					class="w-full"
-					@keydown="allowLetters"
-				/>
-			</UFormField>
-
-			<!-- SEX -->
 			<UFormField
 				label="Sex"
-				name="sex"
 				:rules="[isRequired]"
 			>
 				<USelect
-					v-model="formStore.student.sex"
+					v-model="store.item.profile.sex"
 					:items="SEX_OPTIONS"
-					icon="i-lucide-user"
-					placeholder="Select Sex"
-					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- BIRTHDATE -->
 			<UFormField
 				label="Birthdate"
-				name="birthdate"
 				:rules="[isRequired]"
 			>
 				<UInput
-					v-model="formStore.student.birthdate"
+					v-model="store.item.profile.birthdate"
 					type="date"
-					icon="i-lucide-calendar"
-					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- PLACE OF BIRTH -->
 			<UFormField
 				label="Place of Birth"
-				name="birthPlace"
 				:rules="[isRequired]"
 			>
-				<UInput
-					v-model="formStore.student.birthPlace"
-					icon="i-lucide-map-pin"
-					placeholder="San Carlos City"
-					class="w-full"
-				/>
+				<UInput v-model="store.item.profile.birthplace" />
 			</UFormField>
 
-			<!-- CITIZENSHIP -->
 			<UFormField
-				label="Citizenship"
-				name="citizenship"
-				:rules="[isRequired, isName]"
-			>
-				<UInput
-					v-model="formStore.student.citizenship"
-					icon="i-lucide-globe"
-					placeholder="Filipino"
-					class="w-full"
-					@keydown="allowLetters"
-				/>
-			</UFormField>
-
-			<!-- MOBILE -->
-			<UFormField
-				label="Mobile Number"
-				name="mobile"
+				label="Contact Number"
 				:rules="[isRequired, isNumber]"
 			>
 				<UInput
-					v-model="formStore.student.mobile"
-					icon="i-lucide-phone"
-					placeholder="09XXXXXXXXX"
-					class="w-full"
+					v-model="store.item.profile.contactNumber"
 					@keydown="allowNumbers"
 				/>
 			</UFormField>
 
-			<!-- EMAIL -->
 			<UFormField
-				label="Email Address"
-				name="email"
-				:rules="[isRequired, isEmail]"
+				label="Year Level"
+				:rules="[isRequired]"
 			>
-				<UInput
-					v-model="formStore.student.email"
-					type="email"
-					icon="i-lucide-mail"
-					placeholder="example@gmail.com"
-					class="w-full"
+				<USelect
+					v-model="store.item.profile.yearLevel"
+					:items="['1', '2', '3', '4']"
 				/>
+			</UFormField>
+
+			<!-- DOCUMENT UPLOAD (PINIA) -->
+			<UFormField label="Certificate of Registration (PDF/JPG)">
+				<input
+					type="file"
+					accept="application/pdf,image/jpeg"
+					@change="onFileChange"
+				/>
+
+				<!-- optional: show selected file -->
+				<p
+					v-if="store.item.documentFile"
+					class="text-sm text-gray-500 mt-1"
+				>
+					Selected: {{ store.item.documentFile.name }}
+				</p>
 			</UFormField>
 		</UForm>
 	</div>

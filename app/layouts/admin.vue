@@ -41,7 +41,7 @@ const items: NavigationMenuItem[][] = [
 					icon: "i-lucide-clipboard-list",
 					type: "trigger",
 					children: [
-						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/tdp" },
+						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants" },
 						{
 							label: "TES/TDP Applicants",
 							icon: "i-lucide-file-check-2",

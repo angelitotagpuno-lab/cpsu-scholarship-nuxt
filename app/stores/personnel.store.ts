@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import camelize from "camelize";
 import { personnelService } from "~/services/personnel.service";
 import type { Personnel } from "~/types/personnel";

@@ -1,259 +1,235 @@
 <script setup lang="ts">
+import { ref, computed } from "vue";
+import { useApplicationStore } from "~/stores/application.store";
+
 import StudentInformation from "./components/StudentInformation.vue";
 import AddressInformation from "./components/AddressInformation.vue";
 import SchoolInformation from "./components/SchoolInformation.vue";
 import FamilyInformation from "./components/FamilyInformation.vue";
-import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
 
 definePageMeta({
 	layout: "user-header",
 });
 
-const formStore = useTdpScholarFormStore();
+const route = useRoute();
 const toast = useToast();
+const store = useApplicationStore();
 
-/* -------------------------
-   STEP CONTROL
--------------------------- */
+const offeringId = computed(() => route.query.offeringId as string);
+
+/* =========================
+   STEPS
+========================= */
 const currentStep = ref(1);
-const totalSteps = 4;
 
-const steps = ref([
-	{ id: 1, title: "Student Information", icon: "i-lucide-user", done: false },
-	{ id: 2, title: "Address Information", icon: "i-lucide-map-pin", done: false },
-	{ id: 3, title: "School Information", icon: "i-lucide-graduation-cap", done: false },
-	{ id: 4, title: "Family Information", icon: "i-lucide-users", done: false },
-]);
+const steps = [
+	"Student Information",
+	"Address Information",
+	"School Information",
+	"Family Information",
+];
 
-/* -------------------------
-   NAVIGATION
--------------------------- */
-function nextStep() {
-	if (currentStep.value < totalSteps) {
-		const step = steps.value[currentStep.value - 1];
-
-		if (step) {
-			step.done = true;
-		}
-
-		currentStep.value++;
-	}
-}
-
-function prevStep() {
-	if (currentStep.value > 1) {
-		currentStep.value--;
-	}
-}
-/* -------------------------
-   VALIDATION
--------------------------- */
-type FormSection = Record<string, string | number | null | undefined>;
-
-function getMissingFields() {
-	const missing: string[] = [];
-
-	const check = (obj: FormSection, prefix: string) => {
-		for (const key in obj) {
-			const value = obj[key];
-
-			if (
-				prefix === "Family" &&
-				key === "financialAidSpecify" &&
-				formStore.family.financialAid !== "Yes"
-			) {
-				continue;
-			}
-
-			if (
-				value === null ||
-				value === undefined ||
-				(typeof value === "string" && value.trim() === "")
-			) {
-				missing.push(`${prefix} - ${key}`);
-			}
-		}
+/* =========================
+   SAFE STORE INIT
+========================= */
+if (!store.item) {
+	store.item = {
+		studentId: "",
+		profile: {
+			firstName: "",
+			lastName: "",
+			birthdate: "",
+			birthplace: "",
+			contactNumber: "",
+			sex: "",
+			yearLevel: "",
+			courseId: "",
+			address: {
+				street: "",
+				barangay: "",
+				city: "",
+				province: "",
+				zipcode: "",
+			},
+			parents: [
+				{ type: "father", firstName: "", lastName: "", status: "" },
+				{ type: "mother", firstName: "", lastName: "", status: "" },
+			],
+			school: {
+				schoolName: "",
+				schoolAddress: "",
+				schoolId: "",
+				schoolSector: "",
+			},
+			family: {
+				income: "",
+				siblings: "",
+				financialAid: "",
+				financialAidSpecify: "",
+			},
+		},
+		documentFile: null,
 	};
-
-	check(formStore.student, "Student");
-	check(formStore.address, "Address");
-	check(formStore.school, "School");
-	check(formStore.father, "Father");
-	check(formStore.mother, "Mother");
-	check(formStore.family, "Family");
-
-	return missing;
 }
 
-/* -------------------------
-   SUBMIT
--------------------------- */
-function submitTdpForm() {
-	console.log("SUBMIT PAYLOAD:", formStore);
-
-	toast.add({
-		title: "Application Submitted",
-		description: "Your TDP application has been successfully submitted.",
-		color: "success",
-	});
-}
-
-/* -------------------------
-   FINAL VALIDATION
--------------------------- */
-function onSubmitClick() {
-	const missingFields = getMissingFields();
-
-	if (missingFields.length > 0) {
+/* =========================
+   SUBMIT (PINIA ONLY)
+========================= */
+async function submit() {
+	if (!offeringId.value) {
 		toast.add({
-			title: "Incomplete Form",
-			description: `Please fill: ${missingFields.slice(0, 3).join(", ")}${
-				missingFields.length > 3 ? "..." : ""
-			}`,
+			title: "Missing offering",
 			color: "error",
 		});
 		return;
 	}
 
-	toast.add({
-		title: "Confirm Submission",
-		description: "All fields are complete. Submit now?",
-		color: "primary",
-		actions: [
-			{
-				label: "Submit",
-				color: "primary",
-				onClick: () => submitTdpForm(),
+	if (!store.item.documentFile) {
+		toast.add({
+			title: "Missing document",
+			description: "Please upload Certificate of Registration",
+			color: "error",
+		});
+		return;
+	}
+
+	try {
+		const form = new FormData();
+		const p = store.item.profile;
+
+		/* =========================
+		   TOP LEVEL
+		========================= */
+		form.append("studentId", store.item.studentId || "");
+		form.append("offeringId", offeringId.value);
+
+		/* =========================
+		   PROFILE
+		========================= */
+		form.append("profile.firstName", p.firstName);
+		form.append("profile.lastName", p.lastName);
+		form.append("profile.birthdate", p.birthdate);
+		form.append("profile.birthplace", p.birthplace);
+		form.append("profile.contactNumber", p.contactNumber);
+		form.append("profile.sex", p.sex);
+		form.append("profile.yearLevel", p.yearLevel);
+		form.append("profile.courseId", p.courseId || "");
+
+		/* ADDRESS */
+		form.append("profile.address.street", p.address.street);
+		form.append("profile.address.barangay", p.address.barangay);
+		form.append("profile.address.city", p.address.city);
+		form.append("profile.address.province", p.address.province);
+		form.append("profile.address.zipcode", p.address.zipcode);
+
+		/* =========================
+		   PARENTS
+		========================= */
+		p.parents.forEach(
+			(
+				parent: { type: string; firstName: string; lastName: string; status?: string },
+				i: number,
+			) => {
+				form.append(`profile.parents.${i}.type`, parent.type || "");
+				form.append(`profile.parents.${i}.firstName`, parent.firstName || "");
+				form.append(`profile.parents.${i}.lastName`, parent.lastName || "");
+				form.append(`profile.parents.${i}.status`, parent.status || "");
 			},
-			{
-				label: "Cancel",
-				color: "neutral",
-			},
-		],
-	});
+		);
+		/* =========================
+		   FAMILY
+		========================= */
+		if (p.family) {
+			form.append("extraAnswers.income", p.family.income || "");
+			form.append("extraAnswers.siblings", p.family.siblings || "");
+			form.append("extraAnswers.financialAid", p.family.financialAid || "");
+			form.append("extraAnswers.financialAidSpecify", p.family.financialAidSpecify || "");
+		}
+
+		/* =========================
+		   DOCUMENT (PINIA FIXED)
+		========================= */
+		form.append("documents.0.type", "certificate_of_registration");
+		form.append("documents.0.file", store.item.documentFile as File);
+
+		await store.submitApplication(form);
+
+		toast.add({
+			title: "Application Submitted Successfully",
+			color: "success",
+		});
+
+		await navigateTo("/user/applications");
+	} catch (e: any) {
+		console.error(e);
+
+		toast.add({
+			title: "Failed to submit application",
+			description: e?.data?.error?.message || "Validation error",
+			color: "error",
+		});
+	}
 }
 </script>
 
 <template>
-	<div class="max-w-6xl mx-auto p-4 sm:p-6">
-		<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-			<!-- LEFT SIDEBAR STEPPER -->
-			<div class="md:col-span-4">
-				<UCard class="h-full border border-slate-200 dark:border-slate-800">
-					<h2 class="text-lg font-semibold text-emerald-700">Scholarship Application</h2>
+	<div class="max-w-6xl mx-auto p-6 grid grid-cols-12 gap-6">
+		<!-- LEFT SIDEBAR -->
+		<div class="col-span-4">
+			<div class="bg-white p-4 rounded-xl shadow space-y-3">
+				<h2 class="font-bold text-emerald-700">Application Steps</h2>
 
-					<p class="text-xs text-slate-500 mb-4">Complete all required steps</p>
-
-					<div class="space-y-2">
-						<div
-							v-for="step in steps"
-							:key="step.id"
-							class="flex items-center gap-3 p-3 rounded-lg cursor-pointer"
-							:class="{
-								'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200':
-									currentStep === step.id,
-								'hover:bg-slate-50 dark:hover:bg-slate-800': currentStep !== step.id,
-							}"
-							@click="currentStep = step.id"
-						>
-							<div
-								class="p-2 rounded-md"
-								:class="{
-									'bg-emerald-600 text-white': currentStep === step.id,
-									'bg-slate-200 dark:bg-slate-700': currentStep !== step.id,
-								}"
-							>
-								<UIcon
-									:name="step.icon"
-									class="size-4"
-								/>
-							</div>
-
-							<div class="flex-1">
-								<p class="text-sm font-medium">
-									{{ step.title }}
-								</p>
-								<p class="text-xs text-slate-500">Step {{ step.id }}</p>
-							</div>
-
-							<UIcon
-								v-if="step.done"
-								name="i-lucide-check-circle"
-								class="text-emerald-600 size-5"
-							/>
-						</div>
-					</div>
-
-					<!-- PROGRESS -->
-					<div class="mt-6">
-						<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-							<div
-								class="bg-emerald-500 h-2 rounded-full transition-all"
-								:style="{ width: (currentStep / totalSteps) * 100 + '%' }"
-							/>
-						</div>
-					</div>
-				</UCard>
+				<div
+					v-for="(step, i) in steps"
+					:key="i"
+					class="p-3 rounded-lg cursor-pointer transition"
+					:class="currentStep === i + 1 ? 'bg-emerald-100 font-semibold' : 'hover:bg-slate-50'"
+					@click="currentStep = i + 1"
+				>
+					Step {{ i + 1 }} - {{ step }}
+				</div>
 			</div>
+		</div>
 
-			<!-- RIGHT CONTENT -->
-			<div class="md:col-span-8">
-				<UCard class="border border-slate-200 dark:border-slate-800 min-h-[500px]">
-					<h2 class="text-xl font-semibold mb-4">
-						{{ steps[currentStep - 1]?.title }}
-					</h2>
+		<!-- RIGHT CONTENT -->
+		<div class="col-span-8 bg-white p-6 rounded-xl shadow space-y-6">
+			<h2 class="text-xl font-semibold">
+				{{ steps[currentStep - 1] }}
+			</h2>
 
-					<!-- STEPS -->
-					<StudentInformation
-						v-if="currentStep === 1"
-						:store="formStore"
-					/>
-					<AddressInformation
-						v-if="currentStep === 2"
-						:store="formStore"
-					/>
-					<SchoolInformation
-						v-if="currentStep === 3"
-						:store="formStore"
-					/>
-					<FamilyInformation
-						v-if="currentStep === 4"
-						:store="formStore"
-					/>
+			<!-- STEPS -->
+			<StudentInformation v-if="currentStep === 1" />
+			<AddressInformation v-if="currentStep === 2" />
+			<SchoolInformation v-if="currentStep === 3" />
+			<FamilyInformation v-if="currentStep === 4" />
 
-					<!-- NAV -->
-					<div class="flex justify-between mt-6">
-						<UButton
-							v-if="currentStep > 1"
-							color="neutral"
-							variant="soft"
-							icon="i-lucide-arrow-left"
-							@click="prevStep"
-						>
-							Back
-						</UButton>
+			<!-- NAVIGATION -->
+			<div class="flex justify-between pt-6 border-t">
+				<button
+					v-if="currentStep > 1"
+					class="px-4 py-2 bg-gray-200 rounded"
+					@click="currentStep--"
+				>
+					Back
+				</button>
 
-						<div class="ml-auto flex gap-2">
-							<UButton
-								v-if="currentStep < totalSteps"
-								color="success"
-								icon="i-lucide-arrow-right"
-								@click="nextStep"
-							>
-								Next
-							</UButton>
+				<div class="ml-auto flex gap-2">
+					<button
+						v-if="currentStep < 4"
+						class="px-4 py-2 bg-emerald-600 text-white rounded"
+						@click="currentStep++"
+					>
+						Next
+					</button>
 
-							<UButton
-								v-else
-								color="success"
-								icon="i-lucide-send"
-								@click="onSubmitClick"
-							>
-								Submit
-							</UButton>
-						</div>
-					</div>
-				</UCard>
+					<button
+						v-else
+						class="px-4 py-2 bg-emerald-700 text-white rounded"
+						@click="submit"
+					>
+						Submit Application
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>

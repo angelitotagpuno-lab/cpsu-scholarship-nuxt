@@ -1,203 +1,108 @@
 <script setup lang="ts">
-import { useTdpScholarFormStore } from "~/stores/TdpScholarForm.store";
-import { isNumber, isName, isRequired } from "~/utils/validators";
+import { useApplicationStore } from "~/stores/application.store";
 
-const formStore = useTdpScholarFormStore();
+const store = useApplicationStore();
 
 const STATUS_OPTIONS = ["Living", "Deceased"];
 const FINANCIAL_OPTIONS = ["Yes", "No"];
 
 const allowLetters = (e: KeyboardEvent) => {
-	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Space"];
-
-	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", " "];
+	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 
 const allowNumbers = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
-
-	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
-		e.preventDefault();
-	}
+	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
 };
 </script>
 
 <template>
 	<UForm
-		:state="formStore"
+		:state="store.item.profile"
 		class="space-y-8"
 	>
-		<!-- PARENTS SECTION -->
+		<!-- PARENTS -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<!-- FATHER -->
 			<UCard>
-				<div class="flex items-center gap-2 mb-4">
-					<UIcon
-						name="i-lucide-user"
-						class="text-slate-500 size-5"
+				<h4 class="font-semibold mb-4">Father Information</h4>
+
+				<UFormField label="First Name">
+					<UInput
+						v-model="store.item.profile.parents[0].firstName"
+						@keydown="allowLetters"
 					/>
-					<h4 class="font-semibold">Father Information</h4>
-				</div>
+				</UFormField>
 
-				<div class="space-y-4">
-					<UFormField
-						name="fatherName"
-						label="Name"
-						:rules="[isRequired, isName]"
-					>
-						<UInput
-							v-model="formStore.father.fatherName"
-							icon="i-lucide-user"
-							placeholder="Juan Dela Cruz"
-							class="w-full"
-							@keydown="allowLetters"
-						/>
-					</UFormField>
+				<UFormField label="Last Name">
+					<UInput
+						v-model="store.item.profile.parents[0].lastName"
+						@keydown="allowLetters"
+					/>
+				</UFormField>
 
-					<UFormField
-						name="fatherOccupation"
-						label="Occupation"
-						:rules="[isRequired, isName]"
-					>
-						<UInput
-							v-model="formStore.father.fatherOccupation"
-							icon="i-lucide-briefcase"
-							placeholder="Farmer"
-							class="w-full"
-							@keydown="allowLetters"
-						/>
-					</UFormField>
-
-					<UFormField
-						name="fatherStatus"
-						label="Status"
-						:rules="[isRequired]"
-					>
-						<USelect
-							v-model="formStore.father.fatherStatus"
-							:items="STATUS_OPTIONS"
-							icon="i-lucide-heart"
-							class="w-full"
-							placeholder="Select Status"
-						/>
-					</UFormField>
-				</div>
+				<UFormField label="Status">
+					<USelect
+						v-model="store.item.profile.parents[0].status"
+						:items="STATUS_OPTIONS"
+					/>
+				</UFormField>
 			</UCard>
 
-			<!-- MOTHER -->
 			<UCard>
-				<div class="flex items-center gap-2 mb-4">
-					<UIcon
-						name="i-lucide-user"
-						class="text-slate-500 size-5"
+				<h4 class="font-semibold mb-4">Mother Information</h4>
+
+				<UFormField label="First Name">
+					<UInput
+						v-model="store.item.profile.parents[1].firstName"
+						@keydown="allowLetters"
 					/>
-					<h4 class="font-semibold">Mother Information</h4>
-				</div>
+				</UFormField>
 
-				<div class="space-y-4">
-					<UFormField
-						name="motherName"
-						label="Name"
-						:rules="[isRequired, isName]"
-					>
-						<UInput
-							v-model="formStore.mother.motherName"
-							icon="i-lucide-user"
-							placeholder="Maria Santos"
-							class="w-full"
-							@keydown="allowLetters"
-						/>
-					</UFormField>
+				<UFormField label="Last Name">
+					<UInput
+						v-model="store.item.profile.parents[1].lastName"
+						@keydown="allowLetters"
+					/>
+				</UFormField>
 
-					<UFormField
-						name="motherOccupation"
-						label="Occupation"
-						:rules="[isRequired, isName]"
-					>
-						<UInput
-							v-model="formStore.mother.motherOccupation"
-							icon="i-lucide-briefcase"
-							placeholder="Vendor"
-							class="w-full"
-							@keydown="allowLetters"
-						/>
-					</UFormField>
-
-					<UFormField
-						name="motherStatus"
-						label="Status"
-						:rules="[isRequired]"
-					>
-						<USelect
-							v-model="formStore.mother.motherStatus"
-							:items="STATUS_OPTIONS"
-							icon="i-lucide-heart"
-							class="w-full"
-							placeholder="Select Status"
-						/>
-					</UFormField>
-				</div>
+				<UFormField label="Status">
+					<USelect
+						v-model="store.item.profile.parents[1].status"
+						:items="STATUS_OPTIONS"
+					/>
+				</UFormField>
 			</UCard>
 		</div>
 
-		<!-- FAMILY DETAILS -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-			<UFormField
-				name="income"
-				label="Total Parents Income"
-				:rules="[isRequired, isNumber]"
-			>
+		<!-- FAMILY -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<UFormField label="Monthly Income">
 				<UInput
-					v-model="formStore.family.income"
-					icon="i-lucide-dollar-sign"
-					placeholder="15000"
-					class="w-full"
+					v-model="store.item.profile.family.income"
 					@keydown="allowNumbers"
 				/>
 			</UFormField>
 
-			<UFormField
-				name="siblings"
-				label="No. of Siblings"
-				:rules="[isRequired, isNumber]"
-			>
+			<UFormField label="No. of Siblings">
 				<UInput
-					v-model="formStore.family.siblings"
-					icon="i-lucide-users"
-					placeholder="3"
-					class="w-full"
+					v-model="store.item.profile.family.siblings"
 					@keydown="allowNumbers"
 				/>
 			</UFormField>
 
-			<UFormField
-				name="financialAid"
-				label="Other Financial Assistance?"
-				:rules="[isRequired]"
-			>
+			<UFormField label="Financial Assistance">
 				<USelect
-					v-model="formStore.family.financialAid"
+					v-model="store.item.profile.family.financialAid"
 					:items="FINANCIAL_OPTIONS"
-					icon="i-lucide-hand-coins"
-					class="w-full"
-					placeholder="Select Option"
 				/>
 			</UFormField>
 
 			<UFormField
-				v-if="formStore.family.financialAid === 'Yes'"
-				name="financialAidSpecify"
-				label="Please specify"
-				:rules="[isRequired]"
+				v-if="store.item.profile.family.financialAid === 'Yes'"
+				label="Specify"
 			>
-				<UInput
-					v-model="formStore.family.financialAidSpecify"
-					icon="i-lucide-pen"
-					placeholder="Specify assistance"
-					class="w-full"
-				/>
+				<UInput v-model="store.item.profile.family.financialAidSpecify" />
 			</UFormField>
 		</div>
 	</UForm>

@@ -1,73 +1,61 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import camelize from "camelize";
-import type { ScholarshipProgram } from "~/types/scholarship";
+import type { ApiResponse } from "~/types/api-response";
+import type {
+	ScholarshipProgram,
+	CreateScholarshipProgramPayload,
+	UpdateScholarshipProgramPayload,
+} from "~/types/scholarship";
 
-const config = useRuntimeConfig();
+const baseUrl = "/proxy";
 
-const API = `${config.public.baseUrl}/api/scholarship-programs`;
-
-// 👉 helper to get token safely
-function getToken() {
-	if (import.meta.client) {
-		return localStorage.getItem("token");
-	}
-	return null;
+// index
+function index(): Promise<ApiResponse<ScholarshipProgram[]>> {
+	return $fetch(baseUrl + "/api/scholarship-programs", {
+		method: "GET",
+		credentials: "include",
+	});
 }
 
-export async function create(payload: any) {
-	const token = getToken();
+// show
+function show(id: string): Promise<ApiResponse<ScholarshipProgram>> {
+	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
+		method: "GET",
+		credentials: "include",
+	});
+}
 
-	const res = await $fetch<any>(API, {
+// store
+function store(body: CreateScholarshipProgramPayload): Promise<ApiResponse<ScholarshipProgram>> {
+	return $fetch(baseUrl + "/api/scholarship-programs", {
 		method: "POST",
-		body: payload,
-		headers: {
-			Authorization: token ? `Bearer ${token}` : "",
-		},
+		body,
+		credentials: "include",
 	});
-
-	return camelize(res.data);
 }
 
-function normalize(item: any): ScholarshipProgram {
-	return {
-		...item,
-		defaultAmountPerSemester: Number(item.defaultAmountPerSemester),
-	};
-}
-
-export async function getAll(): Promise<ScholarshipProgram[]> {
-	const token = getToken();
-
-	const res = await $fetch<any>(API, {
-		headers: {
-			Authorization: token ? `Bearer ${token}` : "",
-		},
-	});
-
-	return camelize(res.data).map(normalize);
-}
-
-export async function update(id: string, payload: Partial<ScholarshipProgram>) {
-	const token = getToken();
-
-	const res = await $fetch<any>(`${API}/${id}`, {
+// update
+function update(
+	id: string,
+	body: UpdateScholarshipProgramPayload,
+): Promise<ApiResponse<ScholarshipProgram>> {
+	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
 		method: "PUT",
-		body: payload,
-		headers: {
-			Authorization: token ? `Bearer ${token}` : "",
-		},
+		body,
+		credentials: "include",
 	});
-
-	return normalize(camelize(res.data));
 }
 
-export async function remove(id: string) {
-	const token = getToken();
-
-	await $fetch(`${API}/${id}`, {
+// destroy
+function destroy(id: string): Promise<ApiResponse<ScholarshipProgram>> {
+	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
 		method: "DELETE",
-		headers: {
-			Authorization: token ? `Bearer ${token}` : "",
-		},
+		credentials: "include",
 	});
 }
+
+export const scholarshipService = {
+	index,
+	show,
+	store,
+	update,
+	destroy,
+};
