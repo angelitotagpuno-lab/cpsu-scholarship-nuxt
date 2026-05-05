@@ -81,14 +81,6 @@ const columns: TableColumn<Applicant>[] = [
 				</div>
 			</div>
 		</div>
-		<div class="p-10">
-			<button
-				class="px-4 py-2 bg-emerald-600 text-white rounded"
-				@click="testFetch"
-			>
-				Test API Fetch
-			</button>
-		</div>
 
 		<!-- Metrics -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

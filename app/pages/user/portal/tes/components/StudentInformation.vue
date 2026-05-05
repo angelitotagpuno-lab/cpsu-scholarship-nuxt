@@ -41,17 +41,6 @@ const allowNumbers = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- STUDENT GRADE -->
-			<UFormField
-				label="Student Grade"
-				class="sm:col-span-1"
-			>
-				<UInput
-					v-model="formStore.student.studentGrade"
-					icon="i-lucide-bar-chart-3"
-					placeholder="Ex: 85 / A / 2.5"
-					class="w-full"
-				/>
-			</UFormField>
 
 			<!-- SEX -->
 			<UFormField label="Sex">

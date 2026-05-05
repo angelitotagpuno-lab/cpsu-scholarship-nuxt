@@ -68,7 +68,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	<UModal title="Add Scholarship Program">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER (same style as Personnel) -->
+				<!-- HEADER (Course-style card) -->
 				<div
 					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 				>
@@ -101,77 +101,97 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					:description="errorMessage"
 				/>
 
-				<!-- FORM -->
+				<!-- FORM (COURSE STYLE) -->
 				<UForm
 					:schema="schema"
 					:state="state"
 					class="space-y-5"
 					@submit="onSubmit"
 				>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<UFormField
-							label="Code"
-							name="code"
-						>
-							<UInput
-								v-model="state.code"
-								placeholder="TES, TDP..."
-							/>
-						</UFormField>
+					<UFormField
+						label="Code"
+						name="code"
+					>
+						<UInput
+							v-model="state.code"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-tag"
+							placeholder="TES, TDP..."
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Name"
-							name="name"
-							class="sm:col-span-2"
-						>
-							<UInput
-								v-model="state.name"
-								placeholder="Scholarship name"
-							/>
-						</UFormField>
+					<UFormField
+						label="Name"
+						name="name"
+					>
+						<UInput
+							v-model="state.name"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-graduation-cap"
+							placeholder="Scholarship name"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Description"
-							name="description"
-							class="sm:col-span-2"
-						>
-							<UInput
-								v-model="state.description"
-								placeholder="Optional description"
-							/>
-						</UFormField>
+					<UFormField
+						label="Description"
+						name="description"
+					>
+						<UInput
+							v-model="state.description"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-file-text"
+							placeholder="Optional description"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Intake Type"
-							name="intakeType"
-						>
-							<USelect
-								v-model="state.intakeType"
-								:items="intakeOptions"
-								label-key="label"
-								value-key="value"
-							/>
-						</UFormField>
+					<UFormField
+						label="Intake Type"
+						name="intakeType"
+					>
+						<USelect
+							v-model="state.intakeType"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-list"
+							:items="intakeOptions"
+							label-key="label"
+							value-key="value"
+							placeholder="Select intake type"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Amount per Semester"
-							name="defaultAmountPerSemester"
-						>
-							<UInput
-								v-model.number="state.defaultAmountPerSemester"
-								type="number"
-								placeholder="Amount"
-							/>
-						</UFormField>
+					<UFormField
+						label="Amount per Semester"
+						name="defaultAmountPerSemester"
+					>
+						<UInput
+							v-model.number="state.defaultAmountPerSemester"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-wallet"
+							type="number"
+							placeholder="Enter amount"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Active"
-							name="isActive"
+					<UFormField
+						label="Active"
+						name="isActive"
+					>
+						<div
+							class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
 						>
+							<span class="text-sm text-slate-600 dark:text-slate-300">
+								Enable scholarship program
+							</span>
 							<USwitch v-model="state.isActive" />
-						</UFormField>
-					</div>
+						</div>
+					</UFormField>
 
+					<!-- FOOTER -->
 					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
 						<UButton
 							type="submit"
@@ -180,7 +200,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							color="primary"
 							class="bg-emerald-600 hover:bg-emerald-700"
 						>
-							Save Scholarship
+							Submit
 						</UButton>
 					</div>
 				</UForm>

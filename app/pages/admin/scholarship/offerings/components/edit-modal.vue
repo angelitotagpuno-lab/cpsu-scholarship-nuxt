@@ -80,83 +80,122 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 <template>
 	<UModal title="Edit Offering">
 		<template #body>
-			<UForm
-				:schema="schema"
-				:state="state"
-				class="space-y-4"
-				@submit="onSubmit"
-			>
-				<!-- Academic Year -->
-				<UFormField
-					label="Academic Year"
-					name="academicYear"
+			<div class="space-y-6">
+				<!-- HEADER (Course-style UI) -->
+				<div
+					class="rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900"
 				>
-					<UInput v-model="state.academicYear" />
-				</UFormField>
+					<div class="flex items-start gap-3">
+						<div class="rounded-md bg-blue-600 p-2 text-white">
+							<UIcon
+								name="i-lucide-pencil"
+								class="size-5"
+							/>
+						</div>
 
-				<!-- Semester -->
-				<UFormField
-					label="Semester"
-					name="semester"
-				>
-					<USelect
-						v-model="state.semester"
-						:items="['1', '2']"
-					/>
-				</UFormField>
-
-				<!-- Budget -->
-				<UFormField
-					label="Budget"
-					name="allocatedBudget"
-				>
-					<UInput
-						v-model.number="state.allocatedBudget"
-						type="number"
-					/>
-				</UFormField>
-
-				<!-- Slots -->
-				<UFormField
-					label="Slots"
-					name="availableSlots"
-				>
-					<UInput
-						v-model.number="state.availableSlots"
-						type="number"
-					/>
-				</UFormField>
-
-				<!-- Status -->
-				<UFormField
-					label="Status"
-					name="status"
-				>
-					<USelect
-						v-model="state.status"
-						:items="['draft', 'open', 'closed', 'archived']"
-					/>
-				</UFormField>
-
-				<!-- Actions -->
-				<div class="flex justify-end pt-4 gap-2">
-					<UButton
-						variant="soft"
-						color="neutral"
-						@click="emit('close', false)"
-					>
-						Cancel
-					</UButton>
-
-					<UButton
-						type="submit"
-						:loading="store.isLoading"
-						color="primary"
-					>
-						Update
-					</UButton>
+						<div>
+							<h3 class="text-base font-semibold text-slate-900 dark:text-white">
+								Update Offering
+							</h3>
+							<p class="text-sm text-slate-500 dark:text-slate-400">
+								Modify offering details and settings.
+							</p>
+						</div>
+					</div>
 				</div>
-			</UForm>
+
+				<!-- FORM -->
+				<UForm
+					:schema="schema"
+					:state="state"
+					class="space-y-5"
+					@submit="onSubmit"
+				>
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<UFormField
+							label="Academic Year"
+							name="academicYear"
+						>
+							<UInput
+								v-model="state.academicYear"
+								placeholder="e.g. 2025-2026"
+								icon="i-lucide-calendar"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Semester"
+							name="semester"
+						>
+							<USelect
+								v-model="state.semester"
+								:items="['1', '2']"
+								placeholder="Select semester"
+								icon="i-lucide-book-open"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Budget"
+							name="allocatedBudget"
+						>
+							<UInput
+								v-model.number="state.allocatedBudget"
+								type="number"
+								placeholder="Enter budget"
+								icon="i-lucide-wallet"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Slots"
+							name="availableSlots"
+						>
+							<UInput
+								v-model.number="state.availableSlots"
+								type="number"
+								placeholder="Optional slots"
+								icon="i-lucide-users"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Status"
+							name="status"
+						>
+							<USelect
+								v-model="state.status"
+								:items="['draft', 'open', 'closed', 'archived']"
+								placeholder="Select status"
+								icon="i-lucide-activity"
+								size="lg"
+							/>
+						</UFormField>
+					</div>
+
+					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800 gap-2">
+						<UButton
+							variant="soft"
+							color="neutral"
+							@click="emit('close', false)"
+						>
+							Cancel
+						</UButton>
+
+						<UButton
+							type="submit"
+							:loading="store.isLoading"
+							class="bg-blue-600 hover:bg-blue-700"
+						>
+							Update Offering
+						</UButton>
+					</div>
+				</UForm>
+			</div>
 		</template>
 	</UModal>
 </template>

@@ -56,6 +56,7 @@ function cardClasses(color: string) {
 <template>
 	<div class="min-h-screen bg-slate-50 px-4 py-8 dark:bg-slate-950 sm:px-6 lg:px-8">
 		<div class="mx-auto max-w-6xl space-y-6">
+			<!-- HEADER -->
 			<div
 				class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
 			>
@@ -76,6 +77,7 @@ function cardClasses(color: string) {
 				</div>
 			</div>
 
+			<!-- CARDS -->
 			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 				<UCard
 					v-for="scholarship in scholarships"
@@ -118,7 +120,7 @@ function cardClasses(color: string) {
 							{{ scholarship.description }}
 						</p>
 
-						<!-- 💰 BENEFITS (NEW SECTION - CLEAN ADDITION) -->
+						<!-- BENEFITS -->
 						<div
 							class="rounded-md bg-white/80 p-3 text-center ring-1 ring-slate-200 dark:bg-slate-900/70 dark:ring-slate-800"
 						>
@@ -149,18 +151,6 @@ function cardClasses(color: string) {
 									<span>{{ requirement }}</span>
 								</li>
 							</ul>
-						</div>
-
-						<!-- BUTTON -->
-						<div class="flex justify-end">
-							<UButton
-								:to="scholarship.to"
-								icon="i-lucide-file-pen-line"
-								color="primary"
-								:class="cardClasses(scholarship.color).button"
-							>
-								Fill Up Form
-							</UButton>
 						</div>
 					</div>
 				</UCard>

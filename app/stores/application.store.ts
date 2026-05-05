@@ -15,11 +15,21 @@ export const useApplicationStore = defineStore("application", () => {
 	========================= */
 	async function submitApplication(form: FormData) {
 		isLoading.value = true;
+
 		try {
+			console.log("🚀 SUBMITTING APPLICATION...");
+
+			for (const [key, value] of form.entries()) {
+				console.log("➡️", key, value);
+			}
+
 			const res = await applicationService.store(form);
+
+			console.log("✅ RESPONSE:", res);
+
 			return res;
 		} catch (e) {
-			errorMessage.value = "Failed to submit application";
+			console.error("❌ STORE ERROR:", e);
 			throw e;
 		} finally {
 			isLoading.value = false;

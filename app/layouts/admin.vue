@@ -28,24 +28,25 @@ const items: NavigationMenuItem[][] = [
 	[
 		{ label: "Dashboard", icon: "i-lucide-layout-dashboard", to: "/admin/home" },
 		{ label: "Personnel", icon: "i-lucide-id-card", to: "/admin/personnel" },
-		{ label: "Scholarship Programs", icon: "i-lucide-id-card", to: "/admin/scholarship" },
+		{ label: "Programs", icon: "i-lucide-grid", to: "/admin/scholarship" },
+		{ label: "Student Roster", icon: "i-lucide-clipboard-list", to: "/admin/student-roster" },
 
 		{
 			label: "Students",
 			icon: "i-lucide-graduation-cap",
 			type: "trigger",
 			children: [
-				{ label: "Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/students" },
+				{ label: "Applicants", icon: "i-lucide-file-user", to: "/admin/applicants" },
 				{
 					label: "Applicants",
 					icon: "i-lucide-clipboard-list",
 					type: "trigger",
 					children: [
-						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants" },
+						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/tdp" },
 						{
 							label: "TES/TDP Applicants",
 							icon: "i-lucide-file-check-2",
-							to: "/admin/applicants/students",
+							to: "/admin/applicants/tes",
 						},
 					],
 				},

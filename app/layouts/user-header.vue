@@ -33,7 +33,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 		active: route.path === "/user",
 		icon: "i-lucide-book-open",
 	},
-	{ label: "Scholarship Offerings", to: "/user/scholarships", icon: "i-lucide-book" },
+	{ label: "Scholarship Programs", to: "/user/scholarships", icon: "i-lucide-book" },
 	{ label: "Approved Applicants", to: "/user/user-dashboard", icon: "i-lucide-users" },
 	{
 		label: "Scholarship Payout",

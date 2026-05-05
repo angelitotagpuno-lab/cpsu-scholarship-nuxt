@@ -35,21 +35,43 @@ const totalTesAmount = computed(() => tesPayouts.value.reduce((sum, r) => sum + 
 </script>
 
 <template>
-	<div class="p-6 space-y-12">
-		<!-- TES Section -->
-		<section>
-			<h1 class="text-2xl font-bold mb-4">TES Liquidation Records</h1>
+	<div class="h-full space-y-6 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-950">
+		<!-- PAGE HEADER -->
+		<div
+			class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
+			<div class="flex items-center gap-3">
+				<UDashboardSidebarCollapse />
 
-			<DownloadButton
-				:payouts="tesPayouts"
-				:totalAmount="totalTesAmount"
-				filename="TES_Liquidation.csv"
-			/>
+				<div>
+					<h1 class="text-xl font-bold text-slate-900 dark:text-white">TES Liquidation Records</h1>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						View and export TES stipend payouts
+					</p>
+				</div>
+			</div>
+		</div>
 
-			<LiquidationTable
-				:payouts="tesPayouts"
-				:totalAmount="totalTesAmount"
-			/>
-		</section>
+		<!-- CONTENT CARD -->
+		<div
+			class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 space-y-4"
+		>
+			<div class="flex items-center justify-between">
+				<h2 class="font-semibold text-slate-900 dark:text-white">TES Payout List</h2>
+
+				<DownloadButton
+					:payouts="tesPayouts"
+					:totalAmount="totalTesAmount"
+					filename="TES_Liquidation.csv"
+				/>
+			</div>
+
+			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
+				<LiquidationTable
+					:payouts="tesPayouts"
+					:totalAmount="totalTesAmount"
+				/>
+			</div>
+		</div>
 	</div>
 </template>

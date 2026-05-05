@@ -47,68 +47,120 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 <template>
 	<UModal title="Add Offering">
 		<template #body>
-			<UForm
-				:schema="schema"
-				:state="state"
-				class="space-y-4"
-				@submit="onSubmit"
-			>
-				<UFormField
-					label="Academic Year"
-					name="academicYear"
+			<div class="space-y-6">
+				<!-- HEADER (Course-style UI) -->
+				<div
+					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 				>
-					<UInput v-model="state.academicYear" />
-				</UFormField>
+					<div class="flex items-start gap-3">
+						<div class="rounded-md bg-emerald-600 p-2 text-white">
+							<UIcon
+								name="i-lucide-plus-circle"
+								class="size-5"
+							/>
+						</div>
 
-				<UFormField
-					label="Semester"
-					name="semester"
-				>
-					<USelect
-						v-model="state.semester"
-						:items="['1', '2']"
-					/>
-				</UFormField>
-
-				<UFormField
-					label="Budget"
-					name="allocatedBudget"
-				>
-					<UInput
-						v-model.number="state.allocatedBudget"
-						type="number"
-					/>
-				</UFormField>
-
-				<UFormField
-					label="Slots"
-					name="availableSlots"
-				>
-					<UInput
-						v-model.number="state.availableSlots"
-						type="number"
-					/>
-				</UFormField>
-
-				<UFormField
-					label="Status"
-					name="status"
-				>
-					<USelect
-						v-model="state.status"
-						:items="['draft', 'open', 'closed', 'archived']"
-					/>
-				</UFormField>
-
-				<div class="flex justify-end pt-4">
-					<UButton
-						type="submit"
-						:loading="offeringStore.isLoading"
-					>
-						Save
-					</UButton>
+						<div>
+							<h3 class="text-base font-semibold text-slate-900 dark:text-white">
+								Create Offering
+							</h3>
+							<p class="text-sm text-slate-500 dark:text-slate-400">
+								Set academic year, budget, and available slots.
+							</p>
+						</div>
+					</div>
 				</div>
-			</UForm>
+
+				<!-- FORM -->
+				<UForm
+					:schema="schema"
+					:state="state"
+					class="space-y-5"
+					@submit="onSubmit"
+				>
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<UFormField
+							label="Academic Year"
+							name="academicYear"
+						>
+							<UInput
+								v-model="state.academicYear"
+								placeholder="e.g. 2025-2026"
+								icon="i-lucide-calendar"
+								class="w-full"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Semester"
+							name="semester"
+						>
+							<USelect
+								v-model="state.semester"
+								:items="['1', '2']"
+								placeholder="Select semester"
+								icon="i-lucide-book-open"
+								class="w-full"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Budget"
+							name="allocatedBudget"
+						>
+							<UInput
+								v-model.number="state.allocatedBudget"
+								type="number"
+								placeholder="Enter budget"
+								icon="i-lucide-wallet"
+								class="w-full"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Slots"
+							name="availableSlots"
+						>
+							<UInput
+								v-model.number="state.availableSlots"
+								type="number"
+								placeholder="Optional slots"
+								icon="i-lucide-users"
+								class="w-full"
+								size="lg"
+							/>
+						</UFormField>
+
+						<UFormField
+							label="Status"
+							name="status"
+						>
+							<USelect
+								v-model="state.status"
+								:items="['draft', 'open', 'closed', 'archived']"
+								placeholder="Select status"
+								icon="i-lucide-activity"
+								class="w-full"
+								size="lg"
+							/>
+						</UFormField>
+					</div>
+
+					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+						<UButton
+							type="submit"
+							:loading="offeringStore.isLoading"
+							icon="i-lucide-save"
+							class="bg-emerald-600 hover:bg-emerald-700"
+						>
+							Save Offering
+						</UButton>
+					</div>
+				</UForm>
+			</div>
 		</template>
 	</UModal>
 </template>

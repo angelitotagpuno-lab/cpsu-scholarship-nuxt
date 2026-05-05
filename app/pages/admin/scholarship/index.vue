@@ -294,43 +294,98 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="p-6 space-y-8">
-		<!-- PROGRAMS -->
-		<div class="space-y-6">
-			<div class="flex justify-between items-center">
-				<h1 class="text-2xl font-bold">Scholarship Programs</h1>
-				<UButton @click="openAdd">Add Program</UButton>
-			</div>
+	<div class="h-full space-y-6 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-950">
+		<!-- PAGE HEADER -->
+		<div
+			class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<UDashboardSidebarCollapse />
 
-			<UTable
-				:data="store.items"
-				:columns="columns"
-				:loading="store.loading"
-			/>
-		</div>
-
-		<!-- OFFERINGS -->
-		<div class="space-y-4">
-			<div class="flex justify-between items-center">
-				<h2 class="text-xl font-semibold">
-					Offerings
-					<span v-if="selectedProgram"> - {{ selectedProgram.name }} </span>
-				</h2>
+					<div>
+						<h1 class="text-xl font-bold text-slate-900 dark:text-white">Scholarship Management</h1>
+						<p class="text-sm text-slate-500 dark:text-slate-400">
+							Manage programs and their offerings
+						</p>
+					</div>
+				</div>
 
 				<UButton
-					v-if="selectedProgram"
 					color="primary"
+					icon="i-lucide-plus-circle"
+					class="bg-emerald-600 hover:bg-emerald-700"
+					@click="openAdd"
+				>
+					Add Program
+				</UButton>
+			</div>
+		</div>
+
+		<!-- PROGRAMS SECTION -->
+		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+			<div class="mb-4 flex items-center justify-between">
+				<div>
+					<h2 class="font-semibold text-slate-900 dark:text-white">Scholarship Programs</h2>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						Click a program to view its offerings
+					</p>
+				</div>
+			</div>
+
+			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
+				<UTable
+					:data="store.items"
+					:columns="columns"
+					:loading="store.loading"
+				/>
+			</div>
+		</UCard>
+
+		<!-- OFFERINGS SECTION -->
+		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+			<div class="mb-4 flex items-center justify-between">
+				<div class="flex items-center gap-2">
+					<h2 class="font-semibold text-slate-900 dark:text-white">Offerings</h2>
+
+					<span
+						v-if="selectedProgram"
+						class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+					>
+						{{ selectedProgram.name }}
+					</span>
+				</div>
+
+				<UButton
+					color="primary"
+					icon="i-lucide-plus-circle"
+					class="bg-emerald-600 hover:bg-emerald-700"
+					:disabled="!selectedProgram"
 					@click="openAddOffering"
 				>
 					Add Offering
 				</UButton>
 			</div>
 
-			<UTable
-				:data="filteredOfferings"
-				:columns="offeringColumns"
-				:loading="offeringStore.isLoading"
-			/>
-		</div>
+			<!-- EMPTY STATE -->
+			<div
+				v-if="!selectedProgram"
+				class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-sm text-slate-500"
+			>
+				Select a program to view its offerings
+			</div>
+
+			<!-- TABLE -->
+			<div
+				v-else
+				class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800"
+			>
+				<UTable
+					:data="filteredOfferings"
+					:columns="offeringColumns"
+					:loading="offeringStore.isLoading"
+				/>
+			</div>
+		</UCard>
 	</div>
 </template>

@@ -38,18 +38,21 @@ async function updateApplication() {
 	selected.value = null;
 }
 
-function getStatusColor(status: Application["status"]) {
+function getStatusColor(status: string) {
 	switch (status) {
 		case "approved":
-			return "green";
+			return "success";
+
 		case "rejected":
-			return "red";
+			return "error";
+
 		case "under_review":
-			return "yellow";
+			return "warning"; // ❗ replace yellow
+
 		case "pending":
 		case "cancelled":
 		default:
-			return "gray";
+			return "neutral";
 	}
 }
 
@@ -63,52 +66,80 @@ const columns = [
 </script>
 
 <template>
-	<div class="p-6 space-y-6">
-		<h1 class="text-xl font-bold">Applicants</h1>
+	<div class="h-full space-y-6 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-950">
+		<!-- PAGE HEADER -->
+		<div
+			class="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
+			<div class="flex items-center gap-3">
+				<UDashboardSidebarCollapse />
 
-		<UCard>
-			<UTable
-				:data="store.items ?? []"
-				:columns="columns"
-				:loading="store.isLoading"
-			>
-				<template #name-data="{ row }">
-					{{ row.original.profile?.firstName ?? "-" }}
-					{{ row.original.profile?.lastName ?? "-" }}
-				</template>
+				<div>
+					<h1 class="text-xl font-bold text-slate-900 dark:text-white">Applicants</h1>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						View and manage scholarship applications
+					</p>
+				</div>
+			</div>
+		</div>
 
-				<template #course-data="{ row }">
-					{{ row.original.profile?.courseId ?? "N/A" }}
-				</template>
+		<!-- TABLE CARD (same structure style as Scholars page, NO extra cards added) -->
+		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+			<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h2 class="font-semibold text-slate-900 dark:text-white">Application List</h2>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						TDP and TES applicants with status tracking
+					</p>
+				</div>
+			</div>
 
-				<template #yearLevel-data="{ row }">
-					{{ row.original.profile?.yearLevel ?? "N/A" }}
-				</template>
+			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
+				<UTable
+					:data="store.items ?? []"
+					:columns="columns"
+					:loading="store.isLoading"
+				>
+					<template #name-data="{ row }">
+						{{ row.original.profile?.firstName ?? "-" }}
+						{{ row.original.profile?.lastName ?? "-" }}
+					</template>
 
-				<template #status-data="{ row }">
-					<UBadge :color="getStatusColor(row.original.status)">
-						{{ row.original.status }}
-					</UBadge>
-				</template>
+					<template #course-data="{ row }">
+						{{ row.original.profile?.courseId ?? "N/A" }}
+					</template>
 
-				<template #actions-data="{ row }">
-					<UButton
-						size="sm"
-						color="primary"
-						@click="openView(row.original)"
-					>
-						View
-					</UButton>
-				</template>
-			</UTable>
+					<template #yearLevel-data="{ row }">
+						{{ row.original.profile?.yearLevel ?? "N/A" }}
+					</template>
+
+					<template #status-data="{ row }">
+						<UBadge :color="getStatusColor(row.original.status)">
+							{{ row.original.status }}
+						</UBadge>
+					</template>
+
+					<template #actions-data="{ row }">
+						<UButton
+							size="sm"
+							color="primary"
+							variant="soft"
+							@click="openView(row.original)"
+						>
+							View
+						</UButton>
+					</template>
+				</UTable>
+			</div>
 		</UCard>
 
+		<!-- MODAL (UNCHANGED FUNCTIONALITY) -->
 		<UModal v-model="showModal">
 			<UCard v-if="selected">
 				<div class="space-y-5">
-					<h2 class="text-lg font-bold">Application Details</h2>
+					<h2 class="text-lg font-bold text-slate-900 dark:text-white">Application Details</h2>
 
-					<div class="space-y-1">
+					<div class="space-y-1 text-sm text-slate-700 dark:text-slate-300">
 						<p><b>Name:</b> {{ selected.profile?.firstName }} {{ selected.profile?.lastName }}</p>
 						<p><b>Birthdate:</b> {{ selected.profile?.birthdate }}</p>
 						<p><b>Birthplace:</b> {{ selected.profile?.birthplace }}</p>
@@ -118,8 +149,8 @@ const columns = [
 					</div>
 
 					<div>
-						<p class="font-semibold">Address</p>
-						<p>
+						<p class="font-semibold text-slate-900 dark:text-white">Address</p>
+						<p class="text-sm text-slate-600 dark:text-slate-300">
 							{{ selected.profile?.address?.street }}, {{ selected.profile?.address?.barangay }},
 							{{ selected.profile?.address?.city }}, {{ selected.profile?.address?.province }},
 							{{ selected.profile?.address?.zipcode }}
@@ -127,12 +158,12 @@ const columns = [
 					</div>
 
 					<div>
-						<p class="font-semibold">Parents</p>
+						<p class="font-semibold text-slate-900 dark:text-white">Parents</p>
 
 						<div
 							v-for="(p, i) in selected.profile?.parents ?? []"
 							:key="i"
-							class="text-sm"
+							class="text-sm text-slate-600 dark:text-slate-300"
 						>
 							{{ p.type }}: {{ p.firstName }} {{ p.lastName }}
 							<span class="text-gray-500">({{ p.status ?? "N/A" }})</span>
@@ -140,16 +171,16 @@ const columns = [
 					</div>
 
 					<div v-if="selected.extraAnswers">
-						<p class="font-semibold">Extra Answers</p>
-						<pre class="text-xs bg-gray-100 p-2 rounded whitespace-pre-wrap"
-							>{{ selected.extraAnswers }}
+						<p class="font-semibold text-slate-900 dark:text-white">Extra Answers</p>
+						<pre class="text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded whitespace-pre-wrap">
+							{{ selected.extraAnswers }}
 						</pre
 						>
 					</div>
 
 					<div v-if="selected.documents?.length">
-						<p class="font-semibold">Documents</p>
-						<ul class="text-sm list-disc ml-5">
+						<p class="font-semibold text-slate-900 dark:text-white">Documents</p>
+						<ul class="text-sm list-disc ml-5 text-slate-600 dark:text-slate-300">
 							<li
 								v-for="(doc, i) in selected.documents"
 								:key="i"
@@ -159,7 +190,7 @@ const columns = [
 						</ul>
 					</div>
 
-					<div class="space-y-2">
+					<div class="space-y-2 pt-2">
 						<UFormField label="Status">
 							<USelect
 								v-model="status"
@@ -180,9 +211,10 @@ const columns = [
 						</UFormField>
 					</div>
 
-					<div class="flex justify-end gap-2">
+					<div class="flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
 						<UButton
-							color="primary"
+							variant="soft"
+							color="neutral"
 							@click="showModal = false"
 						>
 							Close
