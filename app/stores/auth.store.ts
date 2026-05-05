@@ -1,5 +1,6 @@
-import type { User } from "@supabase/supabase-js";
-import { useAuthApi } from "~/composables/useAuthApi";
+import { authService } from "~/services/auth.service";
+import type { Auth, User } from "~/types/user";
+import type { FetchError } from "ofetch";
 
 export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
@@ -8,36 +9,84 @@ export const useAuthStore = defineStore("auth", () => {
 
 	const isAuthenticated = computed(() => !!user.value);
 
-	const api = useAuthApi();
-
-	async function fetchUser() {
+	async function getUser() {
+		errorMessage.value = null;
+		isLoading.value = true;
 		try {
-			const { user: me } = await api.me();
-			user.value = me;
-		} catch {
-			user.value = null;
+			const res = await authService.me();
+			console.log("here" + res.data.role);
+			user.value = res.data;
+		} catch (e: unknown) {
+			const err = e as FetchError;
+
+			if (err?.response?.status !== 401) {
+				errorMessage.value = "Failed to fetch user";
+			}
+
+			console.error("here err", e);
+		} finally {
+			isLoading.value = false;
 		}
 	}
 
-	async function login(email: string, password: string) {
-		isLoading.value = true;
+	async function login(body: Auth) {
 		errorMessage.value = null;
-
+		isLoading.value = true;
 		try {
-			const { user: loggedInUser } = await api.login(email, password);
-			user.value = loggedInUser;
-		} catch {
-			errorMessage.value = "Invalid credentials";
-			user.value = null;
+			const res = await authService.login(body);
+			user.value = res.data;
+		} catch (e: unknown) {
+			let message = "Login failed";
+
+			if (e && typeof e === "object" && "response" in e) {
+				const err = e as FetchError;
+
+				message = (err.response?._data as { message?: string })?.message || message;
+			}
+
+			errorMessage.value = message;
+
+			console.error("Login error:", e);
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	async function register(body: Auth) {
+		errorMessage.value = null;
+		isLoading.value = true;
+		try {
+			await authService.register(body);
+		} catch (e) {
+			errorMessage.value = "Failed to register user";
+			console.error(e);
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
 	async function logout() {
-		await api.logout();
-		user.value = null;
+		errorMessage.value = null;
+		isLoading.value = true;
+		try {
+			await authService.logout();
+			user.value = null;
+		} catch (e) {
+			errorMessage.value = "Failed to logout";
+			console.error(e);
+		} finally {
+			isLoading.value = false;
+		}
 	}
 
-	return { user, isLoading, errorMessage, isAuthenticated, fetchUser, login, logout };
+	return {
+		user,
+		isLoading,
+		errorMessage,
+		isAuthenticated,
+		getUser,
+		login,
+		register,
+		logout,
+	};
 });

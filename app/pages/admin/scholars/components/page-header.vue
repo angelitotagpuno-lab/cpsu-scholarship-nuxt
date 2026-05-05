@@ -6,14 +6,14 @@ defineProps<{
 </script>
 
 <template>
-	<div>
-		<div class="flex items-center gap-3">
-			<UDashboardSidebarCollapse />
-			<h1 class="text-2xl font-bold">{{ title }}</h1>
-		</div>
+	<div class="min-w-0">
+		<h1 class="truncate text-2xl font-bold text-slate-900 dark:text-white">
+			{{ title }}
+		</h1>
+
 		<p
 			v-if="description"
-			class="text-gray-500 dark:text-gray-400"
+			class="mt-1 text-sm text-slate-500 dark:text-slate-400"
 		>
 			{{ description }}
 		</p>

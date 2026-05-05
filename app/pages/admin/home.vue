@@ -4,12 +4,26 @@ import type { TableColumn } from "@nuxt/ui";
 
 definePageMeta({ layout: "admin" });
 
+// ✅ Modal setup
+
 type Applicant = {
 	firstName: string;
 	lastName: string;
 	gpa: number;
 	eligibility: string;
 };
+const config = useRuntimeConfig();
+
+async function testFetch() {
+	try {
+		const res = await $fetch(`${config.public.baseUrl}/api/scholarship-programs`);
+		console.log("SUCCESS:", res);
+		alert("Fetch OK");
+	} catch (err) {
+		console.error("ERROR:", err);
+		alert("Fetch FAILED");
+	}
+}
 
 // Example dataset
 const applicants = ref<Applicant[]>([
@@ -52,55 +66,78 @@ const columns: TableColumn<Applicant>[] = [
 </script>
 
 <template>
-	<div class="h-full overflow-y-auto p-6 space-y-6">
-		<!-- Page Header -->
-		<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+	<div class="h-full overflow-y-auto bg-slate-50 p-6 space-y-6 dark:bg-slate-950">
+		<!-- Header -->
+		<div
+			class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
 			<div class="flex items-center gap-3">
 				<UDashboardSidebarCollapse />
-				<h1 class="text-2xl font-bold">Admin Dashboard Home</h1>
+				<div>
+					<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Admin Dashboard Home</h1>
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						Scholarship applicant overview and analytics
+					</p>
+				</div>
 			</div>
-
-			<p class="text-gray-500 dark:text-gray-400">
-				Overview of scholarship applicants and key analytics.
-			</p>
 		</div>
 
-		<!-- Key Metrics Cards -->
+		<!-- Metrics -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-			<UCard class="p-4">
-				<p class="text-gray-500 text-sm">Total Applicants</p>
-				<p class="text-2xl font-bold">{{ totalApplicants }}</p>
+			<UCard class="border-l-4 border-l-blue-500 bg-blue-50/80 dark:bg-blue-950/30">
+				<p class="text-blue-700 text-sm font-medium dark:text-blue-300">Total Applicants</p>
+				<p class="text-3xl font-bold text-blue-950 dark:text-blue-100">
+					{{ totalApplicants }}
+				</p>
 			</UCard>
 
-			<UCard class="p-4">
-				<p class="text-gray-500 text-sm">Approved Applicants</p>
-				<p class="text-2xl font-bold">{{ approvedCount }}</p>
+			<UCard class="border-l-4 border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/30">
+				<p class="text-emerald-700 text-sm font-medium dark:text-emerald-300">
+					Approved Applicants
+				</p>
+				<p class="text-3xl font-bold text-emerald-950 dark:text-emerald-100">
+					{{ approvedCount }}
+				</p>
 			</UCard>
 
-			<UCard class="p-4">
-				<p class="text-gray-500 text-sm">Eligible Applicants</p>
-				<p class="text-2xl font-bold">{{ eligibleCount }}</p>
+			<UCard class="border-l-4 border-l-amber-500 bg-amber-50/80 dark:bg-amber-950/30">
+				<p class="text-amber-700 text-sm font-medium dark:text-amber-300">Eligible Applicants</p>
+				<p class="text-3xl font-bold text-amber-950 dark:text-amber-100">
+					{{ eligibleCount }}
+				</p>
 			</UCard>
 
-			<UCard class="p-4">
-				<p class="text-gray-500 text-sm">Not Eligible Applicants</p>
-				<p class="text-2xl font-bold">{{ notEligibleCount }}</p>
+			<UCard class="border-l-4 border-l-rose-500 bg-rose-50/80 dark:bg-rose-950/30">
+				<p class="text-rose-700 text-sm font-medium dark:text-rose-300">Not Eligible Applicants</p>
+				<p class="text-3xl font-bold text-rose-950 dark:text-rose-100">
+					{{ notEligibleCount }}
+				</p>
 			</UCard>
 		</div>
 
-		<!-- Analytics Graphs (Nuxt UI) -->
+		<!-- Charts -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-			<!-- GPA Distribution -->
-			<UCard class="p-4">
-				<h2 class="font-semibold mb-4">GPA Distribution</h2>
+			<!-- GPA -->
+			<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+				<h2 class="font-semibold mb-4 text-slate-900 dark:text-white">GPA Distribution</h2>
+
 				<div
 					v-for="applicant in applicants"
 					:key="applicant.firstName + applicant.lastName"
-					class="mb-2"
+					class="mb-4 rounded-md bg-slate-50 p-3 dark:bg-slate-800/70"
 				>
-					<p class="text-sm font-medium">
-						{{ applicant.firstName }} {{ applicant.lastName }} ({{ applicant.gpa }})
-					</p>
+					<div class="mb-2 flex items-center justify-between gap-3">
+						<p class="text-sm font-medium text-slate-700 dark:text-slate-200">
+							{{ applicant.firstName }} {{ applicant.lastName }}
+						</p>
+
+						<span
+							class="rounded bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+						>
+							{{ applicant.gpa }}
+						</span>
+					</div>
+
 					<UProgress
 						:value="(4 - applicant.gpa) * 25"
 						color="success"
@@ -109,11 +146,10 @@ const columns: TableColumn<Applicant>[] = [
 				</div>
 			</UCard>
 
-			<!-- Eligibility Status with Speculation -->
-			<UCard class="p-4">
-				<h2 class="font-semibold mb-4">Eligibility Status</h2>
+			<!-- Eligibility -->
+			<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+				<h2 class="font-semibold mb-4 text-slate-900 dark:text-white">Eligibility Status</h2>
 
-				<!-- Actual Eligibility Donut -->
 				<UDonutChart
 					:data="[
 						{ label: 'Approved', value: approvedCount, color: 'success' },
@@ -123,18 +159,31 @@ const columns: TableColumn<Applicant>[] = [
 					class="h-64 w-full mb-6"
 				/>
 
-				<!-- Speculative Predictions -->
-				<h3 class="font-medium mb-2"></h3>
-				<UDonutChart
-					:data="predictedEligibility"
-					class="h-48 w-full"
-				/>
+				<div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-800/70">
+					<h3 class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+						Predicted Eligibility
+					</h3>
+
+					<UDonutChart
+						:data="predictedEligibility"
+						class="h-48 w-full"
+					/>
+				</div>
 			</UCard>
 		</div>
 
-		<!-- Recent Applicants Table -->
-		<UCard class="p-4">
-			<h2 class="font-semibold mb-4">Recent Applicants</h2>
+		<!-- Table -->
+		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="font-semibold text-slate-900 dark:text-white">Recent Applicants</h2>
+
+				<span
+					class="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+				>
+					Latest 5
+				</span>
+			</div>
+
 			<UTable
 				:data="recentApplicants"
 				:columns="columns"

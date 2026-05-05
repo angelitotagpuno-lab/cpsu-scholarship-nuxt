@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { useToast } from "#imports";
+import { useToast, useRouter } from "#imports";
+import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
-	layout: "landing",
+	layout: "login",
 });
 
 const toast = useToast();
+const router = useRouter();
+const store = useAuthStore();
 
-// Login form fields
 const fields: AuthFormField[] = [
 	{
 		name: "email",
@@ -32,31 +34,34 @@ const fields: AuthFormField[] = [
 	},
 ];
 
-// Social login buttons (wide)
-const providers = [
-	{
-		label: "Continue with Google",
-		icon: "i-simple-icons-google",
-		onClick: () => toast.add({ title: "Google", description: "Login with Google" }),
-	},
-	{
-		label: "Continue with GitHub",
-		icon: "i-simple-icons-github",
-		onClick: () => toast.add({ title: "GitHub", description: "Login with GitHub" }),
-	},
-];
+// const providers = [
+// 	{
+// 		label: "Continue with Google",
+// 		icon: "i-simple-icons-google",
+// 		onClick: () => toast.add({ title: "Google", description: "Login with Google" }),
+// 	},
+// 	{
+// 		label: "Continue with GitHub",
+// 		icon: "i-simple-icons-github",
+// 		onClick: () => toast.add({ title: "GitHub", description: "Login with GitHub" }),
+// 	},
+// ];
 
-// Validation schema
 const schema = z.object({
-	email: z.string().email("Invalid email"),
+	email: z.email("Invalid email"),
 	password: z.string().min(8, "Must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-	console.log("Submitted", payload.data);
-	toast.add({ title: "Success", description: "Logged in!" });
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+	console.log(payload);
+	await store.login({ email: payload.data.email, password: payload.data.password });
+	if (store.errorMessage) {
+		toast.add({ title: "Error", description: store.errorMessage, color: "error" });
+		return;
+	}
+	router.push("/user");
 }
 </script>
 
@@ -65,50 +70,27 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 		<UPageCard class="w-full max-w-md">
 			<UAuthForm
 				:schema="schema"
-				title="Login"
+				:fields="fields"
+				title="User Login"
 				description="Enter your credentials to access your account."
 				icon="i-lucide-user"
-				:fields="fields"
+				:loading="store.isLoading"
 				@submit="onSubmit"
 			>
-				<!-- Submit button as a link with "Login" centered -->
 				<template #submit>
 					<div class="flex justify-center mt-4">
-						<NuxtLink
-							to="/user"
-							class="w-full md:w-1/2"
-						>
-							<UButton
-								color="primary"
-								size="lg"
-								class="w-full flex justify-center items-center"
-							>
-								Login
-							</UButton>
-						</NuxtLink>
-					</div>
-				</template>
-
-				<!-- Wide social provider buttons -->
-				<template #providers>
-					<div class="flex flex-col gap-3 mt-4">
 						<UButton
-							v-for="(provider, index) in providers"
-							:key="index"
-							color="neutral"
+							label="Sign in"
+							type="submit"
+							color="primary"
 							size="lg"
-							class="w-full flex justify-center items-center gap-2"
-							variant="outline"
-							:icon="provider.icon"
-							@click="provider.onClick"
-						>
-							{{ provider.label }}
-						</UButton>
+							class="w-full flex justify-center items-center"
+							:loading="store.isLoading"
+						/>
 					</div>
 				</template>
 			</UAuthForm>
 
-			<!-- Register CTA -->
 			<div class="mt-4 text-center text-sm text-muted">
 				Don't have an account?
 				<NuxtLink
@@ -117,8 +99,19 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 				>
 					Register here
 				</NuxtLink>
+
+				<div class="mt-4 flex justify-center">
+					<NuxtLink to="/login">
+						<UButton
+							variant="ghost"
+							size="sm"
+							icon="i-lucide-shield"
+						>
+							Admin Login
+						</UButton>
+					</NuxtLink>
+				</div>
 			</div>
 		</UPageCard>
 	</div>
-	<LoginFooter />
 </template>
