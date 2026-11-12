@@ -12,10 +12,6 @@
 
 			<template #right>
 				<UColorModeButton />
-
-				<div class="flex items-center gap-2">
-					<UButton to="/login">Login</UButton>
-				</div>
 			</template>
 		</UHeader>
 

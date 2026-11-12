@@ -2,79 +2,109 @@
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
 import { useToast, navigateTo } from "#imports";
-import LoginFooter from "~/components/LoginFooter.vue"; // import your login footer
+import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
-	layout: "landing", // keeps your header, but we manually add login footer
+	layout: "login",
 });
 
 const toast = useToast();
+const store = useAuthStore();
 
-// Registration form fields
 const fields: AuthFormField[] = [
 	{
-		name: "name",
-		label: "Full Name",
+		name: "studentNumber",
+		label: "Student Number",
 		type: "text",
-		placeholder: "Enter your full name",
+		placeholder: "Enter your student number",
 		required: true,
+		icon: "i-lucide-id-card",
 	},
-	{ name: "email", label: "Email", type: "email", placeholder: "Enter your email", required: true },
+	{
+		name: "email",
+		label: "Email",
+		type: "email",
+		placeholder: "Enter your email",
+		required: true,
+		icon: "i-lucide-mail",
+	},
 	{
 		name: "password",
 		label: "Password",
 		type: "password",
 		placeholder: "Enter a password",
 		required: true,
-	},
-	{
-		name: "confirmPassword",
-		label: "Confirm Password",
-		type: "password",
-		placeholder: "Confirm your password",
-		required: true,
+		icon: "i-lucide-lock",
 	},
 ];
 
-// Social providers
-const providers = [
-	{
-		label: "Google",
-		icon: "i-simple-icons-google",
-		onClick: () => toast.add({ title: "Google", description: "Register with Google" }),
-	},
-	{
-		label: "GitHub",
-		icon: "i-simple-icons-github",
-		onClick: () => toast.add({ title: "GitHub", description: "Register with GitHub" }),
-	},
-];
-
-// Validation schema
-const schema = z
-	.object({
-		name: z.string().min(2, "Name is required"),
-		email: z.string().email("Invalid email"),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-		confirmPassword: z.string().min(8, "Please confirm your password"),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords must match",
-		path: ["confirmPassword"],
-	});
+const schema = z.object({
+	studentNumber: z.string().min(1, "Student number is required"),
+	email: z.email("Invalid email"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 type Schema = z.output<typeof schema>;
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-	console.log("Registered data:", payload.data);
-	toast.add({ title: "Success", description: "Account registered successfully!" });
-	navigateTo("/login"); // redirect after successful registration
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+	const { studentNumber, email, password } = payload.data;
+
+	const verification = await store.verifyStudent(studentNumber);
+
+	if (!verification) {
+		toast.add({
+			title: "Verification Failed",
+			description: store.errorMessage || "Unable to verify student number",
+			color: "error",
+		});
+		return;
+	}
+
+	if (!verification.allowed) {
+		toast.add({
+			title: "Not Eligible for Registration",
+			description: "Your student number is not on the allowlist.",
+			color: "error",
+		});
+		return;
+	}
+
+	if (verification.isRegistered) {
+		toast.add({
+			title: "Already Registered",
+			description: "This student number already has an account.",
+			color: "error",
+		});
+		return;
+	}
+
+	const success = await store.registerStudent({
+		studentNumber,
+		email,
+		password,
+	});
+
+	if (!success) {
+		toast.add({
+			title: "Registration Failed",
+			description: store.errorMessage || "Unable to create account",
+			color: "error",
+		});
+		return;
+	}
+
+	toast.add({
+		title: "Success",
+		description: "Account registered successfully!",
+		color: "success",
+	});
+
+	await navigateTo("/user-login");
 }
 </script>
 
 <template>
 	<div class="flex flex-col min-h-screen justify-between bg-background">
-		<!-- Registration form in the middle -->
 		<div class="flex flex-col items-center justify-center gap-4 p-4 flex-1">
 			<UPageCard class="w-full max-w-md">
 				<UAuthForm
@@ -83,11 +113,22 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 					description="Create a new account to access the CPSU Scholarship portal."
 					icon="i-lucide-user-plus"
 					:fields="fields"
-					:providers="providers"
 					@submit="onSubmit"
-				/>
+				>
+					<template #submit>
+						<div class="flex justify-center mt-4">
+							<UButton
+								label="Sign up"
+								type="submit"
+								color="primary"
+								size="lg"
+								class="w-full flex justify-center items-center"
+								:loading="store.isLoading"
+							/>
+						</div>
+					</template>
+				</UAuthForm>
 
-				<!-- Login CTA -->
 				<div class="mt-4 text-center text-sm text-muted">
 					Already have an account?
 					<NuxtLink
@@ -99,12 +140,5 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
 				</div>
 			</UPageCard>
 		</div>
-
-		<!-- Use the LoginFooter at the bottom -->
-		<LoginFooter />
 	</div>
 </template>
-
-<style scoped>
-/* Ensure full height so footer sticks at bottom */
-</style>

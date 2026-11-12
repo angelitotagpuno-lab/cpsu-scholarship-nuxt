@@ -4,7 +4,7 @@ import { navigateTo } from "#imports";
 import { LoginSchema, type LoginInput } from "~~/shared/schemas/auth";
 
 definePageMeta({
-	layout: "landing",
+	layout: "login",
 });
 
 const store = useAuthStore();
@@ -29,15 +29,14 @@ const fields: AuthFormField[] = [
 ];
 
 async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
-	const { email, password } = payload.data;
+	const success = await store.login({
+		email: payload.data.email,
+		password: payload.data.password,
+	});
 
-	try {
-		await store.login(email, password); // Calls server API
-		store.errorMessage = ""; // Clear previous error
-		await navigateTo("/admin/home"); // Redirect after successful login
-	} catch {
-		store.errorMessage = "Invalid credentials";
-	}
+	if (!success) return;
+
+	await navigateTo("/admin/home");
 }
 </script>
 
@@ -66,7 +65,7 @@ async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
 				<template #submit>
 					<div class="flex justify-center mt-4">
 						<UButton
-							label="Sign in"
+							label="Log in"
 							type="submit"
 							color="primary"
 							size="lg"
