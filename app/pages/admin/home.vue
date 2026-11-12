@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 
 definePageMeta({ layout: "admin" });
@@ -16,14 +16,19 @@ const config = useRuntimeConfig();
 
 async function testFetch() {
 	try {
-		const res = await $fetch(`${config.public.baseUrl}/api/scholarship-programs`);
+		const res = await $fetch(`${config.public.baseUrl}/api/scholarship-programs`, {
+			credentials: "include",
+		});
+
 		console.log("SUCCESS:", res);
-		alert("Fetch OK");
 	} catch (err) {
 		console.error("ERROR:", err);
-		alert("Fetch FAILED");
 	}
 }
+
+onMounted(() => {
+	testFetch();
+});
 
 // Example dataset
 const applicants = ref<Applicant[]>([

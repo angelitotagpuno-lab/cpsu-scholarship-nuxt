@@ -10,22 +10,22 @@ const store = useAuthStore();
 
 const showMobileMenu = ref(false);
 
-// logout
+// Logout
 async function logout() {
 	const confirmLogout = confirm("Are you sure you want to logout?");
 	if (!confirmLogout) return;
 
-	try {
-		await store.logout();
+	const success = await store.logout();
+
+	if (success) {
 		showMobileMenu.value = false;
-		router.push("/user-login");
-	} catch (error) {
-		console.error("Logout failed", error);
-		alert("Logout failed. Please try again.");
+		await router.push("/user-login");
+	} else {
+		alert(store.errorMessage || "Logout failed. Please try again.");
 	}
 }
 
-// Desktop menu items (Nuxt UI compatible)
+// Desktop menu items
 const items = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Home",
@@ -33,8 +33,16 @@ const items = computed<NavigationMenuItem[]>(() => [
 		active: route.path === "/user",
 		icon: "i-lucide-book-open",
 	},
-	{ label: "Scholarship Programs", to: "/user/scholarships", icon: "i-lucide-book" },
-	{ label: "Approved Applicants", to: "/user/user-dashboard", icon: "i-lucide-users" },
+	{
+		label: "Scholarship Programs",
+		to: "/user/scholarships",
+		icon: "i-lucide-book",
+	},
+	{
+		label: "Approved Applicants",
+		to: "/user/user-dashboard",
+		icon: "i-lucide-users",
+	},
 	{
 		label: "Scholarship Payout",
 		to: "/user/user-liquidation",
@@ -46,7 +54,6 @@ const items = computed<NavigationMenuItem[]>(() => [
 // Mobile dropdown state
 const mobileOpen = reactive<Record<string, boolean>>({});
 
-// safe toggle helper (prevents TS issues)
 function toggleMenu(label?: string) {
 	if (!label) return;
 	mobileOpen[label] = !mobileOpen[label];
@@ -59,7 +66,6 @@ function toggleMenu(label?: string) {
 		<UHeader toggle-side="left">
 			<template #title>
 				<div class="flex items-center gap-2">
-					<!-- Logo -->
 					<NuxtImg
 						src="/ai-logo.png"
 						alt="CPSU Logo"
@@ -68,7 +74,6 @@ function toggleMenu(label?: string) {
 						class="object-contain"
 					/>
 
-					<!-- Title -->
 					<div class="font-semibold text-sm sm:text-base">CPSU Scholarship</div>
 				</div>
 			</template>
@@ -82,7 +87,7 @@ function toggleMenu(label?: string) {
 			<template #right>
 				<UColorModeButton />
 
-				<!-- Logout (Desktop) -->
+				<!-- Logout Desktop -->
 				<UButton
 					label="Logout"
 					icon="i-lucide-log-out"
@@ -122,7 +127,8 @@ function toggleMenu(label?: string) {
 								@click="toggleMenu(item.label)"
 							>
 								<span class="flex items-center gap-2">
-									<i :class="item.icon"></i> {{ item.label }}
+									<i :class="item.icon"></i>
+									{{ item.label }}
 								</span>
 
 								<i
@@ -141,7 +147,8 @@ function toggleMenu(label?: string) {
 								@click="showMobileMenu = false"
 							>
 								<span class="flex items-center gap-2">
-									<i :class="item.icon"></i> {{ item.label }}
+									<i :class="item.icon"></i>
+									{{ item.label }}
 								</span>
 							</NuxtLink>
 
@@ -165,7 +172,7 @@ function toggleMenu(label?: string) {
 						</li>
 					</ul>
 
-					<!-- Logout (Mobile) -->
+					<!-- Logout Mobile -->
 					<div class="mt-6 border-t pt-4">
 						<UButton
 							label="Logout"
@@ -192,6 +199,7 @@ function toggleMenu(label?: string) {
 .fade-leave-active {
 	transition: opacity 0.2s;
 }
+
 .fade-enter-from,
 .fade-leave-to {
 	opacity: 0;
@@ -201,10 +209,12 @@ function toggleMenu(label?: string) {
 .slide-fade-leave-active {
 	transition: all 0.2s ease;
 }
+
 .slide-fade-enter-from {
 	opacity: 0;
 	transform: translateY(-5px);
 }
+
 .slide-fade-leave-to {
 	opacity: 0;
 	transform: translateY(-5px);

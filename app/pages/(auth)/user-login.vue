@@ -14,10 +14,10 @@ const store = useAuthStore();
 
 const fields: AuthFormField[] = [
 	{
-		name: "email",
-		type: "email",
-		label: "Email",
-		placeholder: "Enter your email",
+		name: "studentNumber",
+		type: "text",
+		label: "Student Number",
+		placeholder: "Enter your student number",
 		required: true,
 	},
 	{
@@ -27,41 +27,31 @@ const fields: AuthFormField[] = [
 		placeholder: "Enter your password",
 		required: true,
 	},
-	{
-		name: "remember",
-		type: "checkbox",
-		label: "Remember me",
-	},
 ];
 
-// const providers = [
-// 	{
-// 		label: "Continue with Google",
-// 		icon: "i-simple-icons-google",
-// 		onClick: () => toast.add({ title: "Google", description: "Login with Google" }),
-// 	},
-// 	{
-// 		label: "Continue with GitHub",
-// 		icon: "i-simple-icons-github",
-// 		onClick: () => toast.add({ title: "GitHub", description: "Login with GitHub" }),
-// 	},
-// ];
-
 const schema = z.object({
-	email: z.email("Invalid email"),
+	studentNumber: z.string().min(1, "Student number is required"),
 	password: z.string().min(8, "Must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
-	console.log(payload);
-	await store.login({ email: payload.data.email, password: payload.data.password });
-	if (store.errorMessage) {
-		toast.add({ title: "Error", description: store.errorMessage, color: "error" });
+	const success = await store.loginStudent({
+		studentNumber: payload.data.studentNumber,
+		password: payload.data.password,
+	});
+
+	if (!success) {
+		toast.add({
+			title: "Login Failed",
+			description: store.errorMessage || "Invalid student credentials",
+			color: "error",
+		});
 		return;
 	}
-	router.push("/user");
+
+	await router.push("/user");
 }
 </script>
 

@@ -29,9 +29,13 @@ const fields: AuthFormField[] = [
 ];
 
 async function onSubmit(payload: FormSubmitEvent<LoginInput>) {
-	console.log(payload);
-	await store.login({ email: payload.data.email, password: payload.data.password });
-	if (store.errorMessage) return;
+	const success = await store.login({
+		email: payload.data.email,
+		password: payload.data.password,
+	});
+
+	if (!success) return;
+
 	await navigateTo("/admin/home");
 }
 </script>

@@ -1,27 +1,36 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 import type { NavigationMenuItem } from "@nuxt/ui";
+import { useAuthStore } from "~/stores/auth.store";
 
 const open = ref(true);
 const showLogoutModal = ref(false);
+const isLoggingOut = ref(false);
 
-const router = useRouter();
 const route = useRoute();
 const store = useAuthStore();
 
 async function logout() {
-	await store.logout();
-	router.push("/user-login");
+	if (isLoggingOut.value) return;
+
+	isLoggingOut.value = true;
+
+	try {
+		const success = await store.logout("/login");
+
+		if (success) {
+			showLogoutModal.value = false;
+		} else {
+			alert(store.errorMessage || "Logout failed. Please try again.");
+		}
+	} finally {
+		isLoggingOut.value = false;
+	}
 }
 
 function openLogoutConfirm() {
 	showLogoutModal.value = true;
-}
-
-async function confirmLogout() {
-	showLogoutModal.value = false;
-	await logout();
 }
 
 const items: NavigationMenuItem[][] = [
@@ -206,6 +215,7 @@ const reactiveItems = computed(() => items.map((group) => markActiveItems(group)
 							label="Cancel"
 							color="neutral"
 							variant="outline"
+							:disabled="isLoggingOut"
 							@click="showLogoutModal = false"
 						/>
 
@@ -213,7 +223,9 @@ const reactiveItems = computed(() => items.map((group) => markActiveItems(group)
 							label="Logout"
 							icon="i-lucide-log-out"
 							color="error"
-							@click="confirmLogout"
+							:loading="isLoggingOut"
+							:disabled="isLoggingOut"
+							@click="logout"
 						/>
 					</div>
 				</div>

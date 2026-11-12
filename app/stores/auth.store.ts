@@ -1,29 +1,46 @@
 import { authService } from "~/services/auth.service";
-import type { Auth, User } from "~/types/user";
+import type {
+	Auth,
+	User,
+	StudentLogin,
+	StudentRegister,
+	StudentVerification,
+	AuthMeResponse,
+} from "~/types/user";
 import type { FetchError } from "ofetch";
 
 export const useAuthStore = defineStore("auth", () => {
 	const user = ref<User | null>(null);
+	const currentAuth = ref<AuthMeResponse | null>(null);
 	const isLoading = ref(false);
 	const errorMessage = ref<string | null>(null);
 
 	const isAuthenticated = computed(() => !!user.value);
 
+	function getError(error: unknown, fallback: string) {
+		const err = error as FetchError<{ message?: string; detail?: string }>;
+
+		return err?.data?.message || err?.data?.detail || fallback;
+	}
+
 	async function getUser() {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await authService.me();
-			console.log("here" + res.data.role);
-			user.value = res.data;
-		} catch (e: unknown) {
-			const err = e as FetchError;
+
+			currentAuth.value = res;
+			user.value = res.user;
+		} catch (error) {
+			const err = error as FetchError;
+
+			user.value = null;
+			currentAuth.value = null;
 
 			if (err?.response?.status !== 401) {
-				errorMessage.value = "Failed to fetch user";
+				errorMessage.value = getError(error, "Failed to fetch user");
 			}
-
-			console.error("here err", e);
 		} finally {
 			isLoading.value = false;
 		}
@@ -32,48 +49,90 @@ export const useAuthStore = defineStore("auth", () => {
 	async function login(body: Auth) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
 			const res = await authService.login(body);
-			user.value = res.data;
-		} catch (e: unknown) {
-			let message = "Login failed";
 
-			if (e && typeof e === "object" && "response" in e) {
-				const err = e as FetchError;
-
-				message = (err.response?._data as { message?: string })?.message || message;
+			if (!["admin", "staff"].includes(res.user.role.toLowerCase())) {
+				user.value = null;
+				errorMessage.value = "Unauthorized. Administrator access only.";
+				return false;
 			}
 
-			errorMessage.value = message;
-
-			console.error("Login error:", e);
+			user.value = res.user;
+			return true;
+		} catch (error) {
+			errorMessage.value = getError(error, "Login failed");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function register(body: Auth) {
+	async function loginStudent(body: StudentLogin) {
 		errorMessage.value = null;
 		isLoading.value = true;
+
 		try {
-			await authService.register(body);
-		} catch (e) {
-			errorMessage.value = "Failed to register user";
-			console.error(e);
+			const res = await authService.studentLogin(body);
+
+			user.value = res.user;
+			return true;
+		} catch (error) {
+			errorMessage.value = getError(error, "Student login failed");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function logout() {
+	async function verifyStudent(studentNumber: string): Promise<StudentVerification | null> {
 		errorMessage.value = null;
 		isLoading.value = true;
+
+		try {
+			return await authService.verifyStudent(studentNumber);
+		} catch (error) {
+			errorMessage.value = getError(error, "Student verification failed");
+			return null;
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	async function registerStudent(body: StudentRegister) {
+		errorMessage.value = null;
+		isLoading.value = true;
+
+		try {
+			await authService.registerStudent(body);
+			return true;
+		} catch (error) {
+			errorMessage.value = getError(error, "Failed to register student");
+			return false;
+		} finally {
+			isLoading.value = false;
+		}
+	}
+
+	async function logout(redirectTo = "/user-login"): Promise<boolean> {
+		errorMessage.value = null;
+		isLoading.value = true;
+
 		try {
 			await authService.logout();
+
 			user.value = null;
-		} catch (e) {
-			errorMessage.value = "Failed to logout";
-			console.error(e);
+			currentAuth.value = null;
+
+			await navigateTo(redirectTo, {
+				replace: true,
+			});
+
+			return true;
+		} catch (error) {
+			errorMessage.value = getError(error, "Failed to logout");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
@@ -81,12 +140,15 @@ export const useAuthStore = defineStore("auth", () => {
 
 	return {
 		user,
+		currentAuth,
 		isLoading,
 		errorMessage,
 		isAuthenticated,
 		getUser,
 		login,
-		register,
+		loginStudent,
+		verifyStudent,
+		registerStudent,
 		logout,
 	};
 });

@@ -11,13 +11,12 @@ definePageMeta({
 const toast = useToast();
 const store = useAuthStore();
 
-// Registration form fields
 const fields: AuthFormField[] = [
 	{
-		name: "schoolId",
-		label: "School ID",
+		name: "studentNumber",
+		label: "Student Number",
 		type: "text",
-		placeholder: "Enter your School ID",
+		placeholder: "Enter your student number",
 		required: true,
 		icon: "i-lucide-id-card",
 	},
@@ -40,7 +39,7 @@ const fields: AuthFormField[] = [
 ];
 
 const schema = z.object({
-	schoolId: z.string().min(1, "School ID is required"),
+	studentNumber: z.string().min(1, "Student number is required"),
 	email: z.email("Invalid email"),
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -48,26 +47,59 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
-	try {
-		await store.register({
-			schoolId: payload.data.schoolId,
-			email: payload.data.email,
-			password: payload.data.password,
-		});
+	const { studentNumber, email, password } = payload.data;
 
-		toast.add({
-			title: "Success",
-			description: "Account registered successfully!",
-		});
+	const verification = await store.verifyStudent(studentNumber);
 
-		navigateTo("/user-login");
-	} catch {
+	if (!verification) {
 		toast.add({
-			title: "Error",
-			description: store.errorMessage || "Registration failed",
+			title: "Verification Failed",
+			description: store.errorMessage || "Unable to verify student number",
 			color: "error",
 		});
+		return;
 	}
+
+	if (!verification.allowed) {
+		toast.add({
+			title: "Not Eligible for Registration",
+			description: "Your student number is not on the allowlist.",
+			color: "error",
+		});
+		return;
+	}
+
+	if (verification.isRegistered) {
+		toast.add({
+			title: "Already Registered",
+			description: "This student number already has an account.",
+			color: "error",
+		});
+		return;
+	}
+
+	const success = await store.registerStudent({
+		studentNumber,
+		email,
+		password,
+	});
+
+	if (!success) {
+		toast.add({
+			title: "Registration Failed",
+			description: store.errorMessage || "Unable to create account",
+			color: "error",
+		});
+		return;
+	}
+
+	toast.add({
+		title: "Success",
+		description: "Account registered successfully!",
+		color: "success",
+	});
+
+	await navigateTo("/user-login");
 }
 </script>
 
