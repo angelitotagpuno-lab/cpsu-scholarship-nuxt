@@ -4,25 +4,40 @@ const PUBLIC_AUTH_ROUTES = ["/login", "/user-login", "/register", "/forgot-passw
 
 export default defineNuxtRouteMiddleware(async (to) => {
 	const authStore = useAuthStore();
-	if (!authStore.user) {
-		try {
-			await authStore.getUser();
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		} catch (e) {
-			// ignore errors here (especially 401)
-		}
-	}
 
-	const isProtected = PROTECTED_ROUTES.some((route) => to.path.startsWith(route));
+	const isProtected = PROTECTED_ROUTES.some(
+		(route) => to.path === route || to.path.startsWith(`${route}/`),
+	);
+
 	const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.includes(to.path);
 
-	if (isPublicAuthRoute && !authStore.isAuthenticated) return;
+	if (isPublicAuthRoute) {
+		if (authStore.isAuthenticated) {
+			const role = authStore.user?.role.toLowerCase();
 
-	if (isProtected && !authStore.user) {
-		return showError({ status: 404, statusText: "Page Not Found" });
+			return navigateTo(["admin", "staff"].includes(role || "") ? "/admin/home" : "/user");
+		}
+
+		return;
 	}
 
-	if (isPublicAuthRoute && authStore.isAuthenticated) {
-		return navigateTo(authStore.user?.role === "admin" ? "/admin/home" : "/user");
+	if (!isProtected) return;
+
+	if (!authStore.isAuthenticated) {
+		await authStore.getUser();
+	}
+
+	if (!authStore.isAuthenticated) {
+		return navigateTo(to.path.startsWith("/admin") ? "/login" : "/user-login");
+	}
+
+	const role = authStore.user?.role.toLowerCase();
+
+	if (to.path.startsWith("/admin") && !["admin", "staff"].includes(role || "")) {
+		return navigateTo("/user");
+	}
+
+	if (to.path.startsWith("/user") && role !== "student") {
+		return navigateTo("/admin/home");
 	}
 });
