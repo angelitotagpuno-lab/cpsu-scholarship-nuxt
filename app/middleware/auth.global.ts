@@ -13,33 +13,31 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
 	if (isPublicAuthRoute) {
 		if (authStore.isAuthenticated) {
-			return navigateTo(
-				["admin", "staff"].includes(authStore.user?.role.toLowerCase() || "")
-					? "/admin/home"
-					: "/user",
-			);
+			const role = authStore.user?.role.toLowerCase();
+
+			return navigateTo(["admin", "staff"].includes(role || "") ? "/admin/home" : "/user");
 		}
 
 		return;
 	}
 
-	if (isProtected && !authStore.isAuthenticated) {
+	if (!isProtected) return;
+
+	if (!authStore.isAuthenticated) {
 		await authStore.getUser();
 	}
 
-	if (isProtected && !authStore.isAuthenticated) {
+	if (!authStore.isAuthenticated) {
 		return navigateTo(to.path.startsWith("/admin") ? "/login" : "/user-login");
 	}
 
-	if (isProtected) {
-		const role = authStore.user?.role.toLowerCase();
+	const role = authStore.user?.role.toLowerCase();
 
-		if (to.path.startsWith("/admin") && !["admin", "staff"].includes(role || "")) {
-			return navigateTo("/user");
-		}
+	if (to.path.startsWith("/admin") && !["admin", "staff"].includes(role || "")) {
+		return navigateTo("/user");
+	}
 
-		if (to.path.startsWith("/user") && role !== "student") {
-			return navigateTo("/admin/home");
-		}
+	if (to.path.startsWith("/user") && role !== "student") {
+		return navigateTo("/admin/home");
 	}
 });
