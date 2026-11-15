@@ -5,42 +5,44 @@ import z from "zod";
 
 const props = defineProps<{ data: ScholarshipProgram }>();
 const store = useScholarshipStore();
+const toast = useToast();
 const emit = defineEmits<{ close: [boolean] }>();
 
 const errorMessage = ref("");
 
 const schema = z.object({
-	code: z.string().optional(),
-	name: z.string().min(1),
+	name: z.string().trim().min(1, "Name is required"),
 	description: z.string().optional(),
-	intakeType: z.enum(["public_application", "staff_nomination"]),
-	defaultAmountPerSemester: z.number(),
-	isActive: z.boolean(),
+	isArchived: z.boolean(),
 });
 
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
-	code: props.data.code ?? "",
 	name: props.data.name,
 	description: props.data.description ?? "",
-	intakeType: props.data.intake_type,
-	defaultAmountPerSemester: Number(props.data.default_amount_per_semester),
-	isActive: props.data.is_active,
+	isArchived: props.data.isArchived,
 });
 
-async function onSubmit(e: FormSubmitEvent<Schema>) {
+async function onSubmit(event: FormSubmitEvent<Schema>) {
 	errorMessage.value = "";
 
-	await store.updateItem(props.data.id, {
-		...e.data,
-		defaultAmountPerSemester: Number(e.data.defaultAmountPerSemester),
+	const success = await store.updateItem(props.data.id, {
+		name: event.data.name,
+		description: event.data.description || null,
+		isArchived: event.data.isArchived,
 	});
 
-	if (store.error) {
-		errorMessage.value = store.error;
+	if (!success) {
+		errorMessage.value = store.error || "Failed to update scholarship program";
 		return;
 	}
+
+	toast.add({
+		title: "Success",
+		description: "Scholarship program updated",
+		color: "success",
+	});
 
 	emit("close", true);
 }
@@ -50,7 +52,7 @@ async function onSubmit(e: FormSubmitEvent<Schema>) {
 	<UModal title="Edit Scholarship Program">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER (matched style with create modal) -->
+				<!-- HEADER -->
 				<div
 					class="rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900"
 				>
@@ -90,78 +92,45 @@ async function onSubmit(e: FormSubmitEvent<Schema>) {
 					class="space-y-5"
 					@submit="onSubmit"
 				>
-					<!-- BASIC INFO -->
-					<div class="space-y-4">
-						<UFormField
-							label="Code"
-							name="code"
-						>
-							<UInput
-								v-model="state.code"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-tag"
-								placeholder="TES, TDP..."
-							/>
-						</UFormField>
+					<UFormField
+						label="Name"
+						name="name"
+					>
+						<UInput
+							v-model="state.name"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-graduation-cap"
+							placeholder="Scholarship name"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Name"
-							name="name"
-						>
-							<UInput
-								v-model="state.name"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-graduation-cap"
-								placeholder="Scholarship name"
-							/>
-						</UFormField>
+					<UFormField
+						label="Description"
+						name="description"
+					>
+						<UInput
+							v-model="state.description"
+							class="w-full"
+							size="lg"
+							icon="i-lucide-file-text"
+							placeholder="Optional description"
+						/>
+					</UFormField>
 
-						<UFormField
-							label="Description"
-							name="description"
+					<UFormField
+						label="Archived"
+						name="isArchived"
+					>
+						<div
+							class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
 						>
-							<UInput
-								v-model="state.description"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-file-text"
-								placeholder="Optional description"
-							/>
-						</UFormField>
-					</div>
-
-					<!-- SETTINGS -->
-					<div class="space-y-4">
-						<UFormField
-							label="Amount per Semester"
-							name="defaultAmountPerSemester"
-						>
-							<UInput
-								v-model.number="state.defaultAmountPerSemester"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-wallet"
-								type="number"
-								placeholder="Enter amount"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Active"
-							name="isActive"
-						>
-							<div
-								class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
-							>
-								<span class="text-sm text-slate-600 dark:text-slate-300">
-									Enable scholarship program
-								</span>
-								<USwitch v-model="state.isActive" />
-							</div>
-						</UFormField>
-					</div>
+							<span class="text-sm text-slate-600 dark:text-slate-300">
+								Archive scholarship program
+							</span>
+							<USwitch v-model="state.isArchived" />
+						</div>
+					</UFormField>
 
 					<!-- FOOTER -->
 					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">

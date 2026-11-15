@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { defineStore } from "pinia";
+import { ref } from "vue";
 import { scholarshipOfferingService } from "~/services/scholarship-offering.service";
+
 import type {
 	ScholarshipOffering,
 	CreateScholarshipOfferingPayload,
 	UpdateScholarshipOfferingPayload,
+	ScholarshipOfferingQuery,
+	ScholarshipOfferingMeta,
 } from "~/types/scholarship-offering";
 
 export const useScholarshipOfferingStore = defineStore("scholarship-offering", () => {
@@ -14,80 +16,121 @@ export const useScholarshipOfferingStore = defineStore("scholarship-offering", (
 
 	const isLoading = ref(false);
 	const errorMessage = ref<string | null>(null);
-	async function getOfferings() {
+	const meta = ref<ScholarshipOfferingMeta | null>(null);
+
+	function handleError(e: unknown, fallback: string) {
+		console.error(fallback, e);
+
+		const err = e as {
+			data?: {
+				message?: string;
+				error?: string;
+			};
+			message?: string;
+		};
+
+		errorMessage.value = err.data?.message || err.data?.error || err.message || fallback;
+	}
+
+	async function getOfferings(query: ScholarshipOfferingQuery = {}): Promise<boolean> {
 		isLoading.value = true;
 		errorMessage.value = null;
 
 		try {
-			const res = await scholarshipOfferingService.index();
+			const res = await scholarshipOfferingService.index(query);
 
-			// 🔍 DEBUG START
-			console.log("📦 RAW API RESPONSE (offerings):", res);
-			console.log("📦 res.data:", (res as any).data);
-			console.log("📦 res.data.data:", (res as any).data?.data);
-			// 🔍 DEBUG END
+			offerings.value = res.data;
+			meta.value = res.meta;
 
-			// ✅ FIX: handle different API shapes safely
-			offerings.value = (res as any).data?.data ?? (res as any).data ?? [];
-
-			console.log("✅ FINAL ASSIGNED OFFERINGS:", offerings.value);
+			return true;
 		} catch (e) {
-			console.error("❌ ERROR fetching offerings:", e);
-			errorMessage.value = "Failed to fetch offerings";
+			handleError(e, "Failed to fetch offerings");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function getOffering(id: string) {
+	async function getOffering(id: string): Promise<ScholarshipOffering | null> {
 		isLoading.value = true;
+		errorMessage.value = null;
 
 		try {
 			const res = await scholarshipOfferingService.show(id);
-			offering.value = res.data;
+
+			offering.value = res;
+			return res;
 		} catch (e) {
-			errorMessage.value = "Failed to fetch offering";
+			handleError(e, "Failed to fetch offering");
+			return null;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function addOffering(body: CreateScholarshipOfferingPayload) {
+	async function addOffering(body: CreateScholarshipOfferingPayload): Promise<boolean> {
 		isLoading.value = true;
+		errorMessage.value = null;
 
 		try {
 			const res = await scholarshipOfferingService.store(body);
-			offering.value = res.data;
-			await getOfferings();
+
+			offering.value = res;
+			offerings.value.unshift(res);
+
+			return true;
 		} catch (e) {
-			errorMessage.value = "Failed to create offering";
+			handleError(e, "Failed to create offering");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function editOffering(id: string, body: UpdateScholarshipOfferingPayload) {
+	async function editOffering(
+		id: string,
+		body: UpdateScholarshipOfferingPayload,
+	): Promise<boolean> {
 		isLoading.value = true;
+		errorMessage.value = null;
 
 		try {
 			const res = await scholarshipOfferingService.update(id, body);
-			offering.value = res.data;
-			await getOfferings();
+
+			offering.value = res;
+
+			const index = offerings.value.findIndex((o) => o.id === id);
+
+			if (index !== -1) {
+				offerings.value[index] = res;
+			}
+
+			return true;
 		} catch (e) {
-			errorMessage.value = "Failed to update offering";
+			handleError(e, "Failed to update offering");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function deleteOffering(id: string) {
+	async function deleteOffering(id: string): Promise<boolean> {
 		isLoading.value = true;
+		errorMessage.value = null;
 
 		try {
 			await scholarshipOfferingService.destroy(id);
-			await getOfferings();
+
+			offerings.value = offerings.value.filter((o) => o.id !== id);
+
+			if (offering.value?.id === id) {
+				offering.value = null;
+			}
+
+			return true;
 		} catch (e) {
-			errorMessage.value = "Failed to delete offering";
+			handleError(e, "Failed to delete offering");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
@@ -98,7 +141,7 @@ export const useScholarshipOfferingStore = defineStore("scholarship-offering", (
 		offering,
 		isLoading,
 		errorMessage,
-
+		meta,
 		getOfferings,
 		getOffering,
 		addOffering,

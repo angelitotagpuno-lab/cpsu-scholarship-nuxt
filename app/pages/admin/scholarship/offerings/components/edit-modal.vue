@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import z from "zod";
 import type { ScholarshipOffering } from "~/types/scholarship-offering";
+import { reactive, ref, watch } from "vue";
+import z from "zod";
 
 const store = useScholarshipOfferingStore();
 const toast = useToast();
@@ -10,62 +11,68 @@ const props = defineProps<{
 	data: ScholarshipOffering;
 }>();
 
-const emit = defineEmits<{
-	close: [boolean];
-}>();
+const emit = defineEmits<{ close: [boolean] }>();
+const errorMessage = ref("");
 
-/* =========================
-   VALIDATION SCHEMA
-========================= */
+const moneySchema = z.coerce.number<number>().min(0, "Amount cannot be negative");
+
 const schema = z.object({
-	academicYear: z.string().min(1),
-	semester: z.enum(["1", "2"]),
-	allocatedBudget: z.number().min(1),
-	availableSlots: z.number().nullable().optional(),
-	status: z.enum(["draft", "open", "closed", "archived"]),
+	schoolYear: z.string().trim().min(1, "School year is required").max(20),
+	totalBudget: moneySchema,
+	amountPerSemester: moneySchema,
+	pwdAdditional: moneySchema,
+	isActive: z.boolean(),
+	isArchived: z.boolean(),
 });
 
 type Schema = z.output<typeof schema>;
 
-/* =========================
-   FORM STATE (pre-filled)
-========================= */
-const state = reactive<Schema>({
-	academicYear: "",
-	semester: "1",
-	allocatedBudget: 1,
-	availableSlots: null,
-	status: "draft",
+const state = reactive({
+	schoolYear: "",
+	totalBudget: 0,
+	amountPerSemester: 0,
+	pwdAdditional: 0,
+	isActive: true,
+	isArchived: false,
 });
 
-/* =========================
-   SYNC PROP → FORM
-========================= */
 watch(
 	() => props.data,
 	(val) => {
 		if (!val) return;
 
-		state.academicYear = val.academicYear ?? "";
-		state.semester = (val.semester as "1" | "2") ?? "1";
-		state.allocatedBudget = Number(val.allocatedBudget ?? 0);
-		state.availableSlots = val.availableSlots ?? null;
-		state.status = val.status ?? "draft";
+		state.schoolYear = val.schoolYear ?? "";
+		state.totalBudget = Number(val.totalBudget ?? 0);
+		state.amountPerSemester = Number(val.amountPerSemester ?? 0);
+		state.pwdAdditional = Number(val.pwdAdditional ?? 0);
+		state.isActive = val.isActive;
+		state.isArchived = val.isArchived;
 	},
 	{ immediate: true },
 );
 
-/* =========================
-   SUBMIT UPDATE
-========================= */
+function toMoney(value: number): string {
+	return value.toFixed(2);
+}
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
 	if (!props.data?.id) return;
 
-	await store.editOffering(props.data.id, {
-		...event.data,
+	errorMessage.value = "";
+
+	const success = await store.editOffering(props.data.id, {
+		schoolYear: event.data.schoolYear,
+		totalBudget: toMoney(event.data.totalBudget),
+		amountPerSemester: toMoney(event.data.amountPerSemester),
+		pwdAdditional: toMoney(event.data.pwdAdditional),
+		isActive: event.data.isActive,
+		isArchived: event.data.isArchived,
 	});
 
-	if (store.errorMessage) return;
+	if (!success) {
+		errorMessage.value = store.errorMessage || "Failed to update offering";
+		return;
+	}
 
 	toast.add({
 		title: "Success",
@@ -81,7 +88,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	<UModal title="Edit Offering">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER (Course-style UI) -->
+				<!-- HEADER -->
 				<div
 					class="rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900"
 				>
@@ -104,83 +111,113 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					</div>
 				</div>
 
-				<!-- FORM -->
+				<UAlert
+					v-if="errorMessage"
+					icon="i-lucide-circle-alert"
+					color="error"
+					variant="soft"
+					title="Update failed"
+					:description="errorMessage"
+				/>
+
 				<UForm
 					:schema="schema"
 					:state="state"
 					class="space-y-5"
 					@submit="onSubmit"
 				>
-					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<UFormField
-							label="Academic Year"
-							name="academicYear"
+							label="School Year"
+							name="schoolYear"
 						>
 							<UInput
-								v-model="state.academicYear"
-								placeholder="e.g. 2025-2026"
+								v-model="state.schoolYear"
+								placeholder="e.g. 2026 - 2027"
 								icon="i-lucide-calendar"
+								class="w-full"
 								size="lg"
 							/>
 						</UFormField>
 
 						<UFormField
-							label="Semester"
-							name="semester"
-						>
-							<USelect
-								v-model="state.semester"
-								:items="['1', '2']"
-								placeholder="Select semester"
-								icon="i-lucide-book-open"
-								size="lg"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Budget"
-							name="allocatedBudget"
+							label="Total Budget"
+							name="totalBudget"
 						>
 							<UInput
-								v-model.number="state.allocatedBudget"
+								v-model.number="state.totalBudget"
 								type="number"
-								placeholder="Enter budget"
+								min="0"
+								step="0.01"
 								icon="i-lucide-wallet"
+								class="w-full"
 								size="lg"
 							/>
 						</UFormField>
 
 						<UFormField
-							label="Slots"
-							name="availableSlots"
+							label="Amount Per Semester"
+							name="amountPerSemester"
 						>
 							<UInput
-								v-model.number="state.availableSlots"
+								v-model.number="state.amountPerSemester"
 								type="number"
-								placeholder="Optional slots"
-								icon="i-lucide-users"
+								min="0"
+								step="0.01"
+								icon="i-lucide-banknote"
+								class="w-full"
 								size="lg"
 							/>
 						</UFormField>
 
 						<UFormField
-							label="Status"
-							name="status"
+							label="PWD Additional"
+							name="pwdAdditional"
 						>
-							<USelect
-								v-model="state.status"
-								:items="['draft', 'open', 'closed', 'archived']"
-								placeholder="Select status"
-								icon="i-lucide-activity"
+							<UInput
+								v-model.number="state.pwdAdditional"
+								type="number"
+								min="0"
+								step="0.01"
+								icon="i-lucide-wallet"
+								class="w-full"
 								size="lg"
 							/>
 						</UFormField>
 					</div>
 
-					<div class="flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800 gap-2">
+					<div class="space-y-3">
+						<UFormField
+							label="Active"
+							name="isActive"
+						>
+							<div
+								class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
+							>
+								<span class="text-sm text-slate-600 dark:text-slate-300"> Enable offering </span>
+								<USwitch v-model="state.isActive" />
+							</div>
+						</UFormField>
+
+						<UFormField
+							label="Archived"
+							name="isArchived"
+						>
+							<div
+								class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
+							>
+								<span class="text-sm text-slate-600 dark:text-slate-300"> Archive offering </span>
+								<USwitch v-model="state.isArchived" />
+							</div>
+						</UFormField>
+					</div>
+
+					<div class="flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
 						<UButton
+							type="button"
 							variant="soft"
 							color="neutral"
+							:disabled="store.isLoading"
 							@click="emit('close', false)"
 						>
 							Cancel
@@ -189,7 +226,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						<UButton
 							type="submit"
 							:loading="store.isLoading"
-							class="bg-blue-600 hover:bg-blue-700"
+							class="bg-blue-600 hover:bg-blue-700 text-white"
 						>
 							Update Offering
 						</UButton>

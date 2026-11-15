@@ -1,53 +1,52 @@
-// index, show, store, update, destroy ra naming sa function or son a lang naming sa postman pero mao na for crud
-// ayaw pag aync await diri
+import type { Course, CourseBody, CourseQuery, CourseListResponse } from "~/types/course";
 
-import type { ApiResponse } from "~/types/api-response";
-import type { Course } from "~/types/course";
+const api = () => {
+	const config = useRuntimeConfig();
 
-const baseUrl = "/proxy";
+	return {
+		baseURL: config.public.baseUrl,
+		credentials: "include" as const,
+	};
+};
 
-// index pag kuha sa tanan course eso array of objects or strings [{},{}]/['','']
-function index(): Promise<ApiResponse<Course[]>> {
-	return $fetch(baseUrl + "/api/courses", {
+function index(query: CourseQuery = {}): Promise<CourseListResponse> {
+	return $fetch("/api/v1/courses", {
+		...api(),
 		method: "GET",
-		credentials: "include",
+		query,
 	});
 }
 
-// show pag kuha sa usa specific course
-function show(id: string): Promise<ApiResponse<Course>> {
-	return $fetch(baseUrl + `/api/courses/${id}`, {
-		credentials: "include",
+function show(id: string): Promise<Course> {
+	return $fetch(`/api/v1/courses/${id}`, {
+		...api(),
+		method: "GET",
 	});
 }
 
-// store pag pasulod sa course
-function store(body: Course): Promise<ApiResponse<Course>> {
-	return $fetch(baseUrl + "/api/courses", {
+function store(body: CourseBody): Promise<Course> {
+	return $fetch("/api/v1/courses", {
+		...api(),
 		method: "POST",
-		body: body,
-		credentials: "include",
+		body,
 	});
 }
 
-// update page update sa course
-function update(id: string, body: Course): Promise<ApiResponse<Course>> {
-	return $fetch(baseUrl + `/api/courses/${id}`, {
+function update(id: string, body: CourseBody): Promise<Course> {
+	return $fetch(`/api/v1/courses/${id}`, {
+		...api(),
 		method: "PUT",
-		body: body,
-		credentials: "include",
+		body,
 	});
 }
 
-// destroy page delete sa course
-function destroy(id: string): Promise<ApiResponse<Course>> {
-	return $fetch(baseUrl + `/api/courses/${id}`, {
+function destroy(id: string): Promise<void> {
+	return $fetch(`/api/v1/courses/${id}`, {
+		...api(),
 		method: "DELETE",
-		credentials: "include",
 	});
 }
 
-// export tanan
 export const courseService = {
 	index,
 	show,

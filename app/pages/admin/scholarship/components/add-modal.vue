@@ -9,46 +9,34 @@ const emit = defineEmits<{ close: [boolean] }>();
 const errorMessage = ref("");
 
 const schema = z.object({
-	code: z.string().optional(),
-	name: z.string().min(1, "Name is required"),
+	name: z.string().trim().min(1, "Name is required"),
 	description: z.string().optional(),
-	intakeType: z.enum(["public_application", "staff_nomination"]),
-	defaultAmountPerSemester: z.number().min(1, "Amount is required"),
-	isActive: z.boolean(),
+	isArchived: z.boolean(),
 });
 
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
-	code: "",
 	name: "",
 	description: "",
-	intakeType: "public_application",
-	defaultAmountPerSemester: 1,
-	isActive: true,
+	isArchived: false,
 });
-
-const intakeOptions = [
-	{ label: "Public Application", value: "public_application" },
-	{ label: "Staff Nomination", value: "staff_nomination" },
-];
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
 	errorMessage.value = "";
 
-	await store.create({
-		...event.data,
-		code: event.data.code || undefined,
-		description: event.data.description || undefined,
-		defaultAmountPerSemester: Number(event.data.defaultAmountPerSemester),
+	const success = await store.create({
+		name: event.data.name,
+		description: event.data.description || null,
+		isArchived: event.data.isArchived,
 	});
 
-	if (store.error) {
-		errorMessage.value = store.error;
+	if (!success) {
+		errorMessage.value = store.error || "Failed to create scholarship program";
 
 		toast.add({
 			title: "Error",
-			description: store.error,
+			description: errorMessage.value,
 			color: "error",
 		});
 		return;
@@ -68,7 +56,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	<UModal title="Add Scholarship Program">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER (Course-style card) -->
+				<!-- HEADER -->
 				<div
 					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 				>
@@ -85,7 +73,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								Create scholarship program
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Fill in scholarship details and funding configuration.
+								Fill in scholarship program details.
 							</p>
 						</div>
 					</div>
@@ -101,26 +89,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					:description="errorMessage"
 				/>
 
-				<!-- FORM (COURSE STYLE) -->
+				<!-- FORM -->
 				<UForm
 					:schema="schema"
 					:state="state"
 					class="space-y-5"
 					@submit="onSubmit"
 				>
-					<UFormField
-						label="Code"
-						name="code"
-					>
-						<UInput
-							v-model="state.code"
-							class="w-full"
-							size="lg"
-							icon="i-lucide-tag"
-							placeholder="TES, TDP..."
-						/>
-					</UFormField>
-
 					<UFormField
 						label="Name"
 						name="name"
@@ -148,46 +123,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					</UFormField>
 
 					<UFormField
-						label="Intake Type"
-						name="intakeType"
-					>
-						<USelect
-							v-model="state.intakeType"
-							class="w-full"
-							size="lg"
-							icon="i-lucide-list"
-							:items="intakeOptions"
-							label-key="label"
-							value-key="value"
-							placeholder="Select intake type"
-						/>
-					</UFormField>
-
-					<UFormField
-						label="Amount per Semester"
-						name="defaultAmountPerSemester"
-					>
-						<UInput
-							v-model.number="state.defaultAmountPerSemester"
-							class="w-full"
-							size="lg"
-							icon="i-lucide-wallet"
-							type="number"
-							placeholder="Enter amount"
-						/>
-					</UFormField>
-
-					<UFormField
-						label="Active"
-						name="isActive"
+						label="Archived"
+						name="isArchived"
 					>
 						<div
 							class="flex items-center justify-between rounded-lg border p-3 dark:border-slate-800"
 						>
-							<span class="text-sm text-slate-600 dark:text-slate-300">
-								Enable scholarship program
-							</span>
-							<USwitch v-model="state.isActive" />
+							<div>
+								<p class="text-sm text-slate-600 dark:text-slate-300">
+									Archive scholarship program
+								</p>
+								<p class="text-xs text-slate-500">Archived programs are marked inactive.</p>
+							</div>
+							<USwitch v-model="state.isArchived" />
 						</div>
 					</UFormField>
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { useToast, navigateTo } from "#imports";
 import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
@@ -39,45 +38,76 @@ const fields: AuthFormField[] = [
 ];
 
 const schema = z.object({
-	studentNumber: z.string().min(1, "Student number is required"),
-	email: z.email("Invalid email"),
+	studentNumber: z.string().trim().min(1, "Student number is required"),
+
+	email: z.email("Invalid email address"),
+
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
-	const { studentNumber, email, password } = payload.data;
+	if (store.isLoading) return;
 
+	const studentNumber = payload.data.studentNumber.trim();
+
+	const email = payload.data.email.trim();
+
+	const password = payload.data.password;
+
+	// STEP 1: Verify student number
 	const verification = await store.verifyStudent(studentNumber);
 
 	if (!verification) {
 		toast.add({
 			title: "Verification Failed",
-			description: store.errorMessage || "Unable to verify student number",
+			description: store.errorMessage || "Unable to verify student number.",
 			color: "error",
+			icon: "i-lucide-circle-x",
 		});
+
 		return;
 	}
 
+	// STEP 2: Check if student is allowlisted
 	if (!verification.allowed) {
 		toast.add({
 			title: "Not Eligible for Registration",
-			description: "Your student number is not on the allowlist.",
+			description:
+				"Your student number is not on the allowlist. Please contact the scholarship administrator.",
 			color: "error",
+			icon: "i-lucide-shield-alert",
 		});
+
 		return;
 	}
 
+	// STEP 3: Check if already registered
 	if (verification.isRegistered) {
 		toast.add({
 			title: "Already Registered",
-			description: "This student number already has an account.",
-			color: "error",
+			description: "This student number already has an account. Please log in instead.",
+			color: "warning",
+			icon: "i-lucide-user-check",
 		});
+
 		return;
 	}
 
+	// STEP 4: Confirm registration action
+	if (verification.nextAction !== "register") {
+		toast.add({
+			title: "Registration Unavailable",
+			description: "Your student account cannot be registered at this time.",
+			color: "warning",
+			icon: "i-lucide-alert-triangle",
+		});
+
+		return;
+	}
+
+	// STEP 5: Register student
 	const success = await store.registerStudent({
 		studentNumber,
 		email,
@@ -87,16 +117,20 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	if (!success) {
 		toast.add({
 			title: "Registration Failed",
-			description: store.errorMessage || "Unable to create account",
+			description: store.errorMessage || "Unable to create your account.",
 			color: "error",
+			icon: "i-lucide-circle-x",
 		});
+
 		return;
 	}
 
+	// STEP 6: Registration successful
 	toast.add({
-		title: "Success",
-		description: "Account registered successfully!",
+		title: "Registration Successful",
+		description: "Your student account has been created. Please log in.",
 		color: "success",
+		icon: "i-lucide-circle-check",
 	});
 
 	await navigateTo("/user-login");
@@ -104,8 +138,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 </script>
 
 <template>
-	<div class="flex flex-col min-h-screen justify-between bg-background">
-		<div class="flex flex-col items-center justify-center gap-4 p-4 flex-1">
+	<div class="flex min-h-screen flex-col justify-between bg-background">
+		<div class="flex flex-1 flex-col items-center justify-center gap-4 p-4">
 			<UPageCard class="w-full max-w-md">
 				<UAuthForm
 					:schema="schema"
@@ -113,17 +147,29 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 					description="Create a new account to access the CPSU Scholarship portal."
 					icon="i-lucide-user-plus"
 					:fields="fields"
+					:loading="store.isLoading"
 					@submit="onSubmit"
 				>
+					<template #validation>
+						<UAlert
+							v-if="store.errorMessage"
+							:title="store.errorMessage"
+							color="error"
+							icon="i-lucide-alert-circle"
+							class="mb-4"
+						/>
+					</template>
+
 					<template #submit>
-						<div class="flex justify-center mt-4">
+						<div class="mt-4 flex justify-center">
 							<UButton
 								label="Sign up"
 								type="submit"
 								color="primary"
 								size="lg"
-								class="w-full flex justify-center items-center"
+								class="flex w-full items-center justify-center"
 								:loading="store.isLoading"
+								:disabled="store.isLoading"
 							/>
 						</div>
 					</template>
@@ -131,9 +177,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 
 				<div class="mt-4 text-center text-sm text-muted">
 					Already have an account?
+
 					<NuxtLink
 						to="/user-login"
-						class="text-primary font-medium hover:underline"
+						class="font-medium text-primary hover:underline"
 					>
 						Log in here
 					</NuxtLink>

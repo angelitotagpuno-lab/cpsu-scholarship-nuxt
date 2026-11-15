@@ -1,54 +1,61 @@
-import type { ApiResponse } from "~/types/api-response";
 import type {
 	ScholarshipProgram,
 	CreateScholarshipProgramPayload,
 	UpdateScholarshipProgramPayload,
+	ScholarshipProgramListResponse,
+	ScholarshipProgramQuery,
 } from "~/types/scholarship";
 
-const baseUrl = "/proxy";
+const api = () => {
+	const config = useRuntimeConfig();
 
-// index
-function index(): Promise<ApiResponse<ScholarshipProgram[]>> {
-	return $fetch(baseUrl + "/api/scholarship-programs", {
+	return {
+		baseURL: config.public.baseUrl,
+		credentials: "include" as const,
+	};
+};
+
+function index(query: ScholarshipProgramQuery = {}): Promise<ScholarshipProgramListResponse> {
+	return $fetch("/api/v1/scholarship-programs", {
+		...api(),
 		method: "GET",
-		credentials: "include",
+		query: {
+			page: query.page ?? 1,
+			perPage: query.perPage ?? 100,
+			...(query.search ? { search: query.search } : {}),
+			sort: query.sort ?? "createdAt",
+			order: query.order ?? "desc",
+		},
 	});
 }
 
-// show
-function show(id: string): Promise<ApiResponse<ScholarshipProgram>> {
-	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
+function show(id: string): Promise<ScholarshipProgram> {
+	return $fetch(`/api/v1/scholarship-programs/${encodeURIComponent(id)}`, {
+		...api(),
 		method: "GET",
-		credentials: "include",
 	});
 }
 
-// store
-function store(body: CreateScholarshipProgramPayload): Promise<ApiResponse<ScholarshipProgram>> {
-	return $fetch(baseUrl + "/api/scholarship-programs", {
+function store(body: CreateScholarshipProgramPayload): Promise<ScholarshipProgram> {
+	return $fetch("/api/v1/scholarship-programs", {
+		...api(),
 		method: "POST",
 		body,
-		credentials: "include",
 	});
 }
 
-// update
-function update(
-	id: string,
-	body: UpdateScholarshipProgramPayload,
-): Promise<ApiResponse<ScholarshipProgram>> {
-	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
+function update(id: string, body: UpdateScholarshipProgramPayload): Promise<ScholarshipProgram> {
+	return $fetch(`/api/v1/scholarship-programs/${encodeURIComponent(id)}`, {
+		...api(),
 		method: "PUT",
 		body,
-		credentials: "include",
 	});
 }
 
-// destroy
-function destroy(id: string): Promise<ApiResponse<ScholarshipProgram>> {
-	return $fetch(baseUrl + `/api/scholarship-programs/${id}`, {
+function destroy(id: string): Promise<void> {
+	return $fetch(`/api/v1/scholarship-programs/${encodeURIComponent(id)}`, {
+		...api(),
 		method: "DELETE",
-		credentials: "include",
 	});
 }
 

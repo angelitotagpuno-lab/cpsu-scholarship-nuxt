@@ -1,38 +1,42 @@
-export type IntakeType = "public_application" | "staff_nomination";
-
 export interface ScholarshipProgram {
 	id: string;
+	name: string;
+	description: string | null;
+	isArchived: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
 
-	code?: string | null;
+export interface CreateScholarshipProgramPayload {
 	name: string;
 	description?: string | null;
-
-	intake_type: IntakeType;
-
-	default_amount_per_semester: number;
-
-	is_active: boolean;
-
-	created_at: string;
-	updated_at: string;
+	isArchived?: boolean;
 }
 
-// For CREATE
-export interface CreateScholarshipProgramPayload {
-	code?: string;
-	name: string;
-	description?: string;
-	intakeType: IntakeType;
-	defaultAmountPerSemester: number;
-	isActive?: boolean;
-}
-
-// For UPDATE (partial)
 export interface UpdateScholarshipProgramPayload {
-	code?: string;
 	name?: string;
-	description?: string;
-	intakeType?: IntakeType;
-	defaultAmountPerSemester?: number;
-	isActive?: boolean;
+	description?: string | null;
+	isArchived?: boolean;
+}
+
+export interface ScholarshipProgramMeta {
+	total: number;
+	page: number;
+	perPage: number;
+	totalPages: number;
+	hasNext: boolean;
+	hasPrev: boolean;
+}
+
+export interface ScholarshipProgramListResponse {
+	data: ScholarshipProgram[];
+	meta: ScholarshipProgramMeta;
+}
+
+export interface ScholarshipProgramQuery {
+	page?: number;
+	perPage?: number;
+	search?: string;
+	sort?: "name" | "createdAt";
+	order?: "asc" | "desc";
 }

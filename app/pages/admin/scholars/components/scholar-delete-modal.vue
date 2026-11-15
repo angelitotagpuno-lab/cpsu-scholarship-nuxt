@@ -1,16 +1,5 @@
 <script setup lang="ts">
-type Scholar = {
-	id: number;
-	no: number;
-	scholarshipType: "TDP" | "TES";
-	lastName: string;
-	firstName: string;
-	middleInitial: string;
-	course: string;
-	yearLevel: string;
-	semester: string;
-	enrolled: string;
-};
+import type { Scholar } from "~/types/scholar";
 
 const props = defineProps<{
 	show: boolean;
@@ -23,9 +12,9 @@ const emit = defineEmits<{
 }>();
 
 function confirmDelete() {
-	if (props.scholar) {
-		emit("confirm", props.scholar);
-	}
+	if (!props.scholar) return;
+
+	emit("confirm", props.scholar);
 }
 </script>
 

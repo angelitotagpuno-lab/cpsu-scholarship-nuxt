@@ -1,7 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import camelize from "camelize";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import type { FetchError } from "ofetch";
 import { personnelService } from "~/services/personnel.service";
-import type { Personnel } from "~/types/personnel";
+import type {
+	Personnel,
+	CreatePersonnel,
+	UpdatePersonnel,
+	PersonnelMeta,
+	PersonnelQuery,
+} from "~/types/personnel";
 
 export const usePersonnelStore = defineStore("personnel", () => {
 	const personnels = ref<Personnel[]>([]);
@@ -9,92 +16,131 @@ export const usePersonnelStore = defineStore("personnel", () => {
 	const isLoading = ref(false);
 	const errorMessage = ref<string | null>(null);
 
-	async function getPersonnels() {
+	const meta = ref<PersonnelMeta>({
+		total: 0,
+		page: 1,
+		perPage: 20,
+		totalPages: 0,
+		hasNext: false,
+		hasPrev: false,
+	});
+
+	const query = ref<PersonnelQuery>({
+		page: 1,
+		perPage: 20,
+		search: "",
+		sort: "createdAt",
+		order: "desc",
+	});
+
+	function handleError(error: unknown, fallback: string) {
+		const err = error as FetchError<{
+			message?: string;
+			error?: string;
+		}>;
+
+		errorMessage.value = err.data?.message || err.data?.error || err.message || fallback;
+
+		console.error(fallback, error);
+	}
+
+	async function getPersonnels(params?: PersonnelQuery): Promise<boolean> {
 		errorMessage.value = null;
 		isLoading.value = true;
 
 		try {
-			const res = await personnelService.index();
+			if (params) {
+				query.value = { ...query.value, ...params };
+			}
 
-			// ✅ FIX: normalize list
-			personnels.value = camelize(res.data);
-		} catch (e) {
-			errorMessage.value = "Failed to fetch personnels";
-			console.error(e);
+			const res = await personnelService.index(query.value);
+
+			personnels.value = res.data;
+			meta.value = res.meta;
+
+			return true;
+		} catch (error) {
+			handleError(error, "Failed to fetch personnels");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function getPersonnel(id: string) {
+	async function getPersonnel(id: string): Promise<boolean> {
 		errorMessage.value = null;
 		isLoading.value = true;
 
 		try {
-			const res = await personnelService.show(id);
-
-			// already correct
-			personnel.value = camelize(res.data);
-		} catch (e) {
-			errorMessage.value = "Failed to fetch personnel";
-			console.error(e);
+			personnel.value = await personnelService.show(id);
+			return true;
+		} catch (error) {
+			handleError(error, "Failed to fetch personnel");
+			return false;
 		} finally {
 			isLoading.value = false;
 		}
 	}
 
-	async function addPersonnel(body: any) {
+	async function addPersonnel(body: CreatePersonnel): Promise<boolean> {
 		errorMessage.value = null;
 		isLoading.value = true;
 
 		try {
-			const res = await personnelService.store(body);
-			personnel.value = camelize(res.data);
-
-			await getPersonnels();
-		} catch (e) {
-			errorMessage.value = "Failed to add personnel";
-			console.error(e);
-		} finally {
+			personnel.value = await personnelService.store(body);
+		} catch (error) {
+			handleError(error, "Failed to add personnel");
 			isLoading.value = false;
+			return false;
 		}
+
+		isLoading.value = false;
+		await getPersonnels();
+
+		return !errorMessage.value;
 	}
 
-	async function editPersonnel(id: string, body: any) {
+	async function editPersonnel(id: string, body: UpdatePersonnel): Promise<boolean> {
 		errorMessage.value = null;
 		isLoading.value = true;
 
 		try {
-			const res = await personnelService.update(id, body);
-			personnel.value = camelize(res.data);
-
-			await getPersonnels();
-		} catch (e) {
-			errorMessage.value = "Failed to update personnel";
-			console.error(e);
-		} finally {
+			personnel.value = await personnelService.update(id, body);
+		} catch (error) {
+			handleError(error, "Failed to update personnel");
 			isLoading.value = false;
+			return false;
 		}
+
+		isLoading.value = false;
+		await getPersonnels();
+
+		return !errorMessage.value;
 	}
 
-	async function deletePersonnel(id: string) {
+	async function deletePersonnel(id: string): Promise<boolean> {
 		errorMessage.value = null;
 		isLoading.value = true;
 
 		try {
 			await personnelService.destroy(id);
-			await getPersonnels();
-		} catch (e) {
-			errorMessage.value = "Failed to delete personnel";
-			console.error(e);
-		} finally {
+		} catch (error) {
+			handleError(error, "Failed to delete personnel");
 			isLoading.value = false;
+			return false;
 		}
+
+		isLoading.value = false;
+		await getPersonnels();
+
+		return !errorMessage.value;
 	}
 
 	return {
 		personnels,
 		personnel,
+		meta,
+		query,
 		isLoading,
 		errorMessage,
 		getPersonnels,

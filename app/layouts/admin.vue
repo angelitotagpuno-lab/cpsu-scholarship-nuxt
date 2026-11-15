@@ -47,18 +47,16 @@ const items: NavigationMenuItem[][] = [
 			children: [
 				{ label: "Applicants", icon: "i-lucide-file-user", to: "/admin/applicants" },
 				{
-					label: "Applicants",
-					icon: "i-lucide-clipboard-list",
-					type: "trigger",
-					children: [
-						{ label: "TDP Applicants", icon: "i-lucide-file-user", to: "/admin/applicants/tdp" },
-						{
-							label: "TES/TDP Applicants",
-							icon: "i-lucide-file-check-2",
-							to: "/admin/applicants/tes",
-						},
-					],
+					label: "Analytics",
+					icon: "i-lucide-chart-no-axes-combined",
+					to: "/admin/applicants/analytics",
 				},
+				{
+					label: "Recommendations",
+					icon: "i-lucide-file-check-2",
+					to: "/admin/applicants/recommendations",
+				},
+
 				{ label: "Scholars", icon: "i-lucide-medal", to: "/admin/scholars" },
 			],
 		},

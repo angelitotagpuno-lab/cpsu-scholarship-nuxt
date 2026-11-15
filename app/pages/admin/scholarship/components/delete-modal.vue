@@ -1,10 +1,29 @@
 <script setup lang="ts">
-const props = defineProps<{ data: any }>();
+import type { ScholarshipProgram } from "~/types/scholarship";
+
+const props = defineProps<{ data: ScholarshipProgram }>();
 const store = useScholarshipStore();
+const toast = useToast();
 const emit = defineEmits<{ close: [boolean] }>();
 
+const errorMessage = ref("");
+
 async function confirm() {
-	await store.remove(props.data.id);
+	errorMessage.value = "";
+
+	const success = await store.remove(props.data.id);
+
+	if (!success) {
+		errorMessage.value = store.error || "Failed to delete scholarship program";
+		return;
+	}
+
+	toast.add({
+		title: "Success",
+		description: "Scholarship program deleted",
+		color: "success",
+	});
+
 	emit("close", true);
 }
 </script>
@@ -27,15 +46,26 @@ async function confirm() {
 						<div>
 							<h3 class="text-base font-semibold">Delete confirmation</h3>
 							<p class="text-sm text-slate-500">
-								Are you sure you want to delete <b>{{ props.data.name }} </b>?
+								Are you sure you want to delete
+								<b>{{ props.data.name }}</b>?
 							</p>
 						</div>
 					</div>
 				</div>
 
+				<UAlert
+					v-if="errorMessage"
+					icon="i-lucide-circle-alert"
+					color="error"
+					variant="soft"
+					title="Delete failed"
+					:description="errorMessage"
+				/>
+
 				<div class="flex justify-end gap-2 border-t pt-4">
 					<UButton
 						color="primary"
+						:disabled="store.loading"
 						@click="emit('close', false)"
 					>
 						Cancel

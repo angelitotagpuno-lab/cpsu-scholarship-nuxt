@@ -1,18 +1,52 @@
-import type { Role } from "~/types/user";
-
 export interface Personnel {
-	id?: string;
-	email?: string; // ✅ add this
+	id: string;
+	userId: string;
+	firstName: string;
+	lastName: string;
+	department: string;
+	position: string;
+	contactNumber: string | null;
+	createdAt: string;
+	updatedAt: string;
+	role: "personnel";
+}
 
-	first_name?: string;
-	last_name?: string;
-	middle_name?: string;
-	sex?: "male" | "female";
+export interface CreatePersonnel {
+	firstName: string;
+	lastName: string;
+	department: string;
+	position: string;
+	contactNumber?: string | null;
+	email: string;
+	password: string;
+}
 
-	position?: string;
+export interface UpdatePersonnel {
+	firstName?: string;
+	lastName?: string;
 	department?: string;
+	position?: string;
+	contactNumber?: string | null;
+}
 
-	role: Role;
+export interface PersonnelMeta {
+	total: number;
+	page: number;
+	perPage: number;
+	totalPages: number;
+	hasNext: boolean;
+	hasPrev: boolean;
+}
 
-	password?: string; // ✅ optional (ONLY for forms)
+export interface PersonnelListResponse {
+	data: Personnel[];
+	meta: PersonnelMeta;
+}
+
+export interface PersonnelQuery {
+	page?: number;
+	perPage?: number;
+	search?: string;
+	sort?: "firstName" | "lastName" | "createdAt";
+	order?: "asc" | "desc";
 }

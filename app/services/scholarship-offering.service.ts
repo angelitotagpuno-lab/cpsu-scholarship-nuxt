@@ -1,59 +1,83 @@
-import type { ApiResponse } from "~/types/api-response";
 import type {
 	ScholarshipOffering,
 	CreateScholarshipOfferingPayload,
 	UpdateScholarshipOfferingPayload,
+	ScholarshipOfferingQuery,
+	ScholarshipOfferingListResponse,
+	ScholarshipOfferingCursorQuery,
+	ScholarshipOfferingCursorResponse,
 } from "~/types/scholarship-offering";
 
-const baseUrl = "/proxy";
+const api = () => {
+	const config = useRuntimeConfig();
 
-// index
-function index(): Promise<ApiResponse<ScholarshipOffering[]>> {
-	return $fetch(baseUrl + "/api/scholarship-offerings", {
+	return {
+		baseURL: config.public.baseUrl,
+		credentials: "include" as const,
+	};
+};
+
+function index(query: ScholarshipOfferingQuery = {}): Promise<ScholarshipOfferingListResponse> {
+	return $fetch("/api/v1/program-offerings", {
+		...api(),
 		method: "GET",
-		credentials: "include",
+		query: {
+			page: query.page ?? 1,
+			perPage: query.perPage ?? 100,
+			...(query.search ? { search: query.search } : {}),
+			sort: query.sort ?? "createdAt",
+			order: query.order ?? "desc",
+		},
 	});
 }
 
-// show
-function show(id: string): Promise<ApiResponse<ScholarshipOffering>> {
-	return $fetch(baseUrl + `/api/scholarship-offerings/${id}`, {
+function indexCursor(
+	query: ScholarshipOfferingCursorQuery = {},
+): Promise<ScholarshipOfferingCursorResponse> {
+	return $fetch("/api/v1/program-offerings/cursor", {
+		...api(),
 		method: "GET",
-		credentials: "include",
+		query: {
+			...(query.cursor ? { cursor: query.cursor } : {}),
+			perPage: query.perPage ?? 20,
+			direction: query.direction ?? "next",
+		},
 	});
 }
 
-// store
-function store(body: CreateScholarshipOfferingPayload): Promise<ApiResponse<ScholarshipOffering>> {
-	return $fetch(baseUrl + "/api/scholarship-offerings", {
+function show(id: string): Promise<ScholarshipOffering> {
+	return $fetch(`/api/v1/program-offerings/${encodeURIComponent(id)}`, {
+		...api(),
+		method: "GET",
+	});
+}
+
+function store(body: CreateScholarshipOfferingPayload): Promise<ScholarshipOffering> {
+	return $fetch("/api/v1/program-offerings", {
+		...api(),
 		method: "POST",
 		body,
-		credentials: "include",
 	});
 }
 
-// update
-function update(
-	id: string,
-	body: UpdateScholarshipOfferingPayload,
-): Promise<ApiResponse<ScholarshipOffering>> {
-	return $fetch(baseUrl + `/api/scholarship-offerings/${id}`, {
+function update(id: string, body: UpdateScholarshipOfferingPayload): Promise<ScholarshipOffering> {
+	return $fetch(`/api/v1/program-offerings/${encodeURIComponent(id)}`, {
+		...api(),
 		method: "PUT",
 		body,
-		credentials: "include",
 	});
 }
 
-// destroy
-function destroy(id: string): Promise<ApiResponse<ScholarshipOffering>> {
-	return $fetch(baseUrl + `/api/scholarship-offerings/${id}`, {
+function destroy(id: string): Promise<void> {
+	return $fetch(`/api/v1/program-offerings/${encodeURIComponent(id)}`, {
+		...api(),
 		method: "DELETE",
-		credentials: "include",
 	});
 }
 
 export const scholarshipOfferingService = {
 	index,
+	indexCursor,
 	show,
 	store,
 	update,

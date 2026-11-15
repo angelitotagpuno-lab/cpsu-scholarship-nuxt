@@ -1,37 +1,35 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+
+import ClaimablePayout from "./components/claimable-payout.vue";
 import LiquidationTable from "./components/LiquidationTable.vue";
 import DownloadButton from "./components/DownloadButton.vue";
+
+import type { Payout, LiquidationRecord } from "~/types/payout";
 
 definePageMeta({
 	layout: "admin",
 });
 
-// ----- TDP payouts -----
-const tdpPayouts = ref([
-	{
-		date: "2024-07-08",
-		checkNo: "0001676056",
-		dvPayrollNo: "2024-07-0245",
-		name: "Raven Ann Abadies",
-		pwd: "No",
-		purpose:
-			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: 7500,
-	},
-	{
-		date: "2024-07-08",
-		checkNo: "0001676057",
-		dvPayrollNo: "2024-07-0245",
-		name: "Danica Abella",
-		pwd: "Yes",
-		purpose:
-			"Stipend allowance of TDP - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: 9500,
-	},
-]);
+// Liquidation records
+// Waiting for an admin payout-list API endpoint
+const tdpPayouts = ref<LiquidationRecord[]>([]);
 
-const totalTdpAmount = computed(() => tdpPayouts.value.reduce((sum, r) => sum + r.amount, 0));
+// Raw payout records for the claimable UI
+// No admin payout-list endpoint is documented yet
+const adminPayouts = ref<Payout[]>([]);
+
+// Total TDP liquidation amount
+const totalTdpAmount = computed(() =>
+	tdpPayouts.value.reduce((sum, record) => sum + record.amount, 0),
+);
+
+// Refresh admin payouts
+// To be implemented when an admin payout-list API is available
+async function refreshAdminPayouts() {
+	// No documented admin payout-list endpoint yet.
+	// Keep the current records unchanged.
+}
 </script>
 
 <template>
@@ -45,33 +43,49 @@ const totalTdpAmount = computed(() => tdpPayouts.value.reduce((sum, r) => sum + 
 
 				<div>
 					<h1 class="text-xl font-bold text-slate-900 dark:text-white">TDP Liquidation Records</h1>
+
 					<p class="text-sm text-slate-500 dark:text-slate-400">
-						View and export TDP payout records
+						Manage claimable payouts and view TDP liquidation records.
 					</p>
 				</div>
 			</div>
 		</div>
 
-		<!-- CONTENT CARD -->
+		<!-- CLAIMABLE PAYOUT SECTION -->
 		<div
-			class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 space-y-4"
+			class="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
 		>
-			<div class="flex items-center justify-between">
-				<h2 class="font-semibold text-slate-900 dark:text-white">TDP Payout List</h2>
+			<ClaimablePayout
+				:payouts="adminPayouts"
+				@updated="refreshAdminPayouts"
+			/>
+		</div>
+
+		<!-- LIQUIDATION RECORDS -->
+		<div
+			class="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<h2 class="font-semibold text-slate-900 dark:text-white">TDP Payout List</h2>
+
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						View and export TDP liquidation records.
+					</p>
+				</div>
 
 				<DownloadButton
+					v-if="tdpPayouts.length > 0"
 					:payouts="tdpPayouts"
 					:totalAmount="totalTdpAmount"
 					filename="TDP_Liquidation.csv"
 				/>
 			</div>
 
-			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
-				<LiquidationTable
-					:payouts="tdpPayouts"
-					:totalAmount="totalTdpAmount"
-				/>
-			</div>
+			<LiquidationTable
+				:payouts="tdpPayouts"
+				:totalAmount="totalTdpAmount"
+			/>
 		</div>
 	</div>
 </template>

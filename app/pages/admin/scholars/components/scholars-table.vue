@@ -1,21 +1,10 @@
 <script setup lang="ts">
 import { ref, h, resolveComponent } from "vue";
 import type { TableColumn } from "@nuxt/ui";
+import type { Scholar } from "~/types/scholar";
+
 import ScholarUpdateModal from "./scholar-update-modal.vue";
 import ScholarDeleteModal from "./scholar-delete-modal.vue";
-
-type Scholar = {
-	id: number;
-	no: number;
-	scholarshipType: "TDP" | "TES";
-	lastName: string;
-	firstName: string;
-	middleInitial: string;
-	course: string;
-	yearLevel: string;
-	semester: string;
-	enrolled: string;
-};
 
 const props = defineProps<{
 	scholars: Scholar[];
@@ -29,6 +18,8 @@ const selectedScholar = ref<Scholar | null>(null);
 const showDeleteModal = ref(false);
 const scholarToDelete = ref<Scholar | null>(null);
 
+const UButton = resolveComponent("UButton");
+
 const columns: TableColumn<Scholar>[] = [
 	{ accessorKey: "no", header: "No.", size: 60 },
 	{
@@ -37,17 +28,25 @@ const columns: TableColumn<Scholar>[] = [
 		size: 100,
 		cell: ({ row }) => {
 			const type = row.original.scholarshipType;
+
 			const className =
 				type === "TDP"
 					? "inline-flex rounded bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700 dark:bg-violet-900 dark:text-violet-200"
-					: "inline-flex rounded bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-900 dark:text-cyan-200";
+					: type === "TES"
+						? "inline-flex rounded bg-cyan-100 px-2 py-1 text-xs font-medium text-cyan-700 dark:bg-cyan-900 dark:text-cyan-200"
+						: "inline-flex rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300";
 
 			return h("span", { class: className }, type);
 		},
 	},
 	{ accessorKey: "lastName", header: "Last Name", size: 120 },
 	{ accessorKey: "firstName", header: "First Name", size: 120 },
-	{ accessorKey: "middleInitial", header: "M.I.", size: 60 },
+	{
+		accessorKey: "middleInitial",
+		header: "M.I.",
+		size: 60,
+		cell: ({ row }) => row.original.middleInitial || "—",
+	},
 	{
 		accessorKey: "course",
 		header: "Course",
@@ -76,7 +75,9 @@ const columns: TableColumn<Scholar>[] = [
 					? "inline-flex rounded bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
 					: status === "Not Enrolled"
 						? "inline-flex rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900 dark:text-amber-200"
-						: "inline-flex rounded bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-900 dark:text-rose-200";
+						: status === "Drop" || status === "Stop"
+							? "inline-flex rounded bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700 dark:bg-rose-900 dark:text-rose-200"
+							: "inline-flex rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300";
 
 			return h("span", { class: className }, status);
 		},
@@ -89,7 +90,7 @@ const columns: TableColumn<Scholar>[] = [
 			const scholar = row.original;
 
 			return h("div", { class: "flex items-center gap-2" }, [
-				h(resolveComponent("UButton"), {
+				h(UButton, {
 					label: "Update",
 					size: "xs",
 					color: "primary",
@@ -101,7 +102,7 @@ const columns: TableColumn<Scholar>[] = [
 						showModal.value = true;
 					},
 				}),
-				h(resolveComponent("UButton"), {
+				h(UButton, {
 					label: "Remove",
 					size: "xs",
 					color: "error",
@@ -118,16 +119,24 @@ const columns: TableColumn<Scholar>[] = [
 	},
 ];
 
-function handleSave(updatedScholar: Scholar) {
-	props.onUpdate(updatedScholar);
+function closeUpdateModal() {
 	showModal.value = false;
 	selectedScholar.value = null;
 }
 
-function handleDelete(scholar: Scholar) {
-	props.onRemove(scholar);
+function closeDeleteModal() {
 	showDeleteModal.value = false;
 	scholarToDelete.value = null;
+}
+
+function handleSave(updatedScholar: Scholar) {
+	props.onUpdate(updatedScholar);
+	closeUpdateModal();
+}
+
+function handleDelete(scholar: Scholar) {
+	props.onRemove(scholar);
+	closeDeleteModal();
 }
 </script>
 
@@ -136,7 +145,7 @@ function handleDelete(scholar: Scholar) {
 		class="overflow-x-auto rounded-md border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
 	>
 		<UTable
-			:data="scholars"
+			:data="props.scholars"
 			:columns="columns"
 			class="min-w-[1020px]"
 		/>
@@ -144,14 +153,14 @@ function handleDelete(scholar: Scholar) {
 		<ScholarUpdateModal
 			:show="showModal"
 			:scholar="selectedScholar"
-			@close="showModal = false"
+			@close="closeUpdateModal"
 			@save="handleSave"
 		/>
 
 		<ScholarDeleteModal
 			:show="showDeleteModal"
 			:scholar="scholarToDelete"
-			@close="showDeleteModal = false"
+			@close="closeDeleteModal"
 			@confirm="handleDelete"
 		/>
 	</div>

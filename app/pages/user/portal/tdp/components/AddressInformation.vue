@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useApplicationStore } from "~/stores/application.store";
+import { useTdpFormStore } from "~/stores/tdp-form.store";
 
-const store = useApplicationStore();
+const store = useTdpFormStore();
 
 const allowLetters = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", " "];

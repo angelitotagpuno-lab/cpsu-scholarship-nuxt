@@ -1,59 +1,112 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ApiResponse } from "~/types/api-response";
+import type { Application, ApplicationListResponse, ApplicationQuery } from "~/types/application";
 
-export type ApplicationStatus = "pending" | "under_review" | "approved" | "rejected";
+const api = () => {
+	const config = useRuntimeConfig();
 
-const baseUrl = "/proxy";
+	return {
+		baseURL: config.public.baseUrl as string,
+		credentials: "include" as const,
+	};
+};
 
 /* =========================
-   USER
+	 USER APPLICATIONS
+	 Existing functionality
 ========================= */
-function store(form: FormData): Promise<ApiResponse<any>> {
-	return $fetch(baseUrl + "/api/applications", {
+
+function store(form: FormData): Promise<ApiResponse<Application>> {
+	return $fetch("/api/applications", {
+		...api(),
 		method: "POST",
 		body: form,
-		credentials: "include",
 	});
 }
 
-function myApplications(): Promise<ApiResponse<any[]>> {
-	return $fetch(baseUrl + "/api/applications/me", {
-		credentials: "include",
+// Existing student application list.
+// Endpoint must be verified against new API.
+function myApplications(): Promise<ApiResponse<Application[]>> {
+	return $fetch("/api/applications/me", {
+		...api(),
+		method: "GET",
 	});
 }
 
 /* =========================
-   ADMIN
+	 ADMIN APPLICATIONS
 ========================= */
-function index(params?: {
-	page?: number;
-	limit?: number;
-	status?: string;
-	offeringId?: string;
-	q?: string;
-}): Promise<ApiResponse<any[]>> {
-	return $fetch(baseUrl + "/api/admin/applications", {
+
+// GET ALL APPLICATIONS
+function index(params: ApplicationQuery = {}): Promise<ApplicationListResponse> {
+	return $fetch("/api/v1/applications", {
+		...api(),
 		method: "GET",
 		query: params,
-		credentials: "include",
 	});
 }
 
-function show(id: string): Promise<ApiResponse<any>> {
-	return $fetch(baseUrl + `/api/admin/applications/${id}`, {
-		credentials: "include",
+// GET APPLICATION BY ID
+function show(id: string): Promise<Application> {
+	return $fetch(`/api/v1/applications/${id}`, {
+		...api(),
+		method: "GET",
 	});
 }
 
+// ACCEPT APPLICATION
+function accept(id: string): Promise<unknown> {
+	return $fetch(`/api/v1/applications/${id}/accept`, {
+		...api(),
+		method: "POST",
+	});
+}
+
+// REJECT APPLICATION
+function reject(id: string): Promise<unknown> {
+	return $fetch(`/api/v1/applications/${id}/reject`, {
+		...api(),
+		method: "POST",
+	});
+}
+
+// ACCEPT MULTIPLE APPLICATIONS
+function acceptMultiple(ids: string[]): Promise<unknown> {
+	return $fetch("/api/v1/applications/accept", {
+		...api(),
+		method: "POST",
+		body: {
+			ids,
+		},
+	});
+}
+
+// DELETE APPLICATION
+function destroy(id: string): Promise<unknown> {
+	return $fetch(`/api/v1/applications/${id}`, {
+		...api(),
+		method: "DELETE",
+	});
+}
+
+/* =========================
+	 COMPATIBILITY METHOD
+========================= */
+
+// Supports existing code that calls
+// updateStatus(id, { status, reason }).
+// The new API has no general PATCH endpoint.
 function updateStatus(
 	id: string,
-	body: { status: "approved" | "rejected"; reason?: string },
-): Promise<ApiResponse<any>> {
-	return $fetch(baseUrl + `/api/admin/applications/${id}`, {
-		method: "PATCH",
-		body,
-		credentials: "include",
-	});
+	body: {
+		status: "approved" | "rejected";
+		reason?: string;
+	},
+): Promise<unknown> {
+	if (body.status === "approved") {
+		return accept(id);
+	}
+
+	return reject(id);
 }
 
 export const applicationService = {
@@ -61,5 +114,9 @@ export const applicationService = {
 	myApplications,
 	index,
 	show,
+	accept,
+	reject,
+	acceptMultiple,
+	destroy,
 	updateStatus,
 };
