@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import z from "zod";
-import type { Personnel } from "~/types/personnel";
+import type { Personnel, UpdatePersonnel } from "~/types/personnel";
 
 const store = usePersonnelStore();
 const toast = useToast();
@@ -9,94 +9,61 @@ const emit = defineEmits<{ close: [boolean] }>();
 
 const props = defineProps<{ data: Personnel }>();
 
-const requiredString = (field: string) => z.string().trim().min(1, `${field} is required`);
+const errorMessage = ref("");
+
+const requiredString = (field: string) => z.string().trim().min(1, `${field} is required`).max(100);
 
 const schema = z.object({
-	email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
-	password: z.string().optional(),
-
-	first_name: requiredString("First name"),
-	last_name: requiredString("Last name"),
-	middle_name: z.string().trim().optional(),
-
-	sex: z.enum(["male", "female"]),
+	firstName: requiredString("First name"),
+	lastName: requiredString("Last name"),
 	position: requiredString("Position"),
 	department: requiredString("Department"),
-	role: z.enum(["admin", "personnel"]),
+	contactNumber: z.string().trim().max(50).optional(),
 });
 
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
-	email: props.data.email || "",
-	password: "",
-
-	first_name: props.data.first_name || "",
-	last_name: props.data.last_name || "",
-	middle_name: props.data.middle_name || "",
-
-	sex: props.data.sex || "male",
-	position: props.data.position || "",
-	department: props.data.department || "",
-	role: props.data.role === "admin" ? "admin" : "personnel",
+	firstName: props.data.firstName,
+	lastName: props.data.lastName,
+	position: props.data.position,
+	department: props.data.department,
+	contactNumber: props.data.contactNumber || "",
 });
 
-const sexOptions = [
-	{ label: "Male", value: "male" },
-	{ label: "Female", value: "female" },
-];
-
-const roleOptions = [
-	{ label: "Admin", value: "admin" },
-	{ label: "Personnel", value: "personnel" },
-	{ label: "Student", value: "student" },
-];
-
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	if (!props.data.id) return;
+	errorMessage.value = "";
 
-	const d = event.data;
+	const data = event.data;
 
-	const payload: any = {
-		email: d.email.trim(),
-		first_name: d.first_name.trim(),
-		last_name: d.last_name.trim(),
-		middle_name: d.middle_name?.trim() || null,
-		sex: d.sex,
-		position: d.position.trim(),
-		department: d.department.trim(),
-		role: d.role,
+	const payload: UpdatePersonnel = {
+		firstName: data.firstName.trim(),
+		lastName: data.lastName.trim(),
+		position: data.position.trim(),
+		department: data.department.trim(),
+		contactNumber: data.contactNumber?.trim() || null,
 	};
 
-	if (d.password && d.password.trim() !== "") {
-		payload.password = d.password;
-	}
+	const success = await store.editPersonnel(props.data.id, payload);
 
-	try {
-		console.log("PAYLOAD:", payload);
-		await store.editPersonnel(props.data.id, payload);
+	if (!success) {
+		errorMessage.value = store.errorMessage || "Failed to update personnel";
 
-		if (store.errorMessage) {
-			toast.add({
-				title: "Error",
-				description: store.errorMessage,
-				color: "error",
-			});
-		} else {
-			toast.add({
-				title: "Updated",
-				color: "success",
-			});
-			emit("close", true);
-		}
-	} catch (err) {
-		console.error("UPDATE FAILED:", err);
 		toast.add({
-			title: "Request Failed",
-			description: "Check console or backend validation",
+			title: "Error",
+			description: errorMessage.value,
 			color: "error",
 		});
+		return;
 	}
+
+	toast.add({
+		title: "Updated",
+		description: "Personnel updated successfully",
+		color: "success",
+	});
+
+	emit("close", true);
 }
 </script>
 
@@ -104,7 +71,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	<UModal title="Edit Personnel">
 		<template #body>
 			<div class="space-y-6">
-				<!-- Header -->
 				<div
 					class="rounded-lg bg-blue-50 p-4 ring-1 ring-blue-100 dark:bg-blue-950/30 dark:ring-blue-900"
 				>
@@ -121,11 +87,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								Update personnel account
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Edit account details, department, position, and role.
+								Edit personnel details, department, and position.
 							</p>
 						</div>
 					</div>
 				</div>
+
+				<UAlert
+					v-if="errorMessage"
+					icon="i-lucide-circle-alert"
+					color="error"
+					variant="soft"
+					title="Unable to update personnel"
+					:description="errorMessage"
+				/>
 
 				<UForm
 					:schema="schema"
@@ -135,40 +110,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 				>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<UFormField
-							label="Email"
-							name="email"
-							class="sm:col-span-2"
-						>
-							<UInput
-								v-model="state.email"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-mail"
-								placeholder="user@school.edu"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="New Password"
-							name="password"
-							class="sm:col-span-2"
-						>
-							<UInput
-								v-model="state.password"
-								class="w-full"
-								size="lg"
-								type="password"
-								icon="i-lucide-lock"
-								placeholder="Leave blank to keep current password"
-							/>
-						</UFormField>
-
-						<UFormField
 							label="First Name"
-							name="first_name"
+							name="firstName"
 						>
 							<UInput
-								v-model="state.first_name"
+								v-model="state.firstName"
 								class="w-full"
 								size="lg"
 								icon="i-lucide-user"
@@ -178,42 +124,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 						<UFormField
 							label="Last Name"
-							name="last_name"
+							name="lastName"
 						>
 							<UInput
-								v-model="state.last_name"
+								v-model="state.lastName"
 								class="w-full"
 								size="lg"
 								icon="i-lucide-user"
 								placeholder="Last name"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Middle Name"
-							name="middle_name"
-						>
-							<UInput
-								v-model="state.middle_name"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-user-round"
-								placeholder="Optional"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Sex"
-							name="sex"
-						>
-							<USelect
-								v-model="state.sex"
-								class="w-full"
-								size="lg"
-								:items="sexOptions"
-								label-key="label"
-								value-key="value"
-								placeholder="Select sex"
 							/>
 						</UFormField>
 
@@ -244,18 +162,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						</UFormField>
 
 						<UFormField
-							label="Role"
-							name="role"
+							label="Contact Number"
+							name="contactNumber"
 							class="sm:col-span-2"
 						>
-							<USelect
-								v-model="state.role"
+							<UInput
+								v-model="state.contactNumber"
 								class="w-full"
 								size="lg"
-								:items="roleOptions"
-								label-key="label"
-								value-key="value"
-								placeholder="Select role"
+								icon="i-lucide-phone"
+								placeholder="Optional"
 							/>
 						</UFormField>
 					</div>

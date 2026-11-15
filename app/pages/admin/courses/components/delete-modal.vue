@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 async function confirmDelete() {
-	await store.deleteCourse(props.data.id!);
+	await store.deleteCourse(props.data.id);
 
 	if (store.errorMessage) {
 		toast.add({

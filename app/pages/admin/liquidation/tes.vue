@@ -1,37 +1,35 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+
+import ClaimablePayout from "./components/claimable-payout.vue";
 import LiquidationTable from "./components/LiquidationTable.vue";
 import DownloadButton from "./components/DownloadButton.vue";
+
+import type { Payout, LiquidationRecord } from "~/types/payout";
 
 definePageMeta({
 	layout: "admin",
 });
 
-// ----- TES payouts -----
-const tesPayouts = ref([
-	{
-		date: "2024-07-10",
-		checkNo: "0001676100",
-		dvPayrollNo: "2024-07-0250",
-		name: "Mark Anthony Santos",
-		pwd: "No",
-		purpose:
-			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: 10000,
-	},
-	{
-		date: "2024-07-10",
-		checkNo: "0001676101",
-		dvPayrollNo: "2024-07-0250",
-		name: "Angela Reyes",
-		pwd: "Yes",
-		purpose:
-			"Stipend allowance of TES - TES CPSU San Carlos Campus for the Academic Year 2023-2024, 1st Semester.",
-		amount: 12000,
-	},
-]);
+// TES liquidation records
+// Awaiting an admin payout-list API endpoint
+const tesPayouts = ref<LiquidationRecord[]>([]);
 
-const totalTesAmount = computed(() => tesPayouts.value.reduce((sum, r) => sum + r.amount, 0));
+// Raw payout records for claimable UI
+// No admin payout-list endpoint is documented yet
+const adminPayouts = ref<Payout[]>([]);
+
+// Total TES liquidation amount
+const totalTesAmount = computed(() =>
+	tesPayouts.value.reduce((sum, record) => sum + record.amount, 0),
+);
+
+// Refresh admin payouts
+// To be implemented when an admin payout-list API is available
+async function refreshAdminPayouts() {
+	// No documented admin payout-list endpoint yet.
+	// Keep the current records unchanged.
+}
 </script>
 
 <template>
@@ -45,33 +43,49 @@ const totalTesAmount = computed(() => tesPayouts.value.reduce((sum, r) => sum + 
 
 				<div>
 					<h1 class="text-xl font-bold text-slate-900 dark:text-white">TES Liquidation Records</h1>
+
 					<p class="text-sm text-slate-500 dark:text-slate-400">
-						View and export TES stipend payouts
+						Manage claimable payouts and view TES liquidation records.
 					</p>
 				</div>
 			</div>
 		</div>
 
-		<!-- CONTENT CARD -->
+		<!-- CLAIMABLE PAYOUT SECTION -->
 		<div
-			class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 space-y-4"
+			class="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
 		>
-			<div class="flex items-center justify-between">
-				<h2 class="font-semibold text-slate-900 dark:text-white">TES Payout List</h2>
+			<ClaimablePayout
+				:payouts="adminPayouts"
+				@updated="refreshAdminPayouts"
+			/>
+		</div>
+
+		<!-- TES LIQUIDATION RECORDS -->
+		<div
+			class="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+		>
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<h2 class="font-semibold text-slate-900 dark:text-white">TES Payout List</h2>
+
+					<p class="text-sm text-slate-500 dark:text-slate-400">
+						View and export TES stipend payout records.
+					</p>
+				</div>
 
 				<DownloadButton
+					v-if="tesPayouts.length > 0"
 					:payouts="tesPayouts"
 					:totalAmount="totalTesAmount"
 					filename="TES_Liquidation.csv"
 				/>
 			</div>
 
-			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
-				<LiquidationTable
-					:payouts="tesPayouts"
-					:totalAmount="totalTesAmount"
-				/>
-			</div>
+			<LiquidationTable
+				:payouts="tesPayouts"
+				:totalAmount="totalTesAmount"
+			/>
 		</div>
 	</div>
 </template>

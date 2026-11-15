@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
+import { reactive, ref } from "vue";
 import z from "zod";
 
 const offeringStore = useScholarshipOfferingStore();
@@ -8,31 +9,45 @@ const toast = useToast();
 const props = defineProps<{ programId: string }>();
 const emit = defineEmits<{ close: [boolean] }>();
 
+const errorMessage = ref("");
+
+const moneySchema = z.coerce.number<number>().min(0, "Amount cannot be negative");
+
 const schema = z.object({
-	academicYear: z.string().min(1),
-	semester: z.enum(["1", "2"]),
-	allocatedBudget: z.number().min(1),
-	availableSlots: z.number().nullable().optional(),
-	status: z.enum(["draft", "open", "closed", "archived"]),
+	schoolYear: z.string().trim().min(1, "School year is required").max(20),
+	totalBudget: moneySchema,
+	amountPerSemester: moneySchema,
+	pwdAdditional: moneySchema,
 });
 
 type Schema = z.output<typeof schema>;
 
-const state = reactive<Schema>({
-	academicYear: "",
-	semester: "1",
-	allocatedBudget: 1,
-	availableSlots: null,
-	status: "draft",
+const state = reactive({
+	schoolYear: "",
+	totalBudget: 0,
+	amountPerSemester: 0,
+	pwdAdditional: 0,
 });
 
+function toMoney(value: number): string {
+	return value.toFixed(2);
+}
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await offeringStore.addOffering({
-		...event.data,
-		programId: props.programId,
+	errorMessage.value = "";
+
+	const success = await offeringStore.addOffering({
+		scholarshipProgramId: props.programId,
+		schoolYear: event.data.schoolYear,
+		totalBudget: toMoney(event.data.totalBudget),
+		amountPerSemester: toMoney(event.data.amountPerSemester),
+		pwdAdditional: toMoney(event.data.pwdAdditional),
 	});
 
-	if (offeringStore.errorMessage) return;
+	if (!success) {
+		errorMessage.value = offeringStore.errorMessage || "Failed to create offering";
+		return;
+	}
 
 	toast.add({
 		title: "Success",
@@ -48,7 +63,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	<UModal title="Add Offering">
 		<template #body>
 			<div class="space-y-6">
-				<!-- HEADER (Course-style UI) -->
+				<!-- HEADER -->
 				<div
 					class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 				>
@@ -65,11 +80,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								Create Offering
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Set academic year, budget, and available slots.
+								Set school year, budget, and scholarship amounts.
 							</p>
 						</div>
 					</div>
 				</div>
+
+				<UAlert
+					v-if="errorMessage"
+					color="error"
+					variant="soft"
+					icon="i-lucide-circle-alert"
+					title="Unable to create offering"
+					:description="errorMessage"
+				/>
 
 				<!-- FORM -->
 				<UForm
@@ -78,14 +102,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					class="space-y-5"
 					@submit="onSubmit"
 				>
-					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<UFormField
-							label="Academic Year"
-							name="academicYear"
+							label="School Year"
+							name="schoolYear"
 						>
 							<UInput
-								v-model="state.academicYear"
-								placeholder="e.g. 2025-2026"
+								v-model="state.schoolYear"
+								placeholder="e.g. 2026 - 2027"
 								icon="i-lucide-calendar"
 								class="w-full"
 								size="lg"
@@ -93,27 +117,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						</UFormField>
 
 						<UFormField
-							label="Semester"
-							name="semester"
-						>
-							<USelect
-								v-model="state.semester"
-								:items="['1', '2']"
-								placeholder="Select semester"
-								icon="i-lucide-book-open"
-								class="w-full"
-								size="lg"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Budget"
-							name="allocatedBudget"
+							label="Total Budget"
+							name="totalBudget"
 						>
 							<UInput
-								v-model.number="state.allocatedBudget"
+								v-model.number="state.totalBudget"
 								type="number"
-								placeholder="Enter budget"
+								min="0"
+								step="0.01"
+								placeholder="Enter total budget"
 								icon="i-lucide-wallet"
 								class="w-full"
 								size="lg"
@@ -121,28 +133,32 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						</UFormField>
 
 						<UFormField
-							label="Slots"
-							name="availableSlots"
+							label="Amount Per Semester"
+							name="amountPerSemester"
 						>
 							<UInput
-								v-model.number="state.availableSlots"
+								v-model.number="state.amountPerSemester"
 								type="number"
-								placeholder="Optional slots"
-								icon="i-lucide-users"
+								min="0"
+								step="0.01"
+								placeholder="Enter semester amount"
+								icon="i-lucide-banknote"
 								class="w-full"
 								size="lg"
 							/>
 						</UFormField>
 
 						<UFormField
-							label="Status"
-							name="status"
+							label="PWD Additional"
+							name="pwdAdditional"
 						>
-							<USelect
-								v-model="state.status"
-								:items="['draft', 'open', 'closed', 'archived']"
-								placeholder="Select status"
-								icon="i-lucide-activity"
+							<UInput
+								v-model.number="state.pwdAdditional"
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="Enter PWD additional amount"
+								icon="i-lucide-wallet"
 								class="w-full"
 								size="lg"
 							/>
@@ -154,7 +170,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							type="submit"
 							:loading="offeringStore.isLoading"
 							icon="i-lucide-save"
-							class="bg-emerald-600 hover:bg-emerald-700"
+							class="bg-emerald-600 hover:bg-emerald-700 text-white"
 						>
 							Save Offering
 						</UButton>

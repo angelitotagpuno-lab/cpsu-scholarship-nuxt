@@ -6,23 +6,37 @@ definePageMeta({
 	layout: "user-header",
 });
 
-const scholars = ref([
-	{ lastName: "Dela Cruz", firstName: "Juan", middleInitial: "A" },
-	{ lastName: "Santos", firstName: "Maria", middleInitial: "B" },
-	{ lastName: "Reyes", firstName: "Pedro", middleInitial: "C" },
-	{ lastName: "Lopez", firstName: "Ana", middleInitial: "D" },
-	{ lastName: "Rivera", firstName: "Mark", middleInitial: "E" },
-	{ lastName: "Ramos", firstName: "Liza", middleInitial: "F" },
-]);
+type ApprovedScholar = {
+	no: number;
+	lastName: string;
+	firstName: string;
+	middleInitial: string;
+};
+
+const search = ref("");
+const scholars = ref<ApprovedScholar[]>([]);
+
+const filteredScholars = computed(() => {
+	const query = search.value.trim().toLowerCase();
+
+	if (!query) return scholars.value;
+
+	return scholars.value.filter((scholar) =>
+		[scholar.lastName, scholar.firstName, scholar.middleInitial]
+			.join(" ")
+			.toLowerCase()
+			.includes(query),
+	);
+});
 
 const numberedScholars = computed(() =>
-	scholars.value.map((s, index) => ({
+	filteredScholars.value.map((scholar, index) => ({
+		...scholar,
 		no: index + 1,
-		...s,
 	})),
 );
 
-const columns: TableColumn<(typeof numberedScholars.value)[0]>[] = [
+const columns: TableColumn<ApprovedScholar>[] = [
 	{ accessorKey: "no", header: "No." },
 	{ accessorKey: "lastName", header: "Last Name" },
 	{ accessorKey: "firstName", header: "First Name" },
@@ -31,9 +45,8 @@ const columns: TableColumn<(typeof numberedScholars.value)[0]>[] = [
 </script>
 
 <template>
-	<div class="min-h-screen p-6 bg-slate-50 dark:bg-slate-900 flex justify-center">
+	<div class="flex min-h-screen justify-center bg-slate-50 p-6 dark:bg-slate-900">
 		<div class="w-full max-w-4xl space-y-6">
-			<!-- HEADER -->
 			<div
 				class="rounded-lg bg-emerald-50 p-4 ring-1 ring-emerald-100 dark:bg-emerald-950/30 dark:ring-emerald-900"
 			>
@@ -49,22 +62,57 @@ const columns: TableColumn<(typeof numberedScholars.value)[0]>[] = [
 						<h2 class="text-base font-semibold text-slate-900 dark:text-white">
 							Approved Scholars
 						</h2>
+
 						<p class="text-sm text-slate-500 dark:text-slate-400">
-							List of students currently approved for scholarship program
+							Students approved for scholarship programs.
 						</p>
 					</div>
 				</div>
 			</div>
 
-			<!-- TABLE CARD -->
 			<UCard
-				class="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm"
+				class="border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
 			>
+				<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<h3 class="font-semibold text-slate-900 dark:text-white">Approved Scholars List</h3>
+
+						<p class="text-sm text-slate-500 dark:text-slate-400">
+							{{ scholars.length }} approved scholars
+						</p>
+					</div>
+
+					<UInput
+						v-model="search"
+						icon="i-lucide-search"
+						placeholder="Search scholar..."
+						class="w-full sm:w-64"
+					/>
+				</div>
+
 				<UTable
 					:data="numberedScholars"
 					:columns="columns"
 					class="w-full"
 				/>
+
+				<div
+					v-if="numberedScholars.length === 0"
+					class="flex flex-col items-center justify-center gap-3 py-8"
+				>
+					<UIcon
+						name="i-lucide-clock"
+						class="size-10 text-slate-400"
+					/>
+
+					<p class="font-medium text-slate-700 dark:text-slate-200">
+						Approved scholar list unavailable
+					</p>
+
+					<p class="max-w-md text-center text-sm text-slate-500">
+						The public approved-scholar list is not yet available through the student API.
+					</p>
+				</div>
 			</UCard>
 		</div>
 	</div>

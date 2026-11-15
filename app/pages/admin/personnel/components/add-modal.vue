@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import z from "zod";
+import type { CreatePersonnel } from "~/types/personnel";
 
 const store = usePersonnelStore();
 const toast = useToast();
@@ -8,58 +9,53 @@ const emit = defineEmits<{ close: [boolean] }>();
 
 const errorMessage = ref("");
 
-const requiredString = (field: string) => z.string().trim().min(1, `${field} is required`);
+const requiredString = (field: string) => z.string().trim().min(1, `${field} is required`).max(100);
 
 const schema = z.object({
-	email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
-	password: z.string().min(6, "Password must be at least 6 characters"),
-
-	first_name: requiredString("First name"),
-	last_name: requiredString("Last name"),
-	middle_name: z.string().trim().optional(),
-
-	sex: z.enum(["male", "female"]),
-	position: requiredString("Position"),
+	email: z.email("Enter a valid email address"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+	firstName: requiredString("First name"),
+	lastName: requiredString("Last name"),
 	department: requiredString("Department"),
-
-	role: z.enum(["admin", "staff", "student"]), // ✅ FIXED
+	position: requiredString("Position"),
+	contactNumber: z.string().trim().max(50).optional(),
 });
+
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
 	email: "",
 	password: "",
-	first_name: "",
-	last_name: "",
-	middle_name: "",
-	sex: "male",
-	position: "",
+	firstName: "",
+	lastName: "",
 	department: "",
-	role: "staff",
+	position: "",
+	contactNumber: "",
 });
-
-const sexOptions = [
-	{ label: "Male", value: "male" },
-	{ label: "Female", value: "female" },
-];
-
-const roleOptions = [
-	{ label: "Admin", value: "admin" },
-	{ label: "Staff", value: "staff" },
-	{ label: "Student", value: "student" },
-];
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
 	errorMessage.value = "";
 
-	await store.addPersonnel(event.data);
+	const data = event.data;
 
-	if (store.errorMessage) {
-		errorMessage.value = store.errorMessage;
+	const payload: CreatePersonnel = {
+		email: data.email.trim(),
+		password: data.password,
+		firstName: data.firstName.trim(),
+		lastName: data.lastName.trim(),
+		department: data.department.trim(),
+		position: data.position.trim(),
+		contactNumber: data.contactNumber?.trim() || null,
+	};
+
+	const success = await store.addPersonnel(payload);
+
+	if (!success) {
+		errorMessage.value = store.errorMessage || "Failed to add personnel";
 
 		toast.add({
 			title: "Error",
-			description: store.errorMessage,
+			description: errorMessage.value,
 			color: "error",
 		});
 		return;
@@ -95,11 +91,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								Create personnel account
 							</h3>
 							<p class="text-sm text-slate-500 dark:text-slate-400">
-								Fill in the required details to add a personnel or admin user.
+								Fill in the required details to add a personnel account.
 							</p>
 						</div>
 					</div>
 				</div>
+
 				<UAlert
 					v-if="errorMessage"
 					icon="i-lucide-circle-alert"
@@ -125,6 +122,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								v-model="state.email"
 								class="w-full"
 								size="lg"
+								type="email"
 								icon="i-lucide-mail"
 								placeholder="user@school.edu"
 							/>
@@ -141,16 +139,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								size="lg"
 								type="password"
 								icon="i-lucide-lock"
-								placeholder="Minimum 6 characters"
+								placeholder="Minimum 8 characters"
 							/>
 						</UFormField>
 
 						<UFormField
 							label="First Name"
-							name="first_name"
+							name="firstName"
 						>
 							<UInput
-								v-model="state.first_name"
+								v-model="state.firstName"
 								class="w-full"
 								size="lg"
 								icon="i-lucide-user"
@@ -160,42 +158,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 						<UFormField
 							label="Last Name"
-							name="last_name"
+							name="lastName"
 						>
 							<UInput
-								v-model="state.last_name"
+								v-model="state.lastName"
 								class="w-full"
 								size="lg"
 								icon="i-lucide-user"
 								placeholder="Last name"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Middle Name"
-							name="middle_name"
-						>
-							<UInput
-								v-model="state.middle_name"
-								class="w-full"
-								size="lg"
-								icon="i-lucide-user-round"
-								placeholder="Optional"
-							/>
-						</UFormField>
-
-						<UFormField
-							label="Sex"
-							name="sex"
-						>
-							<USelect
-								v-model="state.sex"
-								class="w-full"
-								size="lg"
-								:items="sexOptions"
-								label-key="label"
-								value-key="value"
-								placeholder="Select sex"
 							/>
 						</UFormField>
 
@@ -226,18 +196,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 						</UFormField>
 
 						<UFormField
-							label="Role"
-							name="role"
+							label="Contact Number"
+							name="contactNumber"
 							class="sm:col-span-2"
 						>
-							<USelect
-								v-model="state.role"
+							<UInput
+								v-model="state.contactNumber"
 								class="w-full"
 								size="lg"
-								:items="roleOptions"
-								label-key="label"
-								value-key="value"
-								placeholder="Select role"
+								icon="i-lucide-phone"
+								placeholder="+639171234567 (Optional)"
 							/>
 						</UFormField>
 					</div>

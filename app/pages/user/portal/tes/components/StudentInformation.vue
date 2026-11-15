@@ -1,49 +1,100 @@
 <script setup lang="ts">
-import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
+import { computed, onMounted } from "vue";
+
+import { useTesScholarFormStore } from "~/stores/tes-form.store";
+import { useAuthStore } from "~/stores/auth.store";
+import { useCourseStore } from "~/stores/course.store";
 
 const formStore = useTesScholarFormStore();
+const authStore = useAuthStore();
+const courseStore = useCourseStore();
 
-const SEX_OPTIONS = ["Male", "Female"];
-const YEAR_OPTIONS = ["1", "2", "3", "4"];
+const SEX_OPTIONS = [
+	{ label: "Male", value: "male" },
+	{ label: "Female", value: "female" },
+];
 
-// LETTER ONLY
-const allowLetters = (e: KeyboardEvent) => {
-	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", " "];
-	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) {
+const YEAR_OPTIONS = [
+	{ label: "1", value: "1" },
+	{ label: "2", value: "2" },
+	{ label: "3", value: "3" },
+	{ label: "4", value: "4" },
+];
+
+const SECTOR_OPTIONS = [
+	{ label: "Public", value: "Public" },
+	{ label: "Private", value: "Private" },
+];
+
+const studentNumber = computed(() => authStore.currentAuth?.student?.studentNumber || "");
+
+const COURSE_OPTIONS = computed(() =>
+	courseStore.courses
+		.filter((course) => !!course.id)
+		.map((course) => ({
+			label: [course.abbreviation.toUpperCase(), course.major?.trim() ? `- ${course.major}` : ""]
+				.filter(Boolean)
+				.join(" "),
+			value: course.id,
+		})),
+);
+
+onMounted(async () => {
+	if (!courseStore.courses.length) {
+		await courseStore.getCourses({
+			page: 1,
+			perPage: 100,
+		});
+	}
+
+	if (studentNumber.value) {
+		formStore.student.studentId = studentNumber.value;
+	}
+});
+
+function allowLetters(e: KeyboardEvent) {
+	if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) {
+		return;
+	}
+
+	if (!/[A-Za-z\s]/.test(e.key)) {
 		e.preventDefault();
 	}
-};
+}
 
-// NUMBER ONLY
-const allowNumbers = (e: KeyboardEvent) => {
-	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
-	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
+function allowNumbers(e: KeyboardEvent) {
+	if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) {
+		return;
+	}
+
+	if (!/[0-9]/.test(e.key)) {
 		e.preventDefault();
 	}
-};
+}
 </script>
 
 <template>
 	<UForm class="space-y-6">
-		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-			<!-- STUDENT ID (HALF STACK) -->
+		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+			<!-- STUDENT NUMBER -->
 			<UFormField
-				label="Student ID"
-				class="sm:col-span-1"
+				label="Student Number"
+				required
 			>
 				<UInput
-					v-model="formStore.student.studentId"
+					:model-value="studentNumber"
 					icon="i-lucide-id-card"
-					placeholder="Student ID"
+					placeholder="Registered student number"
 					class="w-full"
-					@keydown="allowNumbers"
+					readonly
 				/>
 			</UFormField>
 
-			<!-- STUDENT GRADE -->
-
 			<!-- SEX -->
-			<UFormField label="Sex">
+			<UFormField
+				label="Sex"
+				required
+			>
 				<USelect
 					v-model="formStore.student.sex"
 					icon="i-lucide-user"
@@ -54,7 +105,10 @@ const allowNumbers = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- YEAR LEVEL -->
-			<UFormField label="Year Level">
+			<UFormField
+				label="Year Level"
+				required
+			>
 				<USelect
 					v-model="formStore.student.yearLevel"
 					icon="i-lucide-cog"
@@ -65,7 +119,10 @@ const allowNumbers = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- LAST NAME -->
-			<UFormField label="Last Name">
+			<UFormField
+				label="Last Name"
+				required
+			>
 				<UInput
 					v-model="formStore.student.lastName"
 					icon="i-lucide-user"
@@ -76,7 +133,10 @@ const allowNumbers = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- FIRST NAME -->
-			<UFormField label="First Name">
+			<UFormField
+				label="First Name"
+				required
+			>
 				<UInput
 					v-model="formStore.student.firstName"
 					icon="i-lucide-user-round"
@@ -91,7 +151,7 @@ const allowNumbers = (e: KeyboardEvent) => {
 				<UInput
 					v-model="formStore.student.middleName"
 					icon="i-lucide-user"
-					placeholder="Delapena"
+					placeholder="Santos"
 					class="w-full"
 					@keydown="allowLetters"
 				/>
@@ -108,7 +168,10 @@ const allowNumbers = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- BIRTHDATE -->
-			<UFormField label="Birthdate">
+			<UFormField
+				label="Birthdate"
+				required
+			>
 				<UInput
 					v-model="formStore.student.birthdate"
 					type="date"
@@ -117,7 +180,7 @@ const allowNumbers = (e: KeyboardEvent) => {
 				/>
 			</UFormField>
 
-			<!-- PROGRAM (FULL WIDTH) -->
+			<!-- PROGRAM -->
 			<UFormField
 				label="Program"
 				class="sm:col-span-2 md:col-span-3"
@@ -126,6 +189,114 @@ const allowNumbers = (e: KeyboardEvent) => {
 					v-model="formStore.student.program"
 					icon="i-lucide-graduation-cap"
 					placeholder="BS Information Technology"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- BIRTHPLACE -->
+			<UFormField
+				label="Birthplace"
+				required
+			>
+				<UInput
+					v-model="formStore.student.birthplace"
+					placeholder="City / Municipality of Birth"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- CITIZENSHIP -->
+			<UFormField
+				label="Citizenship"
+				required
+			>
+				<UInput
+					v-model="formStore.student.citizenship"
+					placeholder="Filipino"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- GWA -->
+			<UFormField
+				label="GWA"
+				required
+			>
+				<UInput
+					v-model="formStore.student.gwa"
+					placeholder="Enter GWA"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- NUMBER OF SIBLINGS -->
+			<UFormField
+				label="Number of Siblings"
+				required
+			>
+				<UInput
+					v-model="formStore.student.numberOfSiblings"
+					placeholder="0"
+					class="w-full"
+					@keydown="allowNumbers"
+				/>
+			</UFormField>
+
+			<!-- COURSE FROM BACKEND -->
+			<UFormField
+				label="Course"
+				required
+			>
+				<USelect
+					v-model="formStore.student.courseId"
+					:items="COURSE_OPTIONS"
+					icon="i-lucide-graduation-cap"
+					placeholder="Select your course"
+					class="w-full"
+					:loading="courseStore.isLoading"
+				/>
+				<p
+					v-if="courseStore.errorMessage"
+					class="mt-1 text-xs text-red-500"
+				>
+					{{ courseStore.errorMessage }}
+				</p>
+			</UFormField>
+
+			<!-- SCHOOL SECTOR -->
+			<UFormField
+				label="School Sector"
+				required
+			>
+				<USelect
+					v-model="formStore.student.schoolSector"
+					:items="SECTOR_OPTIONS"
+					placeholder="Select school sector"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- SCHOOL NAME -->
+			<UFormField
+				label="School Name"
+				required
+			>
+				<UInput
+					v-model="formStore.student.schoolName"
+					placeholder="Central Philippines State University"
+					class="w-full"
+				/>
+			</UFormField>
+
+			<!-- SCHOOL ADDRESS -->
+			<UFormField
+				label="School Address"
+				required
+				class="sm:col-span-2"
+			>
+				<UInput
+					v-model="formStore.student.schoolAddress"
+					placeholder="School address"
 					class="w-full"
 				/>
 			</UFormField>

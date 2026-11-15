@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import * as z from "zod";
+
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { useToast, useRouter } from "#imports";
+
 import { useAuthStore } from "~/stores/auth.store";
 
 definePageMeta({
@@ -9,7 +10,6 @@ definePageMeta({
 });
 
 const toast = useToast();
-const router = useRouter();
 const store = useAuthStore();
 
 const fields: AuthFormField[] = [
@@ -30,13 +30,16 @@ const fields: AuthFormField[] = [
 ];
 
 const schema = z.object({
-	studentNumber: z.string().min(1, "Student number is required"),
-	password: z.string().min(8, "Must be at least 8 characters"),
+	studentNumber: z.string().trim().min(1, "Student number is required"),
+
+	password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
+	if (store.isLoading) return;
+
 	const success = await store.loginStudent({
 		studentNumber: payload.data.studentNumber,
 		password: payload.data.password,
@@ -45,47 +48,63 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 	if (!success) {
 		toast.add({
 			title: "Login Failed",
-			description: store.errorMessage || "Invalid student credentials",
+			description: store.errorMessage || "Invalid student credentials.",
 			color: "error",
 		});
+
 		return;
 	}
 
-	await router.push("/user");
+	toast.add({
+		title: "Login Successful",
+		description: "Welcome to the Student Portal!",
+		color: "success",
+	});
+
+	await navigateTo("/user");
 }
 </script>
 
 <template>
-	<div class="flex flex-col items-center justify-center gap-4 p-4 min-h-screen bg-background">
+	<div class="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-4">
 		<UPageCard class="w-full max-w-md">
 			<UAuthForm
 				:schema="schema"
 				:fields="fields"
-				title="User Login"
-				description="Enter your credentials to access your account."
-				icon="i-lucide-user"
+				title="Student Login"
+				description="Enter your student number and password."
+				icon="i-lucide-graduation-cap"
 				:loading="store.isLoading"
 				@submit="onSubmit"
 			>
+				<template #validation>
+					<UAlert
+						v-if="store.errorMessage"
+						:title="store.errorMessage"
+						color="error"
+						icon="i-lucide-alert-circle"
+					/>
+				</template>
+
 				<template #submit>
-					<div class="flex justify-center mt-4">
-						<UButton
-							label="Sign in"
-							type="submit"
-							color="primary"
-							size="lg"
-							class="w-full flex justify-center items-center"
-							:loading="store.isLoading"
-						/>
-					</div>
+					<UButton
+						label="Sign In"
+						type="submit"
+						color="primary"
+						size="lg"
+						block
+						:loading="store.isLoading"
+						:disabled="store.isLoading"
+					/>
 				</template>
 			</UAuthForm>
 
 			<div class="mt-4 text-center text-sm text-muted">
 				Don't have an account?
+
 				<NuxtLink
 					to="/register"
-					class="text-primary font-medium hover:underline"
+					class="font-medium text-primary hover:underline"
 				>
 					Register here
 				</NuxtLink>
@@ -97,7 +116,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
 							size="sm"
 							icon="i-lucide-shield"
 						>
-							Admin Login
+							Admin / Personnel Login
 						</UButton>
 					</NuxtLink>
 				</div>

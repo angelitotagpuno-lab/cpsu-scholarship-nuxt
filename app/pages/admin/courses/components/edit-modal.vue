@@ -26,10 +26,10 @@ const state = reactive<Schema>({
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.editCourse(props.data.id ?? "", {
+	await store.editCourse(props.data.id, {
 		name: event.data.name.trim(),
-		abbreviation: event.data.abbreviation.trim(),
-		major: event.data.major?.trim() || "",
+		abbreviation: event.data.abbreviation.trim().toUpperCase(),
+		major: event.data.major?.trim() || null,
 	});
 
 	if (store.errorMessage) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
+import { useTesScholarFormStore } from "~/stores/tes-form.store";
 import z from "zod";
 
 const formStore = useTesScholarFormStore();

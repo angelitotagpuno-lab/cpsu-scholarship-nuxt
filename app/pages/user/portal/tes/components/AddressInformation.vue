@@ -1,55 +1,79 @@
 <script setup lang="ts">
-import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
-import { isRequired, isNumber } from "~/utils/validators";
+import { useTesScholarFormStore } from "~/stores/tes-form.store";
 
 const formStore = useTesScholarFormStore();
 
-// 🔒 STRICT NUMBERS ONLY (ZIP CODE)
-const allowNumbers = (e: KeyboardEvent) => {
-	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"];
+function allowNumbers(e: KeyboardEvent) {
+	if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) {
+		return;
+	}
 
-	if (!/[0-9]/.test(e.key) && !allowed.includes(e.key)) {
+	if (!/[0-9]/.test(e.key)) {
 		e.preventDefault();
 	}
-};
+}
 </script>
 
 <template>
-	<UForm
-		:state="formStore.address"
-		:validate-on="['input']"
-	>
-		<div class="space-y-5">
-			<!-- FULL ADDRESS -->
-			<UFormField
-				label="Full Address"
-				name="streetBarangay"
-				:rules="[isRequired]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.address.streetBarangay"
-					placeholder="Ex: Purok 5, Brgy. San Jose, San Carlos City"
-					class="w-full"
-					icon="i-lucide-map-pin"
-				/>
-			</UFormField>
+	<div class="space-y-5">
+		<h3 class="font-semibold">Permanent Address</h3>
 
-			<!-- ZIP CODE -->
-			<UFormField
-				label="Zip Code"
-				name="zipcode"
-				:rules="[isRequired, isNumber]"
-				validate-on="input"
-			>
-				<UInput
-					v-model="formStore.address.zipcode"
-					placeholder="Ex: 6100"
-					class="w-full"
-					icon="i-lucide-hash"
-					@keydown="allowNumbers"
-				/>
-			</UFormField>
-		</div>
-	</UForm>
+		<UFormField label="Street / Purok">
+			<UInput
+				v-model="formStore.address.street"
+				icon="i-lucide-map-pin"
+				placeholder="Purok 5"
+				class="w-full"
+			/>
+		</UFormField>
+
+		<UFormField
+			label="Barangay"
+			required
+		>
+			<UInput
+				v-model="formStore.address.barangay"
+				icon="i-lucide-map-pin"
+				placeholder="San Jose"
+				class="w-full"
+			/>
+		</UFormField>
+
+		<UFormField
+			label="City / Municipality"
+			required
+		>
+			<UInput
+				v-model="formStore.address.cityMunicipality"
+				icon="i-lucide-building-2"
+				placeholder="San Carlos City"
+				class="w-full"
+			/>
+		</UFormField>
+
+		<UFormField
+			label="Province"
+			required
+		>
+			<UInput
+				v-model="formStore.address.province"
+				icon="i-lucide-map"
+				placeholder="Negros Occidental"
+				class="w-full"
+			/>
+		</UFormField>
+
+		<UFormField
+			label="Zip Code"
+			required
+		>
+			<UInput
+				v-model="formStore.address.zipcode"
+				icon="i-lucide-hash"
+				placeholder="6127"
+				class="w-full"
+				@keydown="allowNumbers"
+			/>
+		</UFormField>
+	</div>
 </template>

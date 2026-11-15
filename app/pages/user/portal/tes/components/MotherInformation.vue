@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTesScholarFormStore } from "~/stores/TesScholarForm.store";
+import { useTesScholarFormStore } from "~/stores/tes-form.store";
 import { isRequired, isName, isNumber } from "~/utils/validators";
 
 const formStore = useTesScholarFormStore();
@@ -109,6 +109,22 @@ const allowNumbers = (e: KeyboardEvent) => {
 						placeholder="4000"
 						icon="i-lucide-wallet"
 						@keydown="allowNumbers"
+					/>
+				</UFormField>
+
+				<UFormField
+					label="Mother Status"
+					required
+				>
+					<USelect
+						v-model="formStore.mother.motherStatus"
+						:items="[
+							{ label: 'Living', value: 'living' },
+							{ label: 'Deceased', value: 'deceased' },
+							{ label: 'Unknown', value: 'unknown' },
+						]"
+						placeholder="Select mother status"
+						class="w-full"
 					/>
 				</UFormField>
 			</div>

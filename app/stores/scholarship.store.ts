@@ -1,9 +1,13 @@
 import { defineStore } from "pinia";
+import { ref, computed } from "vue";
 import { scholarshipService } from "~/services/scholarship.service";
+
 import type {
 	ScholarshipProgram,
 	CreateScholarshipProgramPayload,
 	UpdateScholarshipProgramPayload,
+	ScholarshipProgramQuery,
+	ScholarshipProgramMeta,
 } from "~/types/scholarship";
 
 export const useScholarshipStore = defineStore("scholarship", () => {
@@ -12,21 +16,37 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 	const loading = ref(false);
 	const error = ref<string | null>(null);
+	const meta = ref<ScholarshipProgramMeta | null>(null);
 
-	const activeItems = computed(() => items.value.filter((i) => i.is_active));
+	const activeItems = computed(() => items.value.filter((i) => !i.isArchived));
 
-	const inactiveItems = computed(() => items.value.filter((i) => !i.is_active));
+	const inactiveItems = computed(() => items.value.filter((i) => i.isArchived));
 
-	async function fetchAll() {
+	function handleError(e: unknown, fallback: string) {
+		console.error(fallback, e);
+
+		const err = e as {
+			data?: { message?: string; error?: string };
+			message?: string;
+		};
+
+		error.value = err.data?.message || err.data?.error || err.message || fallback;
+	}
+
+	async function fetchAll(query: ScholarshipProgramQuery = {}) {
 		loading.value = true;
 		error.value = null;
 
 		try {
-			const res = await scholarshipService.index();
+			const res = await scholarshipService.index(query);
+
 			items.value = res.data;
+			meta.value = res.meta;
+
+			return true;
 		} catch (e) {
-			error.value = "Failed to fetch scholarship programs";
-			console.error(e);
+			handleError(e, "Failed to fetch scholarship programs");
+			return false;
 		} finally {
 			loading.value = false;
 		}
@@ -38,10 +58,12 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 		try {
 			const res = await scholarshipService.show(id);
-			item.value = res.data;
+
+			item.value = res;
+			return res;
 		} catch (e) {
-			error.value = "Failed to fetch scholarship program";
-			console.error(e);
+			handleError(e, "Failed to fetch scholarship program");
+			return null;
 		} finally {
 			loading.value = false;
 		}
@@ -53,11 +75,15 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 		try {
 			const res = await scholarshipService.store(body);
-			item.value = res.data;
+
+			item.value = res;
+
 			await fetchAll();
+
+			return !error.value;
 		} catch (e) {
-			error.value = "Failed to create scholarship program";
-			console.error(e);
+			handleError(e, "Failed to create scholarship program");
+			return false;
 		} finally {
 			loading.value = false;
 		}
@@ -69,11 +95,15 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 		try {
 			const res = await scholarshipService.update(id, body);
-			item.value = res.data;
+
+			item.value = res;
+
 			await fetchAll();
+
+			return !error.value;
 		} catch (e) {
-			error.value = "Failed to update scholarship program";
-			console.error(e);
+			handleError(e, "Failed to update scholarship program");
+			return false;
 		} finally {
 			loading.value = false;
 		}
@@ -85,10 +115,17 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 
 		try {
 			await scholarshipService.destroy(id);
+
+			if (item.value?.id === id) {
+				item.value = null;
+			}
+
 			await fetchAll();
+
+			return !error.value;
 		} catch (e) {
-			error.value = "Failed to delete scholarship program";
-			console.error(e);
+			handleError(e, "Failed to delete scholarship program");
+			return false;
 		} finally {
 			loading.value = false;
 		}
@@ -99,6 +136,8 @@ export const useScholarshipStore = defineStore("scholarship", () => {
 		item,
 		loading,
 		error,
+		meta,
+
 		activeItems,
 		inactiveItems,
 

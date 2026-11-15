@@ -1,7 +1,7 @@
 import type {
 	Auth,
-	AuthMeResponse,
 	AuthResponse,
+	AuthMeResponse,
 	StudentLogin,
 	StudentRegister,
 	StudentVerification,
@@ -11,7 +11,7 @@ const api = () => {
 	const config = useRuntimeConfig();
 
 	return {
-		baseURL: config.public.baseUrl,
+		baseURL: config.public.baseUrl as string,
 		credentials: "include" as const,
 	};
 };
@@ -36,7 +36,9 @@ function verifyStudent(studentNumber: string): Promise<StudentVerification> {
 	return $fetch("/api/v1/auth/student/verify", {
 		...api(),
 		method: "GET",
-		query: { studentNumber },
+		query: {
+			studentNumber,
+		},
 	});
 }
 
@@ -48,7 +50,7 @@ function registerStudent(body: StudentRegister): Promise<AuthResponse> {
 	});
 }
 
-function logout(): Promise<unknown> {
+function logout(): Promise<{ success: boolean }> {
 	return $fetch("/api/v1/auth/logout", {
 		...api(),
 		method: "POST",

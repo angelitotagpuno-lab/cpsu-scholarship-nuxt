@@ -1,16 +1,42 @@
 <script setup lang="ts">
-import { useApplicationStore } from "~/stores/application.store";
+import { computed, onMounted } from "vue";
+import { useTdpFormStore } from "~/stores/tdp-form.store";
+import { useCourseStore } from "~/stores/course.store";
 
-const store = useApplicationStore();
+const store = useTdpFormStore();
+const courseStore = useCourseStore();
 
 const SECTOR_OPTIONS = [
 	{ label: "Public", value: "Public" },
 	{ label: "Private", value: "Private" },
 ];
 
+onMounted(async () => {
+	if (!courseStore.courses.length) {
+		await courseStore.getCourses({
+			page: 1,
+			perPage: 100,
+		});
+	}
+});
+
+const COURSE_OPTIONS = computed(() =>
+	courseStore.courses
+		.filter((course) => !!course.id)
+		.map((course) => ({
+			label: [course.abbreviation.toUpperCase(), course.major?.trim() ? `- ${course.major}` : ""]
+				.filter(Boolean)
+				.join(" "),
+			value: course.id,
+		})),
+);
+
 const allowLetters = (e: KeyboardEvent) => {
 	const allowed = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", " "];
-	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key)) e.preventDefault();
+
+	if (!/[A-Za-z\s]/.test(e.key) && !allowed.includes(e.key) && !e.ctrlKey && !e.metaKey) {
+		e.preventDefault();
+	}
 };
 </script>
 
@@ -20,15 +46,17 @@ const allowLetters = (e: KeyboardEvent) => {
 		<div class="flex items-center gap-2">
 			<UIcon
 				name="i-lucide-graduation-cap"
-				class="text-emerald-600 size-5"
+				class="size-5 text-emerald-600"
 			/>
+
 			<h2 class="text-lg font-semibold">School Information</h2>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-			<!-- SCHOOL NAME (FULL WIDTH) -->
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+			<!-- SCHOOL NAME -->
 			<UFormField
 				label="School Name"
+				required
 				class="md:col-span-3"
 			>
 				<UInput
@@ -40,9 +68,10 @@ const allowLetters = (e: KeyboardEvent) => {
 				/>
 			</UFormField>
 
-			<!-- SCHOOL ADDRESS (FULL WIDTH) -->
+			<!-- SCHOOL ADDRESS -->
 			<UFormField
 				label="School Address"
+				required
 				class="md:col-span-3"
 			>
 				<UInput
@@ -64,27 +93,47 @@ const allowLetters = (e: KeyboardEvent) => {
 			</UFormField>
 
 			<!-- SCHOOL SECTOR -->
-			<UFormField label="School Sector">
+			<UFormField
+				label="School Sector"
+				required
+			>
 				<USelect
 					v-model="store.item.profile.school.schoolSector"
 					:items="SECTOR_OPTIONS"
-					option-attribute="label"
-					value-attribute="value"
 					placeholder="Select sector"
 					icon="i-lucide-building"
 					class="w-full"
 				/>
 			</UFormField>
 
-			<!-- COURSE -->
-			<UFormField label="Course">
-				<UInput
+			<!-- COURSE DROPDOWN -->
+			<UFormField
+				label="Course"
+				required
+			>
+				<USelect
 					v-model="store.item.profile.courseId"
+					:items="COURSE_OPTIONS"
+					:loading="courseStore.isLoading"
+					:disabled="courseStore.isLoading"
 					icon="i-lucide-book-open"
-					placeholder="Enter course"
+					placeholder="Select Course"
 					class="w-full"
-					@keydown="allowLetters"
 				/>
+
+				<p
+					v-if="courseStore.errorMessage"
+					class="mt-1 text-xs text-red-500"
+				>
+					{{ courseStore.errorMessage }}
+				</p>
+
+				<p
+					v-else-if="!courseStore.isLoading && COURSE_OPTIONS.length === 0"
+					class="mt-1 text-xs text-amber-500"
+				>
+					No courses available.
+				</p>
 			</UFormField>
 		</div>
 	</UForm>

@@ -1,20 +1,20 @@
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import { h, resolveComponent, computed, ref, onMounted, watch } from "vue";
+import { h, resolveComponent, computed, ref, onMounted } from "vue";
 
 import type { ScholarshipProgram } from "~/types/scholarship";
 import type { ScholarshipOffering } from "~/types/scholarship-offering";
 
-import { useScholarshipOfferingStore } from "~/stores/scholarship-offering.store";
 import { useScholarshipStore } from "~/stores/scholarship.store";
-
-import AddOfferingModal from "./offerings/components/add-modal.vue";
-import EditOfferingModal from "./offerings/components/edit-modal.vue";
+import { useScholarshipOfferingStore } from "~/stores/scholarship-offering.store";
 
 import AddModal from "./components/add-modal.vue";
 import EditModal from "./components/edit-modal.vue";
 import DeleteModal from "./components/delete-modal.vue";
+
+import AddOfferingModal from "./offerings/components/add-modal.vue";
+import EditOfferingModal from "./offerings/components/edit-modal.vue";
+import DeleteOfferingModal from "./offerings/components/delete-modal.vue";
 
 definePageMeta({ layout: "admin" });
 
@@ -22,146 +22,161 @@ const store = useScholarshipStore();
 const offeringStore = useScholarshipOfferingStore();
 const overlay = useOverlay();
 
-// modals
+// PROGRAM MODALS
 const addModal = overlay.create(AddModal);
 const editModal = overlay.create(EditModal);
 const deleteModal = overlay.create(DeleteModal);
 
+// OFFERING MODALS
 const addOfferingModal = overlay.create(AddOfferingModal);
 const editOfferingModal = overlay.create(EditOfferingModal);
+const deleteOfferingModal = overlay.create(DeleteOfferingModal);
 
-// selected program
+// SELECTED PROGRAM
 const selectedProgram = ref<ScholarshipProgram | null>(null);
 
 /* =========================
    PROGRAM ACTIONS
 ========================= */
+
 async function openAdd() {
 	const res = await addModal.open();
-	if (res) await store.fetchAll();
+
+	if (res) {
+		await store.fetchAll();
+	}
 }
 
 async function openEdit(program: ScholarshipProgram) {
 	const res = await editModal.open({ data: program });
-	if (res) await store.fetchAll();
+
+	if (res) {
+		await store.fetchAll();
+
+		if (selectedProgram.value?.id === program.id) {
+			selectedProgram.value = store.items.find((p) => p.id === program.id) ?? selectedProgram.value;
+		}
+	}
 }
 
 async function openDelete(program: ScholarshipProgram) {
 	const res = await deleteModal.open({ data: program });
-	if (res) await store.fetchAll();
+
+	if (res) {
+		if (selectedProgram.value?.id === program.id) {
+			selectedProgram.value = null;
+		}
+
+		await store.fetchAll();
+	}
 }
 
 /* =========================
-   PROGRAM SELECT + DEBUG
+   SELECT PROGRAM
 ========================= */
+
 async function selectProgram(program: ScholarshipProgram) {
 	selectedProgram.value = program;
 
-	console.log("🚀 SELECTED PROGRAM:", program);
-
 	await offeringStore.getOfferings();
 
-	console.log("📦 RAW OFFERINGS FROM STORE:", offeringStore.offerings);
-
-	// 🔍 row-level debug (VERY IMPORTANT)
-	offeringStore.offerings.forEach((o: any, i: number) => {
-		console.log(`ROW ${i}:`, {
-			academicYear: o.academicYear,
-			allocatedBudget: o.allocatedBudget,
-			availableSlots: o.availableSlots,
-			raw: o,
-		});
-	});
+	console.log("Selected Program:", program);
+	console.log("Offerings:", offeringStore.offerings);
 }
-
-/* =========================
-   WATCH DEBUG
-========================= */
-watch(selectedProgram, (val) => {
-	console.log("🎯 Selected Program Changed:", val);
-});
 
 /* =========================
    OFFERING ACTIONS
 ========================= */
+
 async function openAddOffering() {
 	if (!selectedProgram.value) return;
 
-	await addOfferingModal.open({
+	const res = await addOfferingModal.open({
 		programId: selectedProgram.value.id,
-		onClose: async (res: boolean) => {
-			if (res) await offeringStore.getOfferings();
-		},
 	});
+
+	if (res) {
+		await offeringStore.getOfferings();
+	}
 }
 
-async function openEditOffering(offering: any) {
-	console.log("✏️ RAW CLICKED OFFERING:", offering);
-
-	await editOfferingModal.open({
-		data: {
-			id: offering.id,
-			programId: offering.programId,
-
-			academicYear: offering.academicYear,
-			semester: offering.semester,
-
-			allocatedBudget: offering.allocatedBudget,
-			availableSlots: offering.availableSlots,
-
-			status: offering.status,
-		},
-
-		onClose: async (res: boolean) => {
-			if (res) await offeringStore.getOfferings();
-		},
+async function openEditOffering(offering: ScholarshipOffering) {
+	const res = await editOfferingModal.open({
+		data: offering,
 	});
+
+	if (res) {
+		await offeringStore.getOfferings();
+	}
+}
+
+async function openDeleteOffering(offering: ScholarshipOffering) {
+	const res = await deleteOfferingModal.open({
+		data: offering,
+	});
+
+	if (res) {
+		await offeringStore.getOfferings();
+	}
 }
 
 /* =========================
-   FILTERED OFFERINGS + DEBUG
+   FILTERED OFFERINGS
 ========================= */
+
 const filteredOfferings = computed<ScholarshipOffering[]>(() => {
 	if (!selectedProgram.value) return [];
 
-	const list = Array.isArray(offeringStore.offerings) ? offeringStore.offerings : [];
-
-	return list
-		.filter((o: any) => {
-			return (
-				o.program_id === selectedProgram.value!.id || o.programId === selectedProgram.value!.id
-			);
-		})
-		.map(
-			(o: any): ScholarshipOffering => ({
-				id: o.id,
-				programId: o.program_id,
-
-				// 🔥 KEEP SAME SHAPE AS TYPE
-				academicYear: o.academic_year,
-				semester: o.semester,
-
-				allocatedBudget: Number(o.allocated_budget),
-				availableSlots: Number(o.available_slots),
-
-				status: o.status,
-			}),
-		);
+	return offeringStore.offerings.filter(
+		(offering) => offering.scholarshipProgramId === selectedProgram.value?.id,
+	);
 });
+
+/* =========================
+   CURRENCY FORMATTER
+========================= */
+
+function formatCurrency(value: string | number): string {
+	return new Intl.NumberFormat("en-PH", {
+		style: "currency",
+		currency: "PHP",
+	}).format(Number(value));
+}
 
 /* =========================
    PROGRAM TABLE
 ========================= */
-const columns: TableColumn<ScholarshipProgram>[] = [
-	{ accessorKey: "code", header: "Code" },
-	{ accessorKey: "name", header: "Name" },
-	{ accessorKey: "default_amount_per_semester", header: "Amount" },
 
+const columns: TableColumn<ScholarshipProgram>[] = [
 	{
-		accessorKey: "is_active",
+		accessorKey: "name",
+		header: "Name",
+	},
+	{
+		accessorKey: "description",
+		header: "Description",
+		cell: ({ row }) => row.original.description || "—",
+	},
+	{
+		accessorKey: "createdAt",
+		header: "Created At",
+		cell: ({ row }) => {
+			const date = row.original.createdAt;
+
+			if (!date) return "—";
+
+			return new Date(date).toLocaleDateString("en-PH", {
+				year: "numeric",
+				month: "short",
+				day: "numeric",
+			});
+		},
+	},
+	{
+		accessorKey: "isArchived",
 		header: "Status",
 		cell: ({ row }) => {
-			const active = row.getValue("is_active") as boolean;
+			const active = !row.original.isArchived;
 
 			return h(
 				"span",
@@ -170,16 +185,15 @@ const columns: TableColumn<ScholarshipProgram>[] = [
 						? "px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700"
 						: "px-2 py-1 text-xs rounded bg-red-100 text-red-700",
 				},
-				active ? "ACTIVE" : "INACTIVE",
+				active ? "ACTIVE" : "ARCHIVED",
 			);
 		},
 	},
-
 	{
 		id: "actions",
 		header: "Actions",
 		cell: ({ row }) => {
-			const p = row.original;
+			const program = row.original;
 
 			return h("div", { class: "flex gap-2" }, [
 				h(
@@ -188,7 +202,7 @@ const columns: TableColumn<ScholarshipProgram>[] = [
 						size: "sm",
 						color: "primary",
 						variant: "soft",
-						onClick: () => openEdit(p),
+						onClick: () => openEdit(program),
 					},
 					() => "Edit",
 				),
@@ -198,7 +212,7 @@ const columns: TableColumn<ScholarshipProgram>[] = [
 						size: "sm",
 						color: "error",
 						variant: "soft",
-						onClick: () => openDelete(p),
+						onClick: () => openDelete(program),
 					},
 					() => "Delete",
 				),
@@ -208,7 +222,7 @@ const columns: TableColumn<ScholarshipProgram>[] = [
 						size: "sm",
 						color: "neutral",
 						variant: "soft",
-						onClick: () => selectProgram(p),
+						onClick: () => selectProgram(program),
 					},
 					() => "View Offerings",
 				),
@@ -218,56 +232,58 @@ const columns: TableColumn<ScholarshipProgram>[] = [
 ];
 
 /* =========================
-   OFFERING TABLE (DEBUG FIXED)
+   OFFERING TABLE
 ========================= */
+
 const offeringColumns: TableColumn<ScholarshipOffering>[] = [
 	{
-		header: "AY",
-		cell: ({ row }) => {
-			console.log("AY ROW:", row.original);
-			return row.original.academicYear;
-		},
+		accessorKey: "schoolYear",
+		header: "School Year",
 	},
 	{
-		header: "Sem",
-		cell: ({ row }) => row.original.semester,
+		accessorKey: "totalBudget",
+		header: "Total Budget",
+		cell: ({ row }) => formatCurrency(row.original.totalBudget),
 	},
 	{
-		header: "Budget",
-		cell: ({ row }) => {
-			console.log("💰 BUDGET:", row.original.allocatedBudget);
-			return row.original.allocatedBudget;
-		},
+		accessorKey: "amountPerSemester",
+		header: "Per Semester",
+		cell: ({ row }) => formatCurrency(row.original.amountPerSemester),
 	},
 	{
-		header: "Slots",
-		cell: ({ row }) => {
-			console.log("🎯 SLOTS:", row.original.availableSlots);
-			return row.original.availableSlots ?? 0;
-		},
+		accessorKey: "pwdAdditional",
+		header: "PWD Additional",
+		cell: ({ row }) => formatCurrency(row.original.pwdAdditional),
 	},
-
 	{
+		accessorKey: "isActive",
 		header: "Status",
 		cell: ({ row }) => {
-			const status = row.original.status;
+			const offering = row.original;
 
-			const colorMap: Record<string, string> = {
-				draft: "bg-gray-100 text-gray-700",
-				open: "bg-emerald-100 text-emerald-700",
-				closed: "bg-yellow-100 text-yellow-700",
-				archived: "bg-red-100 text-red-700",
-			};
+			const label = offering.isArchived ? "ARCHIVED" : offering.isActive ? "ACTIVE" : "INACTIVE";
 
-			return h("div", { class: "flex items-center gap-2" }, [
-				h("span", { class: `px-2 py-1 text-xs rounded ${colorMap[status]}` }, status.toUpperCase()),
-			]);
+			const color = offering.isArchived
+				? "bg-red-100 text-red-700"
+				: offering.isActive
+					? "bg-emerald-100 text-emerald-700"
+					: "bg-gray-100 text-gray-700";
+
+			return h(
+				"span",
+				{
+					class: `px-2 py-1 text-xs rounded ${color}`,
+				},
+				label,
+			);
 		},
 	},
 	{
 		id: "actions",
 		header: "Actions",
 		cell: ({ row }) => {
+			const offering = row.original;
+
 			return h("div", { class: "flex gap-2" }, [
 				h(
 					resolveComponent("UButton"),
@@ -275,9 +291,19 @@ const offeringColumns: TableColumn<ScholarshipOffering>[] = [
 						size: "xs",
 						variant: "soft",
 						color: "primary",
-						onClick: () => openEditOffering(row.original),
+						onClick: () => openEditOffering(offering),
 					},
 					() => "Edit",
+				),
+				h(
+					resolveComponent("UButton"),
+					{
+						size: "xs",
+						variant: "soft",
+						color: "error",
+						onClick: () => openDeleteOffering(offering),
+					},
+					() => "Delete",
 				),
 			]);
 		},
@@ -285,10 +311,10 @@ const offeringColumns: TableColumn<ScholarshipOffering>[] = [
 ];
 
 /* =========================
-   INIT
+   INITIAL LOAD
 ========================= */
+
 onMounted(() => {
-	console.log("🚀 PAGE LOADED");
 	store.fetchAll();
 });
 </script>
@@ -322,7 +348,7 @@ onMounted(() => {
 			</div>
 		</div>
 
-		<!-- PROGRAMS SECTION -->
+		<!-- SCHOLARSHIP PROGRAMS -->
 		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
 			<div class="mb-4 flex items-center justify-between">
 				<div>
@@ -333,6 +359,16 @@ onMounted(() => {
 				</div>
 			</div>
 
+			<UAlert
+				v-if="store.error"
+				class="mb-4"
+				icon="i-lucide-circle-alert"
+				color="error"
+				variant="soft"
+				title="Scholarship Programs Error"
+				:description="store.error"
+			/>
+
 			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
 				<UTable
 					:data="store.items"
@@ -342,7 +378,7 @@ onMounted(() => {
 			</div>
 		</UCard>
 
-		<!-- OFFERINGS SECTION -->
+		<!-- OFFERINGS -->
 		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
@@ -350,7 +386,7 @@ onMounted(() => {
 
 					<span
 						v-if="selectedProgram"
-						class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+						class="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
 					>
 						{{ selectedProgram.name }}
 					</span>
@@ -367,15 +403,26 @@ onMounted(() => {
 				</UButton>
 			</div>
 
-			<!-- EMPTY STATE -->
+			<!-- OFFERING API ERROR -->
+			<UAlert
+				v-if="offeringStore.errorMessage"
+				class="mb-4"
+				icon="i-lucide-circle-alert"
+				color="error"
+				variant="soft"
+				title="Offering Error"
+				:description="offeringStore.errorMessage"
+			/>
+
+			<!-- NO PROGRAM SELECTED -->
 			<div
 				v-if="!selectedProgram"
-				class="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center text-sm text-slate-500"
+				class="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700"
 			>
 				Select a program to view its offerings
 			</div>
 
-			<!-- TABLE -->
+			<!-- OFFERINGS TABLE -->
 			<div
 				v-else
 				class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800"

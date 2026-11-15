@@ -7,21 +7,25 @@ const toast = useToast();
 const emit = defineEmits<{ close: [boolean] }>();
 
 const schema = z.object({
-	name: z.string("Name is required"),
-	abbreviation: z.string("Abbreviation is required"),
-	major: z.string().optional(),
+	name: z.string().trim().min(1, "Name is required"),
+	abbreviation: z.string().trim().min(1, "Abbreviation is required"),
+	major: z.string().trim().optional(),
 });
 
 type Schema = z.output<typeof schema>;
 
-const state = reactive<Partial<Schema>>({
+const state = reactive<Schema>({
 	name: "",
 	abbreviation: "",
 	major: "",
 });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-	await store.addCourse(event.data);
+	await store.addCourse({
+		name: event.data.name.trim(),
+		abbreviation: event.data.abbreviation.trim().toUpperCase(),
+		major: event.data.major?.trim() || null,
+	});
 
 	if (store.errorMessage) {
 		toast.add({

@@ -1,18 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-
-type Scholar = {
-	id: number;
-	no: number;
-	scholarshipType: "TDP" | "TES";
-	lastName: string;
-	firstName: string;
-	middleInitial: string;
-	course: string;
-	yearLevel: string;
-	semester: string;
-	enrolled: string;
-};
+import type { Scholar } from "~/types/scholar";
 
 const props = defineProps<{
 	show: boolean;
@@ -31,6 +19,7 @@ watch(
 	(newVal) => {
 		localScholar.value = newVal ? { ...newVal } : null;
 	},
+	{ immediate: true },
 );
 
 const STATUS_OPTIONS = ["Drop", "Enrolled", "Not Enrolled", "Stop"];
@@ -39,9 +28,9 @@ const YEAR_LEVELS = ["1", "2", "3", "4"];
 const SEMESTERS = ["1st", "2nd"];
 
 function save() {
-	if (localScholar.value) {
-		emit("save", localScholar.value);
-	}
+	if (!localScholar.value) return;
+
+	emit("save", { ...localScholar.value });
 }
 </script>
 
