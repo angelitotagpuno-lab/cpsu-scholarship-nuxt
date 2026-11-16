@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useAdminApplicationStore } from "~/stores/application.store";
+import { useScholarshipStore } from "~/stores/scholarship.store";
 import ApplicantRecommendations from "./components/ApplicantsRecommendations.vue";
 
 definePageMeta({
@@ -8,9 +9,16 @@ definePageMeta({
 });
 
 const store = useAdminApplicationStore();
+const scholarshipStore = useScholarshipStore();
 
 onMounted(async () => {
-	await store.fetchApplications();
+	await Promise.all([
+		store.fetchApplications(),
+		scholarshipStore.fetchAll({
+			page: 1,
+			perPage: 100,
+		}),
+	]);
 });
 </script>
 
@@ -38,13 +46,21 @@ onMounted(async () => {
 		<UAlert
 			v-if="store.errorMessage"
 			title="Unable to load applicants"
-			description="We couldn't retrieve the applicant records. Please try again."
+			:description="store.errorMessage"
+			color="warning"
+			variant="soft"
+		/>
+
+		<UAlert
+			v-if="scholarshipStore.error"
+			title="Unable to load scholarship programs"
+			:description="scholarshipStore.error"
 			color="warning"
 			variant="soft"
 		/>
 
 		<div
-			v-if="store.isLoading"
+			v-if="store.isLoading || scholarshipStore.loading"
 			class="flex items-center justify-center gap-3 py-12"
 		>
 			<UIcon
@@ -57,6 +73,7 @@ onMounted(async () => {
 		<ApplicantRecommendations
 			v-else-if="!store.errorMessage"
 			:applications="store.items"
+			:scholarship-programs="scholarshipStore.items"
 		/>
 
 		<p class="text-xs text-slate-500">
