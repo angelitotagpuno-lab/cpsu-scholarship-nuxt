@@ -2,22 +2,28 @@
 import { computed, onMounted, ref } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { useAdminApplicationStore } from "~/stores/application.store";
+import { useScholarshipStore } from "~/stores/scholarship.store";
 import type { Application } from "~/types/application";
 
 definePageMeta({ layout: "admin" });
 
+type ApplicantTab = "overall" | "tdp" | "tes";
+type ActionType = "accept" | "reject" | "delete" | "bulk";
+
 const store = useAdminApplicationStore();
+const scholarshipStore = useScholarshipStore();
 const toast = useToast();
 
+const activeTab = ref<ApplicantTab>("overall");
 const selected = ref<Application | null>(null);
 const showModal = ref(false);
 const search = ref("");
 const selectedIds = ref<string[]>([]);
-
-const confirmAction = ref<"accept" | "reject" | "delete" | "bulk" | null>(null);
+const confirmAction = ref<ActionType | null>(null);
 
 const columns: TableColumn<Application>[] = [
 	{ accessorKey: "firstName", header: "Name" },
+	{ id: "program", header: "Scholarship Program" },
 	{ accessorKey: "course", header: "Course" },
 	{ accessorKey: "yearLevel", header: "Year Level" },
 	{ accessorKey: "status", header: "Status" },
@@ -28,7 +34,58 @@ const totalRecords = computed(() => store.meta?.total ?? 0);
 const currentPage = computed(() => store.meta?.page ?? 1);
 const totalPages = computed(() => store.meta?.totalPages ?? 0);
 
-const pendingApplications = computed(() => store.items.filter((app) => app.status === "pending"));
+// Match program ID from the application's offering.
+function getProgramName(app: Application): string {
+	const embeddedName = app.offering?.scholarshipProgram?.name;
+
+	if (embeddedName) return embeddedName;
+
+	const programId = app.offering?.scholarshipProgramId;
+
+	if (!programId) return "Unknown";
+
+	const program = scholarshipStore.items.find((item) => item.id === programId);
+
+	return program?.name ?? "Unknown";
+}
+
+function getProgramType(app: Application): "tdp" | "tes" | "unknown" {
+	const name = getProgramName(app).toLowerCase().trim();
+
+	if (name === "tdp" || name.includes("tulong dunong")) {
+		return "tdp";
+	}
+
+	if (name === "tes" || name.includes("tertiary education subsidy")) {
+		return "tes";
+	}
+
+	return "unknown";
+}
+
+// These filters operate on the current API page.
+const tdpApplications = computed(() => store.items.filter((app) => getProgramType(app) === "tdp"));
+
+const tesApplications = computed(() => store.items.filter((app) => getProgramType(app) === "tes"));
+
+const unknownApplications = computed(() =>
+	store.items.filter((app) => getProgramType(app) === "unknown"),
+);
+
+const filteredApplications = computed(() => {
+	switch (activeTab.value) {
+		case "tdp":
+			return tdpApplications.value;
+		case "tes":
+			return tesApplications.value;
+		default:
+			return store.items;
+	}
+});
+
+const pendingApplications = computed(() =>
+	filteredApplications.value.filter((app) => app.status === "pending"),
+);
 
 const allPendingSelected = computed(
 	() =>
@@ -36,7 +93,52 @@ const allPendingSelected = computed(
 		pendingApplications.value.every((app) => selectedIds.value.includes(app.id)),
 );
 
-onMounted(() => store.fetchApplications());
+const tabTitle = computed(() => {
+	switch (activeTab.value) {
+		case "tdp":
+			return "TDP Applicants";
+		case "tes":
+			return "TES Applicants";
+		default:
+			return "All Scholarship Applicants";
+	}
+});
+
+const tabs = computed(() => [
+	{
+		value: "overall" as const,
+		label: "Overall Applicants",
+		count: store.items.length,
+	},
+	{
+		value: "tdp" as const,
+		label: "TDP Applicants",
+		count: tdpApplications.value.length,
+	},
+	{
+		value: "tes" as const,
+		label: "TES Applicants",
+		count: tesApplications.value.length,
+	},
+]);
+
+onMounted(async () => {
+	const results = await Promise.all([
+		store.fetchApplications(),
+		scholarshipStore.fetchAll({
+			page: 1,
+			perPage: 100,
+		}),
+	]);
+
+	if (!results[1]) {
+		toast.add({
+			title: "Unable to load scholarship programs",
+			description: scholarshipStore.error ?? "Some applicants may have an unknown program.",
+			color: "warning",
+		});
+	}
+});
 
 function fullName(app: Application) {
 	return [app.firstName, app.middleName, app.lastName, app.extName].filter(Boolean).join(" ");
@@ -54,6 +156,22 @@ function getStatusColor(status: string) {
 		default:
 			return "neutral";
 	}
+}
+
+function getProgramColor(app: Application) {
+	switch (getProgramType(app)) {
+		case "tdp":
+			return "info";
+		case "tes":
+			return "success";
+		default:
+			return "neutral";
+	}
+}
+
+function changeTab(tab: ApplicantTab) {
+	activeTab.value = tab;
+	selectedIds.value = [];
 }
 
 async function openView(app: Application) {
@@ -131,9 +249,22 @@ async function changePage(page: number) {
 	await store.fetchApplications();
 }
 
+async function refreshApplications() {
+	selectedIds.value = [];
+	await Promise.all([
+		store.fetchApplications(),
+		scholarshipStore.fetchAll({
+			page: 1,
+			perPage: 100,
+		}),
+	]);
+}
+
 function toggleSelected(id: string, checked: boolean) {
 	if (checked) {
-		if (!selectedIds.value.includes(id)) selectedIds.value.push(id);
+		if (!selectedIds.value.includes(id)) {
+			selectedIds.value.push(id);
+		}
 	} else {
 		selectedIds.value = selectedIds.value.filter((value) => value !== id);
 	}
@@ -156,27 +287,53 @@ function toggleAll(checked: boolean) {
 				<div>
 					<h1 class="text-xl font-bold text-slate-900 dark:text-white">Applicants</h1>
 					<p class="text-sm text-slate-500 dark:text-slate-400">
-						View and manage scholarship applications
+						View and manage TDP and TES scholarship applications
 					</p>
 				</div>
 			</div>
+		</div>
+
+		<!-- PROGRAM FILTER TABS -->
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+			<UButton
+				v-for="tab in tabs"
+				:key="tab.value"
+				:color="activeTab === tab.value ? 'primary' : 'neutral'"
+				:variant="activeTab === tab.value ? 'solid' : 'outline'"
+				size="lg"
+				block
+				class="justify-between"
+				@click="changeTab(tab.value)"
+			>
+				<span>{{ tab.label }}</span>
+
+				<UBadge
+					:color="activeTab === tab.value ? 'neutral' : 'primary'"
+					variant="soft"
+				>
+					{{ tab.count }}
+				</UBadge>
+			</UButton>
 		</div>
 
 		<!-- TABLE CARD -->
 		<UCard class="bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
 			<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h2 class="font-semibold text-slate-900 dark:text-white">Application List</h2>
+					<h2 class="font-semibold text-slate-900 dark:text-white">
+						{{ tabTitle }}
+					</h2>
+
 					<p class="text-sm text-slate-500 dark:text-slate-400">
-						TDP and TES applicants with status tracking
+						Showing {{ filteredApplications.length }} applicants on the current page
 					</p>
 				</div>
 
 				<UBadge
-					color="success"
+					color="primary"
 					variant="soft"
 				>
-					{{ totalRecords }} records
+					{{ totalRecords }} total records
 				</UBadge>
 			</div>
 
@@ -202,8 +359,8 @@ function toggleAll(checked: boolean) {
 					icon="i-lucide-refresh-cw"
 					color="neutral"
 					variant="outline"
-					:loading="store.isLoading"
-					@click="store.fetchApplications()"
+					:loading="store.isLoading || scholarshipStore.loading"
+					@click="refreshApplications"
 				/>
 
 				<UButton
@@ -223,6 +380,25 @@ function toggleAll(checked: boolean) {
 				class="mb-4"
 			/>
 
+			<UAlert
+				v-if="scholarshipStore.error"
+				title="Scholarship program error"
+				:description="scholarshipStore.error"
+				color="warning"
+				variant="soft"
+				class="mb-4"
+			/>
+
+			<UAlert
+				v-if="unknownApplications.length"
+				title="Unidentified scholarship programs"
+				:description="`${unknownApplications.length} application(s) on this page could not be matched to TDP or TES. They remain visible under Overall Applicants.`"
+				color="warning"
+				variant="soft"
+				class="mb-4"
+			/>
+
+			<!-- APPLICATION TABLE -->
 			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
 				<div
 					v-if="pendingApplications.length"
@@ -232,14 +408,15 @@ function toggleAll(checked: boolean) {
 						:model-value="allPendingSelected"
 						@update:model-value="toggleAll($event === true)"
 					/>
-					<span class="text-xs text-slate-500"> Select all pending applications on this page </span>
+
+					<span class="text-xs text-slate-500"> Select all pending applications in this view </span>
 				</div>
 
 				<UTable
-					:data="store.items"
+					:data="filteredApplications"
 					:columns="columns"
-					:loading="store.isLoading"
-					class="min-w-[700px]"
+					:loading="store.isLoading || scholarshipStore.loading"
+					class="min-w-[850px]"
 				>
 					<template #firstName-cell="{ row }">
 						<div class="flex items-center gap-3">
@@ -248,8 +425,18 @@ function toggleAll(checked: boolean) {
 								:model-value="selectedIds.includes(row.original.id)"
 								@update:model-value="toggleSelected(row.original.id, $event === true)"
 							/>
+
 							<span>{{ fullName(row.original) }}</span>
 						</div>
+					</template>
+
+					<template #program-cell="{ row }">
+						<UBadge
+							:color="getProgramColor(row.original)"
+							variant="soft"
+						>
+							{{ getProgramName(row.original) }}
+						</UBadge>
 					</template>
 
 					<template #course-cell="{ row }">
@@ -279,6 +466,13 @@ function toggleAll(checked: boolean) {
 						/>
 					</template>
 				</UTable>
+
+				<div
+					v-if="!store.isLoading && !scholarshipStore.loading && !filteredApplications.length"
+					class="p-8 text-center text-sm text-slate-500"
+				>
+					No applicants found in this view on the current page.
+				</div>
 			</div>
 
 			<!-- PAGINATION -->
@@ -296,6 +490,7 @@ function toggleAll(checked: boolean) {
 						:disabled="!store.meta?.hasPrev || store.isLoading"
 						@click="changePage(currentPage - 1)"
 					/>
+
 					<UButton
 						label="Next"
 						color="neutral"
@@ -317,17 +512,32 @@ function toggleAll(checked: boolean) {
 					v-if="selected"
 					class="max-h-[70vh] space-y-5 overflow-y-auto"
 				>
-					<div>
-						<h3 class="font-semibold">{{ fullName(selected) }}</h3>
-						<UBadge
-							:color="getStatusColor(selected.status)"
-							variant="soft"
-						>
-							{{ selected.status }}
-						</UBadge>
+					<div class="space-y-2">
+						<h3 class="font-semibold">
+							{{ fullName(selected) }}
+						</h3>
+
+						<div class="flex flex-wrap gap-2">
+							<UBadge
+								:color="getProgramColor(selected)"
+								variant="soft"
+							>
+								{{ getProgramName(selected) }}
+							</UBadge>
+
+							<UBadge
+								:color="getStatusColor(selected.status)"
+								variant="soft"
+							>
+								{{ selected.status }}
+							</UBadge>
+						</div>
 					</div>
 
+					<!-- STUDENT INFORMATION -->
 					<div class="space-y-2 text-sm">
+						<h3 class="font-semibold">Student Information</h3>
+
 						<p><b>Student ID:</b> {{ selected.studentId }}</p>
 						<p><b>Course:</b> {{ selected.course?.name || "N/A" }}</p>
 						<p><b>Year Level:</b> {{ selected.yearLevel || "N/A" }}</p>
@@ -342,14 +552,19 @@ function toggleAll(checked: boolean) {
 						<p><b>School Year:</b> {{ selected.offering?.schoolYear || "N/A" }}</p>
 					</div>
 
+					<!-- ADDRESSES -->
 					<div>
 						<h3 class="mb-2 font-semibold">Addresses</h3>
+
 						<div
 							v-for="(address, index) in selected.addresses ?? []"
 							:key="address.id ?? index"
 							class="mb-2 rounded-md bg-slate-50 p-3 text-sm dark:bg-slate-800"
 						>
-							<p class="font-medium capitalize">{{ address.type }}</p>
+							<p class="font-medium capitalize">
+								{{ address.type }}
+							</p>
+
 							<p>
 								{{
 									[
@@ -366,14 +581,19 @@ function toggleAll(checked: boolean) {
 						</div>
 					</div>
 
+					<!-- PARENTS -->
 					<div>
 						<h3 class="mb-2 font-semibold">Parents</h3>
+
 						<div
 							v-for="(parent, index) in selected.parents ?? []"
 							:key="parent.id ?? index"
 							class="mb-2 rounded-md bg-slate-50 p-3 text-sm dark:bg-slate-800"
 						>
-							<p class="font-medium capitalize">{{ parent.type }}</p>
+							<p class="font-medium capitalize">
+								{{ parent.type }}
+							</p>
+
 							<p>{{ parent.firstName }} {{ parent.lastName }}</p>
 							<p>Status: {{ parent.vitalStatus || "N/A" }}</p>
 							<p>Occupation: {{ parent.occupation || "N/A" }}</p>
@@ -381,6 +601,7 @@ function toggleAll(checked: boolean) {
 						</div>
 					</div>
 
+					<!-- ACTIONS -->
 					<div class="flex flex-wrap justify-end gap-2 border-t pt-4 dark:border-slate-800">
 						<UButton
 							label="Close"
@@ -388,18 +609,21 @@ function toggleAll(checked: boolean) {
 							variant="outline"
 							@click="showModal = false"
 						/>
+
 						<UButton
 							label="Delete"
 							color="error"
 							variant="soft"
 							@click="requestAction('delete')"
 						/>
+
 						<template v-if="selected.status === 'pending' || selected.status === 'under_review'">
 							<UButton
 								label="Reject"
 								color="error"
 								@click="requestAction('reject')"
 							/>
+
 							<UButton
 								label="Accept"
 								color="success"
@@ -421,11 +645,12 @@ function toggleAll(checked: boolean) {
 				<div class="space-y-5">
 					<p class="text-sm text-slate-600 dark:text-slate-300">
 						Are you sure you want to
-						<strong>{{
-							confirmAction === "bulk"
-								? "accept the selected applications"
-								: confirmAction + " this application"
-						}}</strong>?
+						<strong>
+							{{
+								confirmAction === "bulk"
+									? "accept the selected applications"
+									: confirmAction + " this application"
+							}} </strong>?
 					</p>
 
 					<p
@@ -443,6 +668,7 @@ function toggleAll(checked: boolean) {
 							:disabled="store.isSaving"
 							@click="confirmAction = null"
 						/>
+
 						<UButton
 							label="Confirm"
 							:color="

@@ -1,14 +1,52 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { Application } from "~/types/application";
+import type { ScholarshipProgram } from "~/types/scholarship";
 
 const props = defineProps<{
 	applications: Application[];
+	scholarshipPrograms: ScholarshipProgram[];
 }>();
 
 const program = ref<"TES" | "TDP">("TES");
 
-// Convert numeric strings safely
+function getProgramType(app: Application): "TES" | "TDP" | "UNKNOWN" {
+	const embeddedName = app.offering?.scholarshipProgram?.name;
+
+	const programId = app.offering?.scholarshipProgramId;
+
+	const matchedProgram = props.scholarshipPrograms.find((item) => item.id === programId);
+
+	const name = (embeddedName || matchedProgram?.name || "").trim().toLowerCase();
+
+	if (name === "tes" || name.includes("tertiary education subsidy")) {
+		return "TES";
+	}
+
+	if (name === "tdp" || name.includes("tulong dunong")) {
+		return "TDP";
+	}
+
+	return "UNKNOWN";
+}
+
+const tesApplications = computed(() =>
+	props.applications.filter((app) => getProgramType(app) === "TES"),
+);
+
+const tdpApplications = computed(() =>
+	props.applications.filter((app) => getProgramType(app) === "TDP"),
+);
+
+const unknownCount = computed(
+	() => props.applications.filter((app) => getProgramType(app) === "UNKNOWN").length,
+);
+
+const selectedApplications = computed(() =>
+	program.value === "TES" ? tesApplications.value : tdpApplications.value,
+);
+
+// Convert numeric strings safely.
 function numericValue(value: unknown): number | null {
 	if (typeof value !== "string" && typeof value !== "number") {
 		return null;
@@ -29,7 +67,7 @@ function numericValue(value: unknown): number | null {
 	return Number.isFinite(result) ? result : null;
 }
 
-// TES: lower GWA means better academic performance
+// TES: lower GWA means better academic performance.
 function getGwa(app: Application): number | null {
 	const gwa = numericValue(app.gwa);
 
@@ -40,7 +78,7 @@ function getGwa(app: Application): number | null {
 	return gwa;
 }
 
-// TDP: calculate reported total monthly parent income
+// TDP: calculate reported total monthly parent income.
 function getIncome(app: Application): number | null {
 	const parents = app.parents ?? [];
 
@@ -55,9 +93,10 @@ function getIncome(app: Application): number | null {
 	return incomes.reduce<number>((sum, income) => sum + (income ?? 0), 0);
 }
 
-// Rank pending applications by selected criterion
+// Only rank pending/under-review applicants from
+// the selected scholarship program.
 const ranked = computed(() => {
-	const pending = props.applications.filter(
+	const pending = selectedApplications.value.filter(
 		(app) => app.status === "pending" || app.status === "under_review",
 	);
 
@@ -100,7 +139,7 @@ function formatValue(value: number | null): string {
 
 <template>
 	<UCard>
-		<div class="space-y-4">
+		<div class="space-y-5">
 			<div>
 				<h2 class="text-lg font-bold">Applicant Review Recommendations</h2>
 
@@ -111,34 +150,93 @@ function formatValue(value: number | null): string {
 			</div>
 
 			<!-- PROGRAM SELECTION -->
-			<div class="flex flex-wrap gap-2">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<UButton
-					label="TES - Academic Performance"
+					color="primary"
 					:variant="program === 'TES' ? 'solid' : 'outline'"
+					size="lg"
+					block
+					class="justify-between"
 					@click="program = 'TES'"
-				/>
+				>
+					<span>TES - Academic Performance</span>
+
+					<UBadge
+						color="neutral"
+						variant="soft"
+					>
+						{{ tesApplications.length }}
+					</UBadge>
+				</UButton>
 
 				<UButton
-					label="TDP - Family Income"
+					color="primary"
 					:variant="program === 'TDP' ? 'solid' : 'outline'"
+					size="lg"
+					block
+					class="justify-between"
 					@click="program = 'TDP'"
-				/>
+				>
+					<span>TDP - Family Income</span>
+
+					<UBadge
+						color="neutral"
+						variant="soft"
+					>
+						{{ tdpApplications.length }}
+					</UBadge>
+				</UButton>
 			</div>
 
 			<UAlert
 				title="Preliminary review only"
-				description="Recommendations are based on available application data. Verify the scholarship program, supporting documents, and eligibility requirements before making a final decision."
+				description="Recommendations are based on available application data. Verify supporting documents and eligibility requirements before making a final decision."
 				color="info"
 				variant="soft"
 			/>
 
+			<UAlert
+				v-if="unknownCount > 0"
+				title="Unidentified scholarship programs"
+				:description="`${unknownCount} application(s) on the loaded page could not be identified as TES or TDP and are excluded from these tables.`"
+				color="warning"
+				variant="soft"
+			/>
+
+			<!-- SELECTED PROGRAM HEADER -->
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<h3 class="font-semibold">
+						{{
+							program === "TES" ? "TES Applicant Recommendations" : "TDP Applicant Recommendations"
+						}}
+					</h3>
+
+					<p class="text-xs text-slate-500">
+						{{
+							program === "TES"
+								? "Sorted by GWA, lowest first"
+								: "Sorted by reported monthly family income, lowest first"
+						}}
+					</p>
+				</div>
+
+				<UBadge
+					color="primary"
+					variant="soft"
+				>
+					{{ ranked.length }} for review
+				</UBadge>
+			</div>
+
 			<!-- RECOMMENDATION TABLE -->
-			<div class="overflow-x-auto">
+			<div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
 				<table class="w-full text-left text-sm">
-					<thead class="border-b dark:border-slate-700">
+					<thead class="border-b bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
 						<tr>
-							<th class="p-3">Review Order</th>
+							<th class="p-3">Ranking</th>
 							<th class="p-3">Applicant</th>
+							<th class="p-3">School Year</th>
 							<th class="p-3">
 								{{ program === "TES" ? "GWA" : "Monthly Income" }}
 							</th>
@@ -161,6 +259,10 @@ function formatValue(value: number | null): string {
 							</td>
 
 							<td class="p-3">
+								{{ entry.application.offering?.schoolYear || "N/A" }}
+							</td>
+
+							<td class="p-3">
 								{{ formatValue(entry.value) }}
 							</td>
 
@@ -176,10 +278,11 @@ function formatValue(value: number | null): string {
 
 						<tr v-if="!ranked.length">
 							<td
-								colspan="4"
+								colspan="5"
 								class="p-6 text-center text-slate-500"
 							>
-								No pending applications found.
+								No pending or under-review
+								{{ program }} applications found on this page.
 							</td>
 						</tr>
 					</tbody>
